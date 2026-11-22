@@ -18,10 +18,14 @@ export default tseslint.config(
   },
   js.configs.recommended,
   ...tseslint.configs.strict,
-  // Tests build deliberately broken inputs; `any` is allowed there.
+  // Tests build deliberately broken inputs and index into results they just built:
+  // `any` and `!` are allowed there (a wrong guess fails the test, which is the point).
   {
     files: ['**/*.test.ts'],
-    rules: { '@typescript-eslint/no-explicit-any': 'off' },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
+    },
   },
   {
     languageOptions: {

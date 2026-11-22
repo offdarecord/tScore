@@ -45,6 +45,23 @@ No native build tools are needed. Use Node.js 24 LTS (`.nvmrc`).
   means a new ADR in `docs/adr/`.
 - CI green on Windows.
 
+## Releasing (maintainers)
+
+Releases are cut with the `/cut-release` Claude Code skill
+([`.claude/skills/cut-release/SKILL.md`](.claude/skills/cut-release/SKILL.md)), which can also be
+followed by hand. In short:
+
+1. release-please keeps a release PR open (`chore(main): release X.Y.Z`). Only `feat:`, `fix:`,
+   `perf:` and `revert:` changes produce one.
+2. Just before releasing, reword its changelog entry for volunteers, in `CHANGELOG.md` and the
+   PR body. Pushing that change (or closing and reopening the PR) starts CI, which GitHub
+   doesn't run on bot-opened PRs.
+3. When CI is green, squash-merge it. CI builds the installer and attaches it to the GitHub
+   Release; check the release has the `.exe`, `.blockmap` and `latest.yml`.
+
+Version 1.0.0 is reserved for the first release that fully replaces spreadsheet scoring at a
+club event. Until then versions are 0.x.
+
 ## Privacy: never commit
 
 - Real entry lists, rider names, licence numbers, contact or medical details.

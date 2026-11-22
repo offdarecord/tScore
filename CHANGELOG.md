@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/offdarecord/tScore/compare/v0.1.0...v0.2.0) (2026-11-22)
+
+
+### Added
+
+* scoring and results engine ([#9](https://github.com/offdarecord/tScore/issues/9)) ([ea82a1a](https://github.com/offdarecord/tScore/commit/ea82a1a02bb600bdef663ed0429da67433abdb84))
+
 ## 0.1.0 (2026-11-22)
 
 

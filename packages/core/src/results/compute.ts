@@ -53,6 +53,8 @@ interface Scored {
   readonly total: number;
   readonly counts: Map<number, number>;
   readonly key: RankKey;
+  /** Every card in and every score decided, for every lap this class rides. */
+  readonly complete: boolean;
 }
 
 const cardKey = (number: number, day: number, lap: number) => `${number}:${day}:${lap}`;
@@ -67,6 +69,12 @@ const cardKey = (number: number, day: number, lap: number) => `${number}:${day}:
 export function computeResults(input: EventInput, options: ResultsOptions): ResultsReport {
   checkInput(input);
   const compare = makeComparator(input.scoring.tieBreaks, input.scoring.direction);
+  // DNF riders didn't ride every lap, so their totals aren't comparable: they're ordered by the
+  // remaining tie-breaks (most cleans first), as club scoring has always done.
+  const compareDnf = makeComparator(
+    input.scoring.tieBreaks.filter((t) => t !== 'total'),
+    input.scoring.direction,
+  );
   const scoreValues = new Set(input.scoring.scoreValues);
   const juniors = new Set(options.privacy?.juniorSurnameInitialClasses ?? []);
   const cards = new Map<string, CardInput>();
@@ -110,23 +118,39 @@ export function computeResults(input: EventInput, options: ResultsOptions): Resu
     const members = input.entries.filter((e) => e.classes.includes(cls.name));
     const scored = members.filter((e) => e.status !== 'dns').map((e) => scoreEntry(e, cls, days));
 
-    const group = (tier: Tier, status: 'riding' | 'dnf') =>
-      scored.filter((s) => s.entry.tier === tier && s.entry.status === status);
     const byNumber = (a: Scored, b: Scored) => a.entry.number - b.entry.number;
-    const ranked = (items: Scored[]) => rank(items, (s) => s.key, compare, byNumber);
+    const tiers = ['competitive', 'no_award', 'non_competitive'] as const;
+    const inTier = (tier: Tier, f: (s: Scored) => boolean) =>
+      scored.filter((s) => s.entry.tier === tier && f(s));
 
+    // Display order, matching club results (checked against past events' scoring workbooks).
+    // For each tier in turn (competitive, No award, Non-competitive):
+    //   1. riders still in with every card in, ranked by the full tie-breaks;
+    //   2. riders still in with a card missing or a score undecided (provisional results only),
+    //      ranked the same way on what's in so far;
+    //   3. DNF riders, ranked by the tie-breaks without the total (most cleans first), since
+    //      they didn't ride every lap.
+    // Then DNS riders, by number.
     const out: Entry[] = [];
-    for (const tier of ['competitive', 'no_award', 'non_competitive'] as const) {
-      for (const p of ranked(group(tier, 'riding'))) {
-        out.push(
-          entryOut(p.item, cls, {
-            position: tier === 'competitive' ? p.place : null,
-            rankInTier: tier === 'competitive' ? null : p.place,
-            tied: p.tiedWithPrevious,
-          }),
-        );
+    for (const tier of tiers) {
+      let placed = 0;
+      for (const complete of [true, false]) {
+        const group = inTier(tier, (s) => s.entry.status === 'riding' && s.complete === complete);
+        const ranked = rank(group, (s) => s.key, compare, byNumber);
+        for (const p of ranked) {
+          const place = placed + p.place;
+          out.push(
+            entryOut(p.item, cls, {
+              position: tier === 'competitive' ? place : null,
+              rankInTier: tier === 'competitive' ? null : place,
+              tied: p.tiedWithPrevious,
+            }),
+          );
+        }
+        placed += ranked.length;
       }
-      for (const p of ranked(group(tier, 'dnf'))) {
+      const dnf = inTier(tier, (s) => s.entry.status === 'dnf');
+      for (const p of rank(dnf, (s) => s.key, compareDnf, byNumber)) {
         out.push(entryOut(p.item, cls, { position: null, rankInTier: null, tied: false }));
       }
     }
@@ -151,6 +175,7 @@ export function computeResults(input: EventInput, options: ResultsOptions): Resu
 
   function scoreEntry(entry: EntryInput, cls: ClassInput, days: ClassDayInput[]): Scored {
     const counts = new Map<number, number>();
+    const gapsBefore = gaps.length;
     const entryDays: EntryDay[] = days.map((d) => {
       const laps: Lap[] = [];
       for (let lap = 1; lap <= d.laps; lap++) {
@@ -216,6 +241,7 @@ export function computeResults(input: EventInput, options: ResultsOptions): Resu
       total,
       counts,
       key: { total, counts, rideOff: entry.rideOff?.[cls.name] },
+      complete: gaps.length === gapsBefore,
     };
   }
 

@@ -1,0 +1,5 @@
+# Reviews required from maintainers for the scoring and vision engines and release plumbing.
+/packages/core/   @offdarecord
+/packages/vision/ @offdarecord
+/schemas/         @offdarecord
+/.github/         @offdarecord

@@ -1,0 +1,32 @@
+appId: io.github.offdarecord.tscore
+productName: tScore
+copyright: Copyright © 2026 tScore contributors
+directories:
+  output: release
+  buildResources: build
+files:
+  - out/**
+  - package.json
+  - '!**/*.map'
+extraResources:
+  - from: ../../LICENSE
+    to: LICENSE
+  - from: ../../NOTICE
+    to: NOTICE
+asar: true
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  artifactName: tScore-Setup-${version}.${ext}
+  # Code signing is added when the certificate is in place (ADR 0011).
+nsis:
+  oneClick: true
+  perMachine: false
+  deleteAppDataOnUninstall: false
+  shortcutName: tScore
+publish:
+  provider: github
+  owner: offdarecord
+  repo: tScore
+  releaseType: release

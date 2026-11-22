@@ -2,6 +2,7 @@ import { AppShell, Button, Center, Group, Modal, Stack, Text, Title, Anchor } fr
 import { useDisclosure } from '@mantine/hooks';
 import { useEffect, useState } from 'react';
 import type { AppInfo } from '../../shared/ipc';
+import { ComingSoonButton } from './ComingSoonButton';
 
 export function App() {
   const [info, setInfo] = useState<AppInfo | null>(null);
@@ -32,10 +33,8 @@ export function App() {
               tScore is in early development. Event setup, card scanning and results are on the way.
             </Text>
             <Group>
-              <Button disabled>New event</Button>
-              <Button variant="default" disabled>
-                Open event
-              </Button>
+              <ComingSoonButton>New event</ComingSoonButton>
+              <ComingSoonButton variant="default">Open event</ComingSoonButton>
             </Group>
           </Stack>
         </Center>

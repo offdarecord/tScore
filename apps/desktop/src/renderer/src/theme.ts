@@ -1,4 +1,14 @@
-import { createTheme } from '@mantine/core';
+import { createTheme, type CSSVariablesResolver } from '@mantine/core';
+
+/**
+ * Colour overrides that keep text at WCAG 2.2 AA contrast (4.5:1) or better. Mantine's default
+ * "dimmed" grey is about 3.3:1 on white, too faint for daylight in a tent.
+ */
+export const cssVariablesResolver: CSSVariablesResolver = () => ({
+  variables: {},
+  light: { '--mantine-color-dimmed': '#495057' },
+  dark: {},
+});
 
 /**
  * The one theme file (ADR 0009). High-contrast light by default, for daylight in tents.

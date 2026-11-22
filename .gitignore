@@ -31,3 +31,7 @@ Thumbs.db
 *.sqlite-wal
 *.sqlite-shm
 *.mp4
+
+# Playwright end-to-end output
+test-results/
+playwright-report/

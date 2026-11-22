@@ -30,12 +30,13 @@ npm install
 npm start
 ```
 
-| Command         | What it does                                             |
-| --------------- | -------------------------------------------------------- |
-| `npm start`     | Run the desktop app in development mode                  |
-| `npm test`      | Unit tests                                               |
-| `npm run check` | Lint, format check, type-check and tests (what CI runs)  |
-| `npm run dist`  | Build the Windows installer into `apps/desktop/release/` |
+| Command            | What it does                                                               |
+| ------------------ | -------------------------------------------------------------------------- |
+| `npm start`        | Run the desktop app in development mode                                    |
+| `npm test`         | Unit tests                                                                 |
+| `npm run test:e2e` | Launch the real app and click through it (Playwright, accessibility check) |
+| `npm run check`    | Lint, format check, type-check and tests (what CI runs)                    |
+| `npm run dist`     | Build the Windows installer into `apps/desktop/release/`                   |
 
 ### Layout
 

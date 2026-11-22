@@ -1,0 +1,51 @@
+name: New card type request
+description: Your club, state or country uses a different scorecard
+labels: [card-profile]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        tScore reads cards using a **card profile** (a data file). A maintainer turns this request into a profile with the `/add-card-profile` workflow.
+        **Photos must not show rider names.** Cover or remove any label, or use unlabelled cards.
+  - type: input
+    id: where
+    attributes:
+      label: Who uses this card?
+      placeholder: e.g. clubs in New South Wales
+    validations:
+      required: true
+  - type: input
+    id: size
+    attributes:
+      label: Card size (width × height, mm)
+      placeholder: e.g. 43 × 145
+    validations:
+      required: true
+  - type: input
+    id: rows
+    attributes:
+      label: Number of section rows
+      placeholder: e.g. 16
+    validations:
+      required: true
+  - type: input
+    id: values
+    attributes:
+      label: Score values, left to right as printed
+      placeholder: e.g. 0 1 | section number | 2 3 5
+    validations:
+      required: true
+  - type: textarea
+    id: photos
+    attributes:
+      label: Photos
+      description: |
+        One photo of a **blank** card, and at least 10 **punched** cards, taken flat from above on a dark background.
+        For each punched card, list the true scores (e.g. "card 1: 0 0 1 5 3 0 2 0 0 1").
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else?
+      description: Where the rider label goes, how observers correct mistakes, anything unusual.

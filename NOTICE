@@ -1,0 +1,11 @@
+tScore
+Copyright 2026 tScore contributors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+The file formats in schemas/ are licensed separately under the MIT License
+(see schemas/LICENSE). Documentation in docs/ is licensed under the Creative
+Commons Attribution 4.0 International License (see docs/LICENSE).
+
+The name "tScore" is not licensed for use by modified versions. If you
+distribute a modified version, please give it a different name.

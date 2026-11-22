@@ -1,0 +1,20 @@
+name: Idea or feature request
+description: Suggest something that would help your club
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe what happens today at your events and what's hard about it.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like tScore to do?
+  - type: input
+    id: who
+    attributes:
+      label: Who would use it?
+      placeholder: e.g. results desk, club secretary, Clerk of Course

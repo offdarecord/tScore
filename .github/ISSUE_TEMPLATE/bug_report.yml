@@ -1,0 +1,54 @@
+name: Bug report
+description: Something went wrong in tScore
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. **Please don't include rider names, entry lists, or photos of cards with names on them.**
+        If tScore showed an error code (like `TS-CAM-001`), include it.
+  - type: input
+    id: version
+    attributes:
+      label: tScore version
+      description: Help → About shows it.
+      placeholder: e.g. 0.3.1
+    validations:
+      required: true
+  - type: input
+    id: error-code
+    attributes:
+      label: Error code (if shown)
+      placeholder: e.g. TS-DB-003
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What were you doing, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce (if you know them)
+      placeholder: |
+        1. Open the event
+        2. Scan a card for rider 43, lap 2
+        3. …
+  - type: dropdown
+    id: at-event
+    attributes:
+      label: Did this happen during a live event?
+      options: ['No', 'Yes, and we worked around it', 'Yes, and it stopped scoring']
+    validations:
+      required: true
+  - type: textarea
+    id: bundle
+    attributes:
+      label: Problem report zip
+      description: Help → Report a problem creates a zip on your Desktop. Drag it here. It contains no rider names unless you ticked that box.
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: e.g. Windows 11 23H2

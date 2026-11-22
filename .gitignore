@@ -1,0 +1,33 @@
+# Dependencies and build output
+node_modules/
+dist/
+out/
+release/
+coverage/
+*.tsbuildinfo
+
+# Logs and local state
+*.log
+.env
+.env.*
+!.env.example
+
+# Editors and OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Claude Code: local settings only (shared skills in .claude/skills are committed)
+.claude/settings.local.json
+
+# PRIVACY: never commit real event data. Real events, entry exports, scoring workbooks and
+# card photos stay outside this repository. Anonymised fixtures live in fixtures/ only.
+*.xlsx
+*.xlsm
+*.xls
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.mp4

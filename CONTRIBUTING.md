@@ -1,0 +1,67 @@
+# Contributing to tScore
+
+Thanks for helping. tScore is maintained by volunteers for volunteers, so the rules below are
+about keeping it **stable, simple and cheap to support**.
+
+## Ways to help
+
+- **Report a problem:** use the _Bug report_ issue form and attach the app's "Report a problem"
+  zip if you have one. Don't post rider names or photos of cards with names on them.
+- **Request a new card type, label stock or region:** use the matching issue form. Most of
+  these become data files in `presets/`, not code.
+- **Code and docs:** pick an issue labelled `good first issue` or `help wanted`, or open an
+  issue to discuss a bigger change first.
+
+## Getting started
+
+```sh
+git clone https://github.com/offdarecord/tScore.git
+cd tScore
+npm install
+npm start
+```
+
+No native build tools are needed. Use Node.js 24 LTS (`.nvmrc`).
+
+## Pull requests
+
+- Branch from `main`; open a PR; PRs are **squash-merged**.
+- **The PR title must follow [Conventional Commits](https://www.conventionalcommits.org/)**,
+  because it becomes the changelog line:
+  - `feat: scan desk shows the rider's class`
+  - `fix: labels skip the last row on partly used sheets`
+  - `docs:`, `test:`, `refactor:`, `perf:`, `build:`, `ci:`, `chore:`
+  - Add `!` for breaking changes (`feat!: ...`), e.g. an older tScore can no longer open new
+    event files, or the results format changes incompatibly.
+- Write the title for a club volunteer, not a developer, where it's user-facing.
+
+### Definition of done (every change)
+
+- TypeScript `strict`; lint and format clean (`npm run check`); no `any` in `core` or `vision`.
+- Unit tests for logic; an end-to-end test for each user journey touched (once E2E exists).
+- New user-facing errors have an error code (`TS-<AREA>-<NNN>`) and a catalogue entry; key
+  steps write diagnostic log lines (no rider names in diagnostic logs).
+- Docs updated (user guide or ADR) where behaviour changes. Changing a recorded decision
+  means a new ADR in `docs/adr/`.
+- CI green on Windows.
+
+## Privacy: never commit
+
+- Real entry lists, rider names, licence numbers, contact or medical details.
+- Card photos that show names. Re-shoot cards with a synthetic label instead.
+- Scoring workbooks from other products, code extracted from them, or anything copied from
+  their layouts or printed designs. tScore implements public trials rules from its own design.
+- Third-party videos or images you don't have rights to.
+
+`.gitignore` blocks common spreadsheet and database files, but you are responsible for what
+you commit.
+
+## Licensing of contributions
+
+By contributing, you agree that your contribution is licensed under the project licence:
+Apache-2.0 for code, MIT for `schemas/`, CC BY 4.0 for `docs/`. No contributor agreement is
+needed.
+
+## Code of conduct
+
+This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md).

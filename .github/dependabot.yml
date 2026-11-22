@@ -9,11 +9,18 @@ updates:
       prefix: build
       include: scope
     groups:
-      # Electron majors are upgraded deliberately (about every six months), not by bot.
       minor-and-patch:
         update-types: [minor, patch]
+    # Some majors are upgraded deliberately, by a person, never by bot:
     ignore:
+      # Electron: about every six months (ADR 0002).
       - dependency-name: electron
+        update-types: [version-update:semver-major]
+      # TypeScript: only to versions typescript-eslint supports (ADR 0010).
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
+      # Node types must match the Node version we run (.nvmrc: Node 24 LTS).
+      - dependency-name: '@types/node'
         update-types: [version-update:semver-major]
   - package-ecosystem: github-actions
     directory: /

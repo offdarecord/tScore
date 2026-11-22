@@ -1,7 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import type { EventSetup } from '../generated/event-setup.js';
-import { classesFromSetup, juniorClassesFromSetup, scoringFromSetup } from './from-setup.js';
+import {
+  classesFromSetup,
+  isJuniorClassName,
+  juniorClassesFromSetup,
+  scoringFromSetup,
+} from './from-setup.js';
 import { DEFAULT_SCORING } from './model.js';
 
 const load = (name: string) =>
@@ -30,6 +35,37 @@ describe('classesFromSetup', () => {
   it('lists the classes marked junior, and none when no class is marked', () => {
     expect(juniorClassesFromSetup(load('event_setup.two-day.json'))).toEqual(['Juniors']);
     expect(juniorClassesFromSetup(load('event_setup.minimal.json'))).toEqual([]);
+  });
+
+  it.each([
+    'Juniors',
+    'Sub Junior',
+    'Junior Women',
+    'JUNIORS 50/50',
+    'Boys',
+    'Boy 12-15',
+    'Girls',
+    'Under 16 girls',
+  ])('"%s" is junior by default', (name) => expect(isJuniorClassName(name)).toBe(true));
+
+  it.each(['Trial 1', 'Masters', 'Veterans', 'Women', 'Juniorish', 'Cowboys'])(
+    '"%s" is not junior by default',
+    (name) => expect(isJuniorClassName(name)).toBe(false),
+  );
+
+  it('ticks junior-looking classes by default, but an explicit setting wins', () => {
+    const setup: EventSetup = {
+      schema: 'tscore.event_setup/1',
+      event: { name: 'Test', code: 'TEST' },
+      days: [{ day: 1 }],
+      classes: [
+        { name: 'Sub Junior', days: { '1': { sections: 10, laps: 3 } } },
+        { name: 'Girls', junior: false, days: { '1': { sections: 10, laps: 3 } } },
+        { name: 'Youth', junior: true, days: { '1': { sections: 10, laps: 3 } } },
+        { name: 'Trial 2', days: { '1': { sections: 10, laps: 4 } } },
+      ],
+    };
+    expect(juniorClassesFromSetup(setup)).toEqual(['Sub Junior', 'Youth']);
   });
 
   it('fills in default scoring rules', () => {

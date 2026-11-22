@@ -2,11 +2,21 @@ import type { EventSetup } from '../generated/event-setup.js';
 import { DEFAULT_SCORING, type ClassInput, type ScoringRules } from './model.js';
 
 /**
- * The classes marked junior in an event setup. Pass these as `juniorSurnameInitialClasses` when
- * the club's "show junior surnames as an initial" publish option is on.
+ * Whether a class name looks like a junior class: it contains the word "junior(s)", "boy(s)" or
+ * "girl(s)", in any case. Used as the default when a class isn't explicitly marked.
+ */
+export function isJuniorClassName(name: string): boolean {
+  return /\b(juniors?|boys?|girls?)\b/i.test(name);
+}
+
+/**
+ * The junior classes in an event setup: those marked `junior: true`, plus those with no mark
+ * whose name looks junior ({@link isJuniorClassName}). An explicit `junior: false` always wins.
+ * Pass these as `juniorSurnameInitialClasses` when the club's "show junior surnames as an
+ * initial" publish option is on.
  */
 export function juniorClassesFromSetup(setup: EventSetup): string[] {
-  return setup.classes.filter((c) => c.junior === true).map((c) => c.name);
+  return setup.classes.filter((c) => c.junior ?? isJuniorClassName(c.name)).map((c) => c.name);
 }
 
 /** The scoring rules in an event setup, with the defaults filled in. */

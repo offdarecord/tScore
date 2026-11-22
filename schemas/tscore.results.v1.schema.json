@@ -1,0 +1,283 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/offdarecord/tScore/main/schemas/tscore.results.v1.schema.json",
+  "title": "Results",
+  "description": "tscore.results/1 (DRAFT): the published results of one trials event. One payload feeds the results PDF, CSV and every publisher (e.g. a results website). It contains only what is meant to be public: no licence numbers, dates of birth or contact details. Privacy rules (such as juniors' surnames as initials) have already been applied when it is built.",
+  "type": "object",
+  "required": ["schema", "generator", "generated_at", "status", "revision", "event", "classes"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "description": "Format identifier and major version. Consumers should reject other major versions.",
+      "const": "tscore.results/1"
+    },
+    "generator": {
+      "description": "Software that produced this payload.",
+      "type": "object",
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "generated_at": {
+      "description": "When this payload was built, with UTC offset.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "description": "provisional: cards still missing or under review. final: confirmed by the Clerk of Course or results officer. Only final results are published.",
+      "type": "string",
+      "enum": ["provisional", "final"]
+    },
+    "revision": {
+      "description": "Starts at 1. A correction after publishing (e.g. a protest upheld) produces a new final payload with a higher revision that replaces earlier ones for the same event id.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "privacy_applied": {
+      "description": "Publishing rules applied to names in this payload, for display notes. Known values: junior_surname_initial, club_omitted.",
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+      "uniqueItems": true
+    },
+    "event": { "$ref": "#/$defs/Event" },
+    "classes": {
+      "description": "Classes in display order.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/ClassResults" }
+    }
+  },
+  "$defs": {
+    "Event": {
+      "type": "object",
+      "required": ["id", "code", "name", "days", "scoring"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "Stable unique id for the event. Together with revision, identifies a payload.",
+          "type": "string",
+          "format": "uuid"
+        },
+        "code": { "type": "string", "pattern": "^[A-Z0-9][A-Z0-9-]{1,15}$" },
+        "name": { "type": "string", "minLength": 1 },
+        "club": { "type": "string" },
+        "venue": { "type": "string" },
+        "permit": { "type": "string" },
+        "days": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["day", "date"],
+            "additionalProperties": false,
+            "properties": {
+              "day": { "type": "integer", "minimum": 1 },
+              "date": { "type": "string", "format": "date" }
+            }
+          }
+        },
+        "scoring": {
+          "type": "object",
+          "required": ["score_values", "direction", "tie_breaks"],
+          "additionalProperties": false,
+          "properties": {
+            "score_values": {
+              "type": "array",
+              "items": { "type": "integer", "minimum": 0 },
+              "minItems": 2,
+              "uniqueItems": true
+            },
+            "direction": {
+              "description": "low_wins: lowest total wins. high_wins: highest total wins (gate trials).",
+              "type": "string",
+              "enum": ["low_wins", "high_wins"]
+            },
+            "tie_breaks": {
+              "description": "Ranking order used, e.g. total, most_0, most_1, most_2, most_3, fewest_5, ride_off.",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^(total|ride_off|(most|fewest)_[0-9]{1,2})$"
+              },
+              "minItems": 1
+            }
+          }
+        }
+      }
+    },
+    "ClassResults": {
+      "type": "object",
+      "required": ["name", "days", "entries"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "days": {
+          "description": "What this class rode on each day.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["day", "sections", "laps"],
+            "additionalProperties": false,
+            "properties": {
+              "day": { "type": "integer", "minimum": 1 },
+              "sections": { "type": "integer", "minimum": 1 },
+              "laps": { "type": "integer", "minimum": 1 },
+              "skipped": {
+                "description": "Sections not scored for this class, and from which lap.",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["section", "from_lap"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "section": { "type": "integer", "minimum": 1 },
+                    "from_lap": { "type": "integer", "minimum": 1 }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "entries": {
+          "description": "Entries in display order: competitive finishers by position, then competitive DNFs, then No Award, then non-competitive, then DNS.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/Entry" }
+        }
+      }
+    },
+    "Entry": {
+      "type": "object",
+      "required": ["number", "riders", "tier", "status", "position", "total"],
+      "additionalProperties": false,
+      "properties": {
+        "number": { "description": "Rider number.", "type": "integer", "minimum": 1 },
+        "riders": {
+          "description": "One rider, or driver then passenger for a sidecar.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/Person" }
+        },
+        "club": { "type": "string" },
+        "tier": {
+          "description": "competitive: placed 1, 2, 3... no_award: scored and ranked among themselves, shown 'NA', no placing. non_competitive: scored, shown 'NC', listed last.",
+          "type": "string",
+          "enum": ["competitive", "no_award", "non_competitive"]
+        },
+        "status": {
+          "description": "finished, dnf (did not finish) or dns (did not start).",
+          "type": "string",
+          "enum": ["finished", "dnf", "dns"]
+        },
+        "position": {
+          "description": "Placing in the class. Only competitive finishers have one; otherwise null.",
+          "type": ["integer", "null"],
+          "minimum": 1
+        },
+        "rank_in_tier": {
+          "description": "Order among No Award or non-competitive finishers; null otherwise.",
+          "type": ["integer", "null"],
+          "minimum": 1
+        },
+        "tied_with_previous": {
+          "description": "true when every tie-break is equal to the entry above (shared placing).",
+          "type": "boolean"
+        },
+        "total": {
+          "description": "Event total including penalties. null for DNS.",
+          "type": ["integer", "null"]
+        },
+        "counts": {
+          "description": "How many sections were scored at each value, keyed by value (\"0\", \"1\", ...). Used for tie-breaks.",
+          "type": "object",
+          "propertyNames": { "pattern": "^[0-9]{1,2}$" },
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "days": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/EntryDay" }
+        },
+        "penalties": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Penalty" }
+        },
+        "ride_off": {
+          "description": "Position in a ride-off, if one decided a tie.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "also_in": {
+          "description": "Other class(es) this rider's same scores also count in (second class).",
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "Person": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "description": "Name as it should be displayed, after privacy rules, e.g. 'Sam Sample' or 'Riley M.'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "given_name": { "type": "string" },
+        "family_name": {
+          "description": "May be an initial when a privacy rule applies.",
+          "type": "string"
+        }
+      }
+    },
+    "EntryDay": {
+      "type": "object",
+      "required": ["day", "total", "laps"],
+      "additionalProperties": false,
+      "properties": {
+        "day": { "type": "integer", "minimum": 1 },
+        "total": { "type": "integer" },
+        "laps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Lap" }
+        }
+      }
+    },
+    "Lap": {
+      "type": "object",
+      "required": ["lap", "total", "sections"],
+      "additionalProperties": false,
+      "properties": {
+        "lap": { "type": "integer", "minimum": 1 },
+        "total": {
+          "description": "Sum of scored sections. null if the lap was not ridden (DNF).",
+          "type": ["integer", "null"]
+        },
+        "sections": {
+          "description": "Score for each section in order; null for a skipped section. null for the whole lap if not ridden.",
+          "type": ["array", "null"],
+          "items": { "type": ["integer", "null"], "minimum": 0 }
+        }
+      }
+    },
+    "Penalty": {
+      "type": "object",
+      "required": ["points", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "points": { "type": "integer" },
+        "reason": {
+          "description": "dissent, outside_assistance, time, course_cutting or other.",
+          "type": "string",
+          "enum": ["dissent", "outside_assistance", "time", "course_cutting", "other"]
+        },
+        "note": { "type": "string", "maxLength": 200 },
+        "day": { "type": "integer", "minimum": 1 },
+        "lap": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

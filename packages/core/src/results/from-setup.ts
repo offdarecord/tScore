@@ -1,6 +1,14 @@
 import type { EventSetup } from '../generated/event-setup.js';
 import { DEFAULT_SCORING, type ClassInput, type ScoringRules } from './model.js';
 
+/**
+ * The classes marked junior in an event setup. Pass these as `juniorSurnameInitialClasses` when
+ * the club's "show junior surnames as an initial" publish option is on.
+ */
+export function juniorClassesFromSetup(setup: EventSetup): string[] {
+  return setup.classes.filter((c) => c.junior === true).map((c) => c.name);
+}
+
 /** The scoring rules in an event setup, with the defaults filled in. */
 export function scoringFromSetup(setup: EventSetup): ScoringRules {
   return {

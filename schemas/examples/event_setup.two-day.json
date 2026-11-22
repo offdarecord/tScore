@@ -36,6 +36,7 @@
     {
       "name": "Juniors",
       "order": 360,
+      "junior": true,
       "days": {
         "1": { "sections": 10, "laps": 3, "session": "am" },
         "2": { "sections": 12, "laps": 2, "session": "am" }

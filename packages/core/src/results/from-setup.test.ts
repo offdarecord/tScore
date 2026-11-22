@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import type { EventSetup } from '../generated/event-setup.js';
-import { classesFromSetup, scoringFromSetup } from './from-setup.js';
+import { classesFromSetup, juniorClassesFromSetup, scoringFromSetup } from './from-setup.js';
 import { DEFAULT_SCORING } from './model.js';
 
 const load = (name: string) =>
@@ -25,6 +25,11 @@ describe('classesFromSetup', () => {
 
   it('marks minders as not scored', () => {
     expect(byName('Minder')).toEqual({ name: 'Minder', order: 9999, scored: false, days: [] });
+  });
+
+  it('lists the classes marked junior, and none when no class is marked', () => {
+    expect(juniorClassesFromSetup(load('event_setup.two-day.json'))).toEqual(['Juniors']);
+    expect(juniorClassesFromSetup(load('event_setup.minimal.json'))).toEqual([]);
   });
 
   it('fills in default scoring rules', () => {

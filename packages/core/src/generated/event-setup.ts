@@ -129,6 +129,10 @@ export interface Class {
    */
   scored?: boolean;
   /**
+   * true for junior classes. When the club publishes junior surnames as an initial, it applies to every rider in these classes. tScore does not import dates of birth, so juniors are identified by class.
+   */
+  junior?: boolean;
+  /**
    * Display colour, as #RRGGBB.
    */
   colour?: string;

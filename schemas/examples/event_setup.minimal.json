@@ -1,0 +1,6 @@
+{
+  "schema": "tscore.event_setup/1",
+  "event": { "name": "Club Practice Trial", "code": "PRAC" },
+  "days": [{ "day": 1 }],
+  "classes": [{ "name": "Open", "days": { "1": { "sections": 10, "laps": 4 } } }]
+}

@@ -1,0 +1,231 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/offdarecord/tScore/main/schemas/tscore.event_setup.v1.schema.json",
+  "title": "EventSetup",
+  "description": "tscore.event_setup/1: how an event runs. Days, and for each class on each day how many sections and laps are ridden. Labels, scanning and results all read from this. Rules that need more than one field (days numbered 1..n, unique class names, sections that fit the scorecard) are checked by tScore in code, after this schema.",
+  "type": "object",
+  "required": ["schema", "event", "days", "classes"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "description": "Format identifier and major version.",
+      "const": "tscore.event_setup/1"
+    },
+    "event": { "$ref": "#/$defs/Event" },
+    "scoring": { "$ref": "#/$defs/Scoring" },
+    "days": {
+      "description": "Event days in order, numbered 1, 2, ...",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 7,
+      "items": { "$ref": "#/$defs/Day" }
+    },
+    "classes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/Class" }
+    },
+    "skipped_sections": {
+      "description": "Sections cancelled or not scored, e.g. section 6 closed for safety after lap 2.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/SkippedSection" }
+    },
+    "labels": { "$ref": "#/$defs/Labels" }
+  },
+  "$defs": {
+    "Event": {
+      "type": "object",
+      "required": ["name", "code"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "Stable unique id for the event, assigned by tScore.",
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "code": {
+          "description": "Short event code printed in every card label's QR code, e.g. SSR1. Upper-case letters, digits and hyphens only.",
+          "type": "string",
+          "pattern": "^[A-Z0-9][A-Z0-9-]{1,15}$"
+        },
+        "club": { "type": "string", "maxLength": 120 },
+        "venue": { "type": "string", "maxLength": 120 },
+        "permit": { "type": "string", "maxLength": 60 },
+        "first_rider_number": {
+          "description": "Rider numbers are generated from this number at import.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9999,
+          "default": 1
+        },
+        "card_profile": {
+          "description": "Scorecard design used at this event (a card profile id, e.g. regional-16).",
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$",
+          "default": "regional-16"
+        }
+      }
+    },
+    "Scoring": {
+      "description": "Scoring rules. Omit to use the default ruleset.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ruleset": {
+          "description": "Ruleset preset id these rules came from.",
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$",
+          "default": "default"
+        },
+        "score_values": { "$ref": "#/$defs/ScoreValues" },
+        "direction": { "$ref": "#/$defs/Direction" },
+        "tie_breaks": { "$ref": "#/$defs/TieBreaks" },
+        "missed_section": {
+          "description": "What happens when an observer did not punch a section. 'flag' sends the card to review and is the only option in /1.",
+          "const": "flag",
+          "default": "flag"
+        }
+      }
+    },
+    "ScoreValues": {
+      "description": "Allowed section scores, in the order printed on the card.",
+      "type": "array",
+      "items": { "type": "integer", "minimum": 0, "maximum": 99 },
+      "minItems": 2,
+      "uniqueItems": true,
+      "default": [0, 1, 2, 3, 5]
+    },
+    "Direction": {
+      "description": "low_wins: lowest total wins (normal trials). high_wins: highest total wins (gate trials).",
+      "type": "string",
+      "enum": ["low_wins", "high_wins"],
+      "default": "low_wins"
+    },
+    "TieBreaks": {
+      "description": "Ranking order within a tier. 'total' first; then most_N / fewest_N count section scores of value N; 'ride_off' uses a recorded ride-off position.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(total|ride_off|(most|fewest)_[0-9]{1,2})$"
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "default": ["total", "most_0", "most_1", "most_2", "most_3", "fewest_5", "ride_off"]
+    },
+    "Day": {
+      "type": "object",
+      "required": ["day"],
+      "additionalProperties": false,
+      "properties": {
+        "day": { "type": "integer", "minimum": 1, "maximum": 7 },
+        "date": { "type": "string", "format": "date" },
+        "start_time": {
+          "description": "Lap 1 start for riders without their own start time (local time, 24-hour).",
+          "type": "string",
+          "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+          "default": "10:15"
+        }
+      }
+    },
+    "Class": {
+      "type": "object",
+      "required": ["name", "days"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "order": {
+          "description": "Sort order for numbering and results (lower first).",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 99999,
+          "default": 9000
+        },
+        "aliases": {
+          "description": "Other names for this class in entry-list exports, matched at import.",
+          "type": "array",
+          "items": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "uniqueItems": true
+        },
+        "scored": {
+          "description": "false for entries that are not scored, such as minders.",
+          "type": "boolean",
+          "default": true
+        },
+        "colour": {
+          "description": "Display colour, as #RRGGBB.",
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$"
+        },
+        "days": {
+          "description": "What this class rides on each day, keyed by day number. A day that is missing, or has 0 laps, is not ridden by this class.",
+          "type": "object",
+          "propertyNames": { "pattern": "^[1-7]$" },
+          "additionalProperties": { "$ref": "#/$defs/ClassDay" }
+        }
+      }
+    },
+    "ClassDay": {
+      "type": "object",
+      "required": ["sections", "laps"],
+      "additionalProperties": false,
+      "properties": {
+        "sections": {
+          "description": "Sections per lap. Must fit the scorecard (16 rows on regional-16) when laps > 0.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 30
+        },
+        "laps": { "type": "integer", "minimum": 0, "maximum": 10 },
+        "session": {
+          "type": "string",
+          "enum": ["full", "am", "pm"],
+          "default": "full"
+        }
+      }
+    },
+    "SkippedSection": {
+      "type": "object",
+      "required": ["day", "section", "from_lap"],
+      "additionalProperties": false,
+      "properties": {
+        "day": { "type": "integer", "minimum": 1, "maximum": 7 },
+        "section": { "type": "integer", "minimum": 1, "maximum": 30 },
+        "from_lap": {
+          "description": "First lap on which the section is not scored.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "classes": {
+          "description": "Classes affected. Omit for all classes.",
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "reason": { "type": "string", "maxLength": 200 }
+      }
+    },
+    "Labels": {
+      "description": "Card label printing options.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "template": {
+          "description": "Label template preset id, e.g. L7651.",
+          "type": "string",
+          "minLength": 1,
+          "default": "L7651"
+        },
+        "layout": {
+          "description": "auto: one rider per row when no class rides more than the labels across a sheet, otherwise packed.",
+          "type": "string",
+          "enum": ["auto", "row-per-rider", "packed", "by-lap"],
+          "default": "auto"
+        },
+        "qr": { "type": "boolean", "default": true }
+      }
+    }
+  }
+}

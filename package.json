@@ -23,7 +23,9 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run lint && npm run format:check && npm run typecheck && npm test"
+    "gen:schemas": "node scripts/gen-schemas.mjs",
+    "check:schemas": "node scripts/gen-schemas.mjs --check",
+    "check": "npm run check:schemas && npm run lint && npm run format:check && npm run typecheck && npm test"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -32,6 +34,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.14.0",
+    "json-schema-to-typescript": "^16.0.0",
     "prettier": "^3.10.1",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.73.0",

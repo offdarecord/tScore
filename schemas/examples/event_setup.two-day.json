@@ -1,0 +1,70 @@
+{
+  "schema": "tscore.event_setup/1",
+  "event": {
+    "id": "6b1d2c4e-8f3a-4d5b-9c7e-1a2b3c4d5e6f",
+    "name": "Example Two-Day Trial",
+    "code": "EX2D",
+    "club": "Example Motorcycle Club",
+    "venue": "Example Park",
+    "first_rider_number": 1,
+    "card_profile": "regional-16"
+  },
+  "scoring": {
+    "ruleset": "default",
+    "score_values": [0, 1, 2, 3, 5],
+    "direction": "low_wins",
+    "tie_breaks": ["total", "most_0", "most_1", "most_2", "most_3", "fewest_5", "ride_off"],
+    "missed_section": "flag"
+  },
+  "days": [
+    { "day": 1, "date": "2027-03-13", "start_time": "10:15" },
+    { "day": 2, "date": "2027-03-14", "start_time": "09:30" }
+  ],
+  "classes": [
+    {
+      "name": "Trial 1",
+      "order": 300,
+      "aliases": ["Trial 1 (A+ Grade)"],
+      "days": { "1": { "sections": 10, "laps": 4 }, "2": { "sections": 12, "laps": 3 } }
+    },
+    {
+      "name": "Trial 4 Plus",
+      "order": 315,
+      "aliases": ["Trial 4+ (C+ Grade)"],
+      "days": { "1": { "sections": 10, "laps": 4 }, "2": { "sections": 12, "laps": 3 } }
+    },
+    {
+      "name": "Juniors",
+      "order": 360,
+      "days": {
+        "1": { "sections": 10, "laps": 3, "session": "am" },
+        "2": { "sections": 12, "laps": 2, "session": "am" }
+      }
+    },
+    {
+      "name": "Beginners",
+      "order": 367,
+      "days": { "1": { "sections": 8, "laps": 3 } }
+    },
+    {
+      "name": "Sidecar",
+      "order": 370,
+      "days": { "1": { "sections": 10, "laps": 4 }, "2": { "sections": 12, "laps": 3 } }
+    },
+    {
+      "name": "Minder",
+      "order": 9999,
+      "scored": false,
+      "days": {}
+    }
+  ],
+  "skipped_sections": [
+    {
+      "day": 1,
+      "section": 6,
+      "from_lap": 3,
+      "reason": "Closed for safety after heavy rain"
+    }
+  ],
+  "labels": { "template": "L7651", "layout": "auto", "qr": true }
+}

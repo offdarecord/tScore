@@ -27,8 +27,12 @@ is used by non-technical volunteers, and is maintained by part-time volunteers. 
 ## Commands
 
 - `npm install`, `npm start` (dev app), `npm test`, `npm run check` (lint + format + types + tests),
+  `npm run test:e2e` (launch the real app with Playwright, incl. an axe accessibility check),
   `npm run dist` (Windows installer).
-- Run `npm run check` before declaring work done.
+- Run `npm run check` before declaring work done, and `npm run test:e2e` when any screen changed.
+- Every screen or user journey gets an end-to-end test in `apps/desktop/e2e/` that clicks through
+  it, plus the axe check. Features not built yet use `ComingSoonButton`, never a bare disabled
+  button.
 
 ## Conventions
 

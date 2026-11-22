@@ -38,7 +38,8 @@ No native build tools are needed. Use Node.js 24 LTS (`.nvmrc`).
 ### Definition of done (every change)
 
 - TypeScript `strict`; lint and format clean (`npm run check`); no `any` in `core` or `vision`.
-- Unit tests for logic; an end-to-end test for each user journey touched (once E2E exists).
+- Unit tests for logic; an end-to-end test (`apps/desktop/e2e/`, `npm run test:e2e`) for each
+  screen or user journey touched, passing the automated accessibility check.
 - New user-facing errors have an error code (`TS-<AREA>-<NNN>`) and a catalogue entry; key
   steps write diagnostic log lines (no rider names in diagnostic logs).
 - Docs updated (user guide or ADR) where behaviour changes. Changing a recorded decision

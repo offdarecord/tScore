@@ -2,11 +2,11 @@ import type { EventSetup } from '../generated/event-setup.js';
 import { DEFAULT_SCORING, type ClassInput, type ScoringRules } from './model.js';
 
 /**
- * Whether a class name looks like a junior class: it contains the word "junior(s)", "boy(s)" or
- * "girl(s)", in any case. Used as the default when a class isn't explicitly marked.
+ * Whether a class name looks like a junior class: it contains the word "junior(s)", "youth(s)",
+ * "boy(s)" or "girl(s)", in any case. Used as the default when a class isn't explicitly marked.
  */
 export function isJuniorClassName(name: string): boolean {
-  return /\b(juniors?|boys?|girls?)\b/i.test(name);
+  return /\b(juniors?|youths?|boys?|girls?)\b/i.test(name);
 }
 
 /**

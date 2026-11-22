@@ -153,7 +153,7 @@
           "default": true
         },
         "junior": {
-          "description": "true for junior classes. When the club publishes junior surnames as an initial, it applies to every rider in these classes. tScore does not import dates of birth, so juniors are identified by class. If omitted, a class whose name contains the word \"junior(s)\", \"boy(s)\" or \"girl(s)\" (any case) is treated as junior; set false to override.",
+          "description": "true for junior classes. When the club publishes junior surnames as an initial, it applies to every rider in these classes. tScore does not import dates of birth, so juniors are identified by class. If omitted, a class whose name contains the word \"junior(s)\", \"youth(s)\", \"boy(s)\" or \"girl(s)\" (any case) is treated as junior; set false to override.",
           "type": "boolean"
         },
         "colour": {

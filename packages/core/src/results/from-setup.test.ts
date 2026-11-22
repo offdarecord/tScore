@@ -46,6 +46,8 @@ describe('classesFromSetup', () => {
     'Boy 12-15',
     'Girls',
     'Under 16 girls',
+    'Youth',
+    'Youth 125cc',
   ])('"%s" is junior by default', (name) => expect(isJuniorClassName(name)).toBe(true));
 
   it.each(['Trial 1', 'Masters', 'Veterans', 'Women', 'Juniorish', 'Cowboys'])(
@@ -60,12 +62,13 @@ describe('classesFromSetup', () => {
       days: [{ day: 1 }],
       classes: [
         { name: 'Sub Junior', days: { '1': { sections: 10, laps: 3 } } },
+        { name: 'Youth', days: { '1': { sections: 10, laps: 3 } } },
         { name: 'Girls', junior: false, days: { '1': { sections: 10, laps: 3 } } },
-        { name: 'Youth', junior: true, days: { '1': { sections: 10, laps: 3 } } },
+        { name: 'Beginners', junior: true, days: { '1': { sections: 10, laps: 3 } } },
         { name: 'Trial 2', days: { '1': { sections: 10, laps: 4 } } },
       ],
     };
-    expect(juniorClassesFromSetup(setup)).toEqual(['Sub Junior', 'Youth']);
+    expect(juniorClassesFromSetup(setup)).toEqual(['Sub Junior', 'Youth', 'Beginners']);
   });
 
   it('fills in default scoring rules', () => {

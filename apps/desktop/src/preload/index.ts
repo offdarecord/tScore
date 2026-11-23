@@ -20,6 +20,10 @@ const api: TscoreApi = {
   updateRider: call(IPC.updateRider),
   chooseEntryList: call(IPC.chooseEntryList),
   importRiders: call(IPC.importRiders),
+  cardDesk: call(IPC.cardDesk),
+  saveCard: call(IPC.saveCard),
+  addPenalty: call(IPC.addPenalty),
+  removePenalty: call(IPC.removePenalty),
 };
 
 contextBridge.exposeInMainWorld('tscore', api);

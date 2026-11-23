@@ -252,6 +252,85 @@ describe('cards and scores', () => {
     expect(store.scoreHistory(1, 1, 1, 1)).toHaveLength(1);
   });
 
+  it('records when the card was handed in, and lists cards newest first', () => {
+    const store = withRider();
+    store.addEntry(rider(2));
+    store.recordCard({ number: 1, day: 1, lap: 1, scores: [0, 1, 0, 0], source: 'scan' });
+    store.recordCard({
+      number: 2,
+      day: 1,
+      lap: 1,
+      scores: [5, 0, 0, 0],
+      source: 'manual',
+      receivedAt: '2027-02-06T08:30:00+10:00',
+    });
+    const log = store.cardLog();
+    expect(log.map((c) => [c.number, c.source, c.edited, c.scores])).toEqual([
+      [2, 'manual', false, [5, 0, 0, 0]],
+      [1, 'scan', false, [0, 1, 0, 0]],
+    ]);
+    expect(log[0]!.receivedAt).toBe('2027-02-05T22:30:00.000Z');
+    expect(log[1]!.receivedAt).toMatch(/^2027-02-06T09:00:\d\d\.000Z$/);
+    expect(
+      code(() =>
+        store.recordCard({
+          number: 1,
+          day: 1,
+          lap: 2,
+          scores: [0, 0, 0, 0],
+          source: 'manual',
+          receivedAt: 'half past ten',
+        }),
+      ),
+    ).toBe('STORE_BAD_TIME');
+  });
+
+  it('edits a whole card at once, versioning only the sections that change', () => {
+    const store = withRider();
+    store.recordCard({ number: 1, day: 1, lap: 1, scores: [0, 1, 0, 0], source: 'manual' });
+    const card = { number: 1, day: 1, lap: 1, source: 'amend' } as const;
+    expect(store.amendCard({ ...card, scores: [0, 1, 0, 0] })).toBe(0);
+    expect(store.amendCard({ ...card, scores: [0, 2, 0, 5] })).toBe(2);
+    expect(store.cards()[0]!.scores).toEqual([0, 2, 0, 5]);
+    expect(store.scoreHistory(1, 1, 1, 1)).toHaveLength(1);
+    expect(store.scoreHistory(1, 1, 1, 2).map((v) => [v.value, v.source])).toEqual([
+      [1, 'manual'],
+      [2, 'amend'],
+    ]);
+    expect(store.cardLog()[0]).toMatchObject({ source: 'manual', edited: true });
+    expect(store.auditLog().find((a) => a.kind === 'card.amend')?.detail).toEqual({
+      changes: [
+        { section: 2, from: 1, to: 2 },
+        { section: 4, from: 0, to: 5 },
+      ],
+      source: 'amend',
+    });
+    expect(code(() => store.amendCard({ ...card, scores: [0, 0, 0] }))).toBe(
+      'STORE_WRONG_SECTION_COUNT',
+    );
+    expect(code(() => store.amendCard({ ...card, scores: [0, 4, 0, 0] }))).toBe('STORE_BAD_SCORE');
+    expect(code(() => store.amendCard({ ...card, lap: 2, scores: [0, 0, 0, 0] }))).toBe(
+      'STORE_NO_CARD',
+    );
+  });
+
+  it('opens a file saved before hand-in times were kept, using when each card was saved', () => {
+    const first = EventStore.create(tempFolder(), SETUP, testContext());
+    first.addEntry(rider(1));
+    first.recordCard({ number: 1, day: 1, lap: 1, scores: [0, 0, 0, 0], source: 'scan' });
+    const saved = first.cardLog()[0]!.receivedAt;
+    const folder = first.folder;
+    first.close();
+    const db = new DatabaseSync(join(folder, EVENT_FILE));
+    db.exec('ALTER TABLE card DROP COLUMN received_at; PRAGMA user_version = 1');
+    db.close();
+    const store = track(EventStore.open(folder, testContext()));
+    expect(store.cardLog()[0]!.receivedAt).toBe(saved);
+    expect(
+      readdirSync(join(folder, 'backups')).some((f) => f.includes('before-upgrade-from-v1')),
+    ).toBe(true);
+  });
+
   it('cannot change or delete score history or the audit log, even with SQL', () => {
     const store = withRider();
     store.recordCard({ number: 1, day: 1, lap: 1, scores: [0, 0, 0, 0], source: 'scan' });
@@ -270,7 +349,11 @@ describe('penalties', () => {
     store.addEntry(rider(1));
     const id = store.addPenalty(1, { points: 5, reason: 'time', note: '6 min late' });
     expect(store.entry(1).penalties).toEqual([{ points: 5, reason: 'time', note: '6 min late' }]);
+    expect(store.penaltyList()).toEqual([
+      expect.objectContaining({ id, number: 1, points: 5, reason: 'time', note: '6 min late' }),
+    ]);
     store.removePenalty(id);
+    expect(store.penaltyList()).toEqual([]);
     expect(store.entry(1).penalties).toBeUndefined();
     expect(code(() => store.removePenalty(id))).toBe('STORE_NO_PENALTY');
     expect(store.auditLog().map((a) => a.kind)).toContain('penalty.remove');

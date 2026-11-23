@@ -110,6 +110,11 @@ export const MIGRATIONS: readonly string[] = [
   CREATE TRIGGER audit_event_no_delete BEFORE DELETE ON audit_event
   BEGIN SELECT RAISE(ABORT, 'the audit log is append-only'); END;
   `,
+  // 2: when the desk received each card (architecture §9). Defaults to when it was saved;
+  // cards saved before this migration keep NULL and are read as their created_at.
+  `
+  ALTER TABLE card ADD COLUMN received_at TEXT;
+  `,
 ];
 
 /** The schema version a fresh event file gets, and the newest this build can open. */

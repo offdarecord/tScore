@@ -1,4 +1,11 @@
 export { SCORE_VALUES, isScoreValue, type ScoreValue } from './scores.js';
+export {
+  readTypedScores,
+  describeTypedScoreProblem,
+  singleDigitScores,
+  type TypedScores,
+  type TypedScoreProblem,
+} from './typed-scores.js';
 
 export type { ValidationIssue, ValidationResult } from './validation.js';
 export { validateEventSetup, CARD_PROFILE_ROWS, DEFAULT_CARD_PROFILE } from './setup-validation.js';

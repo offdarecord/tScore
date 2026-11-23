@@ -27,6 +27,10 @@ export const IPC = {
   updateRider: 'event:update-rider',
   chooseEntryList: 'import:choose-file',
   importRiders: 'import:riders',
+  cardDesk: 'cards:desk',
+  saveCard: 'cards:save',
+  addPenalty: 'penalties:add',
+  removePenalty: 'penalties:remove',
 } as const;
 
 export interface AppInfo {
@@ -87,6 +91,71 @@ export interface EntryListFile {
   readonly list: EntryList;
 }
 
+/** A rider as Manual entry needs them: who, and how many sections and laps they ride each day. */
+export interface DeskRider extends RiderInfo {
+  /** By day number. Their first class decides (a second class shares the same cards). */
+  readonly rides: Readonly<Record<number, { readonly sections: number; readonly laps: number }>>;
+}
+
+export type CardSource = 'scan' | 'review' | 'manual' | 'amend' | 'import';
+
+export interface CardRow {
+  readonly number: number;
+  readonly day: number;
+  readonly lap: number;
+  readonly scores: readonly (number | null)[];
+  /** ISO 8601. */
+  readonly receivedAt: string;
+  /** How it was first entered. */
+  readonly source: CardSource;
+  readonly edited: boolean;
+}
+
+export type PenaltyReason = 'time' | 'dissent' | 'outside_assistance' | 'course_cutting' | 'other';
+
+export interface PenaltyRow {
+  readonly id: string;
+  readonly number: number;
+  readonly points: number;
+  readonly reason: PenaltyReason;
+  readonly note?: string;
+  readonly day?: number;
+  readonly lap?: number;
+  readonly createdAt: string;
+}
+
+/** Everything the Manual entry screen shows. */
+export interface CardDesk {
+  readonly riders: readonly DeskRider[];
+  /** Newest first. */
+  readonly cards: readonly CardRow[];
+  readonly penalties: readonly PenaltyRow[];
+  readonly scoreValues: readonly number[];
+  /** Rows on the event's scorecard (16 on the regional card). */
+  readonly cardRows: number;
+  readonly days: readonly { readonly day: number; readonly date?: string }[];
+}
+
+export interface SaveCard {
+  readonly number: number;
+  readonly day: number;
+  readonly lap: number;
+  readonly scores: readonly number[];
+  /** ISO 8601. Ignored when editing (the card keeps its time). */
+  readonly receivedAt: string;
+  /** Replace the scores of a card that's already in. */
+  readonly editing: boolean;
+}
+
+export interface NewPenalty {
+  readonly number: number;
+  readonly points: number;
+  readonly reason: PenaltyReason;
+  readonly note?: string;
+  readonly day?: number;
+  readonly lap?: number;
+}
+
 /** A problem to show the desk, in plain words, with a stable code for support. */
 export interface AppError {
   readonly code: string;
@@ -117,4 +186,9 @@ export interface TscoreApi {
   chooseEntryList(): Promise<Outcome<EntryListFile | null>>;
   /** Import the chosen list's riders, with the desk's choices. */
   importRiders(choices: ImportChoices): Promise<Outcome<OpenEvent>>;
+  cardDesk(): Promise<Outcome<CardDesk>>;
+  /** Save a typed card, or an edit of one. Checked again in the main process. */
+  saveCard(card: SaveCard): Promise<Outcome<CardDesk>>;
+  addPenalty(penalty: NewPenalty): Promise<Outcome<CardDesk>>;
+  removePenalty(id: string): Promise<Outcome<CardDesk>>;
 }

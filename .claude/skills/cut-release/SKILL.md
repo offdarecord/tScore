@@ -98,15 +98,19 @@ before merging; if it has, redo this step.
 
 ## 6. Get CI to run
 
-Release PRs are opened with the workflow token, so GitHub doesn't start CI on them. Pushing the
-reworded changelog (step 5) from the maintainer's account starts it. If you made no changes,
+release-please updates the release PR as the tScore Release GitHub App
+([docs/maintainers/release-app.md](../../../docs/maintainers/release-app.md)), so CI and the PR
+title check start on their own, and again when you push the reworded changelog (step 5). If the
+app isn't set up, release-please falls back to the workflow token and GitHub starts nothing on
+the PR: check that `gh pr checks <N>` lists all the required checks, and if any are missing,
 close and reopen the PR:
 
 ```sh
 gh pr close <N> --repo offdarecord/tScore && gh pr reopen <N> --repo offdarecord/tScore
 ```
 
-Wait for the required checks (`Lint, types, tests`, `Windows installer`, `conventional-title`)
+Wait for the required checks (`Lint, types, tests`, `App end-to-end`, `Windows installer`,
+`conventional-title`)
 in the background (`gh pr checks <N> --repo offdarecord/tScore --watch`). If any fail, stop and
 report; don't merge around them.
 

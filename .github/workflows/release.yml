@@ -18,9 +18,21 @@ jobs:
       release_created: ${{ steps.rp.outputs.release_created }}
       tag_name: ${{ steps.rp.outputs.tag_name }}
     steps:
+      # release-please acts as the tScore Release GitHub App, not the built-in workflow token.
+      # GitHub never starts workflows from the built-in token's pushes, so the release PR's
+      # required checks would never run. Until the app's client id (repository variable
+      # RELEASE_APP_CLIENT_ID) and key (secret RELEASE_APP_PRIVATE_KEY) exist, it falls back to the
+      # built-in token. Setup: docs/maintainers/release-app.md.
+      - id: app-token
+        if: vars.RELEASE_APP_CLIENT_ID != ''
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
       - id: rp
         uses: googleapis/release-please-action@v5
         with:
+          token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 

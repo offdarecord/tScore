@@ -55,8 +55,8 @@ followed by hand. In short:
 1. release-please keeps a release PR open (`chore(main): release X.Y.Z`). Only `feat:`, `fix:`,
    `perf:` and `revert:` changes produce one.
 2. Just before releasing, reword its changelog entry for volunteers, in `CHANGELOG.md` and the
-   PR body. Pushing that change (or closing and reopening the PR) starts CI, which GitHub
-   doesn't run on bot-opened PRs.
+   PR body. release-please acts as a small GitHub App so that CI runs on the release PR
+   ([setup](docs/maintainers/release-app.md)); without it, close and reopen the PR to start CI.
 3. When CI is green, squash-merge it. CI builds the installer and attaches it to the GitHub
    Release; check the release has the `.exe`, `.blockmap` and `latest.yml`.
 

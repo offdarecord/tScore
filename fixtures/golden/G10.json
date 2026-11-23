@@ -997,7 +997,7 @@
         "number": 19,
         "day": 1,
         "lap": 1,
-        "scores": [0, 5, 0, 3, 5, 3, 0, 5]
+        "scores": [0, 0, 0, 3, 3, 5, 5, 5]
       },
       {
         "number": 20,
@@ -1739,5 +1739,180 @@
       }
     ]
   },
-  "orderFromWorkbook": false
+  "checkOrder": false,
+  "published": {
+    "Trial 3": [
+      {
+        "number": 3,
+        "place": "1"
+      },
+      {
+        "number": 1,
+        "place": "DNF"
+      },
+      {
+        "number": 2,
+        "place": "DNF"
+      }
+    ],
+    "Trial 4 Plus": [
+      {
+        "number": 6,
+        "place": "1"
+      },
+      {
+        "number": 5,
+        "place": "2"
+      },
+      {
+        "number": 4,
+        "place": "3"
+      },
+      {
+        "number": 7,
+        "place": "4"
+      }
+    ],
+    "Trial 4": [
+      {
+        "number": 9,
+        "place": "1"
+      },
+      {
+        "number": 8,
+        "place": "2"
+      },
+      {
+        "number": 42,
+        "place": "3"
+      },
+      {
+        "number": 11,
+        "place": "4"
+      },
+      {
+        "number": 10,
+        "place": "5"
+      },
+      {
+        "number": 13,
+        "place": "DNF"
+      },
+      {
+        "number": 14,
+        "place": "DNF"
+      },
+      {
+        "number": 12,
+        "place": "DNF"
+      }
+    ],
+    "Trial 5": [
+      {
+        "number": 15,
+        "place": "DNF"
+      },
+      {
+        "number": 18,
+        "place": "DNF"
+      },
+      {
+        "number": 16,
+        "place": "DNS"
+      },
+      {
+        "number": 17,
+        "place": "NA"
+      },
+      {
+        "number": 19,
+        "place": "NC"
+      }
+    ],
+    "Masters": [
+      {
+        "number": 20,
+        "place": "1"
+      },
+      {
+        "number": 43,
+        "place": "2"
+      },
+      {
+        "number": 21,
+        "place": "3"
+      }
+    ],
+    "Veterans": [
+      {
+        "number": 32,
+        "place": "1"
+      },
+      {
+        "number": 26,
+        "place": "2"
+      },
+      {
+        "number": 27,
+        "place": "3"
+      },
+      {
+        "number": 29,
+        "place": "4"
+      },
+      {
+        "number": 23,
+        "place": "5"
+      },
+      {
+        "number": 28,
+        "place": "6"
+      },
+      {
+        "number": 24,
+        "place": "7"
+      },
+      {
+        "number": 31,
+        "place": "8"
+      },
+      {
+        "number": 22,
+        "place": "9"
+      },
+      {
+        "number": 25,
+        "place": "10"
+      },
+      {
+        "number": 30,
+        "place": "11"
+      }
+    ],
+    "Twinshock": [
+      {
+        "number": 34,
+        "place": "1"
+      },
+      {
+        "number": 35,
+        "place": "2"
+      },
+      {
+        "number": 33,
+        "place": "DNF"
+      },
+      {
+        "number": 36,
+        "place": "DNS"
+      }
+    ],
+    "Juniors": [
+      {
+        "number": 37,
+        "place": "1"
+      }
+    ],
+    "Sub Junior": []
+  }
 }

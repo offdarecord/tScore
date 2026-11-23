@@ -1,0 +1,41 @@
+name: Protocol watch
+
+# Entryplace's trials result protocol is a moving draft (ADR 0013). Once a week, compare its
+# latest commit with the one docs/interop/trials-result-protocol.md was checked against, and
+# open an issue (once) when they differ so the mapping gets refreshed.
+on:
+  schedule:
+    - cron: '17 21 * * 0' # Mondays 08:17 Melbourne time (AEDT)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Compare with upstream
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          checked=$(grep -oE 'upstream commit `[0-9a-f]{7,40}`' docs/interop/trials-result-protocol.md | grep -oE '[0-9a-f]{7,40}')
+          latest=$(gh api repos/entry-place/trials-result-protocol/commits/main --jq .sha)
+          echo "checked=$checked latest=$latest"
+          if [[ "$latest" == "$checked"* ]]; then
+            echo "Mapping is up to date."
+            exit 0
+          fi
+          title="Refresh the trials-result protocol mapping (upstream ${latest:0:7})"
+          if gh issue list --state open --search "\"Refresh the trials-result protocol mapping\" in:title" --json number --jq 'length' | grep -qv '^0$'; then
+            echo "A refresh issue is already open."
+            exit 0
+          fi
+          gh issue create --title "$title" --label documentation --body "Entryplace's trials result protocol has changed since the mapping was last checked (\`$checked\` → \`${latest:0:7}\`).
+
+          Changes: https://github.com/entry-place/trials-result-protocol/compare/$checked...$latest
+
+          Follow *Refreshing this mapping* in [docs/interop/trials-result-protocol.md](https://github.com/${{ github.repository }}/blob/main/docs/interop/trials-result-protocol.md). See ADR 0013."

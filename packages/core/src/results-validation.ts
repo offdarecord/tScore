@@ -74,6 +74,17 @@ function checkScores(
     if (entry.days?.length) add(`${path}.days`, 'a DNS entry has no scores');
     return;
   }
+  // Governing-body rule: a non-competitive rider's scores are never published, only their
+  // 0/1/2/3/5 counts. They're left out of the file, not hidden.
+  if (entry.tier === 'non_competitive') {
+    if (entry.total !== null)
+      add(`${path}.total`, 'a non-competitive entry has no total (use null)');
+    if (entry.days?.length) add(`${path}.days`, 'a non-competitive entry has no published scores');
+    if (entry.penalties?.length) {
+      add(`${path}.penalties`, 'a non-competitive entry has no published penalties');
+    }
+    return;
+  }
   if (entry.total === null) {
     add(`${path}.total`, 'needs a total');
     return;

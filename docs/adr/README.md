@@ -20,3 +20,4 @@ Template: [`0000-template.md`](0000-template.md).
 | [0010](0010-build-and-test-tooling.md)                     | Build and test tooling                                            | Accepted |
 | [0011](0011-releases-and-changelog.md)                     | Conventional Commits, release-please, SemVer                      | Accepted |
 | [0012](0012-logging-and-error-codes.md)                    | Separate audit and diagnostic logs; error codes                   | Accepted |
+| [0013](0013-trials-result-protocol.md)                     | Keep `tscore.results/1`; export Entryplace `trials-result`        | Accepted |

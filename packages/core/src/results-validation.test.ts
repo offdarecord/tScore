@@ -81,8 +81,26 @@ describe('validateResults', () => {
   });
 
   it('gives DNS entries no scores', () => {
-    expect(messages(edited((r) => (r.classes[0].entries[5].total = 0)))).toEqual([
-      'classes[0].entries[5].total: a DNS entry has no total (use null)',
+    expect(messages(edited((r) => (r.classes[0].entries[4].total = 0)))).toEqual([
+      'classes[0].entries[4].total: a DNS entry has no total (use null)',
+    ]);
+  });
+
+  it("never publishes a non-competitive rider's scores", () => {
+    const nc = 'classes[0].entries[5]';
+    expect(
+      messages(
+        edited((r) => {
+          const e = r.classes[0].entries[5];
+          e.total = 15;
+          e.days = [{ day: 1, total: 15, laps: [] }];
+          e.penalties = [{ points: 5, reason: 'other' }];
+        }),
+      ),
+    ).toEqual([
+      `${nc}.total: a non-competitive entry has no total (use null)`,
+      `${nc}.days: a non-competitive entry has no published scores`,
+      `${nc}.penalties: a non-competitive entry has no published penalties`,
     ]);
   });
 

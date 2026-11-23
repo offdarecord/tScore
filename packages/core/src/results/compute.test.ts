@@ -147,13 +147,14 @@ describe('computeResults', () => {
       ]);
     });
 
-    it('orders competitive, then No award, then Non-competitive, then DNS, whatever the scores', () => {
+    it('orders competitive, then No award, then Non-competitive, each with its DNF then DNS riders, whatever the scores', () => {
       const entries = [
         rider(1, { tier: 'non_competitive' }),
         rider(2, { tier: 'no_award' }),
         rider(3),
         rider(4, { status: 'dnf' }),
         rider(5, { status: 'dns' }),
+        rider(6, { tier: 'no_award', status: 'dns' }),
       ];
       const { results } = computeResults(
         small({ 1: [0, 0, 0], 2: [0, 0, 0], 3: [5, 5, 5], 4: [0, 0, 0] }, entries),
@@ -164,10 +165,24 @@ describe('computeResults', () => {
       ).toEqual([
         [3, 1, null],
         [4, null, null],
-        [2, null, 1],
-        [1, null, 1],
         [5, null, null],
+        [2, null, 1],
+        [6, null, null],
+        [1, null, 1],
       ]);
+    });
+
+    it("leaves a non-competitive rider's scores out of the results, keeping only counts", () => {
+      const entries = [
+        rider(1, { tier: 'non_competitive', penalties: [{ points: 5, reason: 'other' }] }),
+      ];
+      const { results } = computeResults(small({ 1: [1, 0, 5] }, entries), provisional);
+      const e = results.classes[0]!.entries[0]!;
+      expect(e.total).toBeNull();
+      expect(e).not.toHaveProperty('days');
+      expect(e).not.toHaveProperty('penalties');
+      expect(e.counts).toEqual({ '0': 1, '1': 1, '2': 0, '3': 0, '5': 1 });
+      expect(JSON.stringify(results)).not.toContain('"laps":[');
     });
 
     it('orders DNF riders by most cleans, not by total (as past club results do)', () => {

@@ -77,18 +77,26 @@ Results
 
 ### Tiers, status and position
 
-Within a class, entries come in this order (checked against past events' official results):
+Within a class, entries come in this order (checked against past events' scoring workbooks and published results):
 
 | Order | Who                           | `tier`            | `status`   | `position` | `rank_in_tier` | Show as    |
 | ----- | ----------------------------- | ----------------- | ---------- | ---------- | -------------- | ---------- |
 | 1     | Competitive finishers         | `competitive`     | `finished` | 1, 2, 3 …  | null           | 1st, 2nd … |
 | 2     | Competitive non-finishers     | `competitive`     | `dnf`      | null       | null           | DNF        |
-| 3     | No Award finishers            | `no_award`        | `finished` | null       | 1, 2 …         | NA         |
-| 4     | No Award non-finishers        | `no_award`        | `dnf`      | null       | null           | NA, DNF    |
-| 5     | Non-competitive finishers     | `non_competitive` | `finished` | null       | 1, 2 …         | NC         |
-| 6     | Non-competitive non-finishers | `non_competitive` | `dnf`      | null       | null           | NC, DNF    |
-| 7     | Did not start                 | any               | `dns`      | null       | null           | DNS        |
+| 3     | Competitive non-starters      | `competitive`     | `dns`      | null       | null           | DNS        |
+| 4     | No Award finishers            | `no_award`        | `finished` | null       | 1, 2 …         | NA         |
+| 5     | No Award non-finishers        | `no_award`        | `dnf`      | null       | null           | DNF        |
+| 6     | No Award non-starters         | `no_award`        | `dns`      | null       | null           | DNS        |
+| 7     | Non-competitive finishers     | `non_competitive` | `finished` | null       | 1, 2 …         | NC         |
+| 8     | Non-competitive non-finishers | `non_competitive` | `dnf`      | null       | null           | NC         |
+| 9     | Non-competitive non-starters  | `non_competitive` | `dns`      | null       | null           | NC         |
 
+- **Non-competitive riders' scores are never published** (a governing-body rule). Their
+  entries carry `counts` only: `total` is null, and there are no `days` or `penalties`.
+  The scores are left out of the file, not hidden, so no output can show them. Show these
+  riders as "NC", after everyone else.
+- **No Award riders** are scored and ranked among themselves but never placed, so they never
+  take a podium place.
 - **DNF riders** didn't ride every lap, so their totals aren't comparable. They're ordered by
   the tie-breaks without the total: most cleans first, then most 1s, 2s and 3s, then fewest 5s.
 - **Provisional results only:** a rider still riding with a card not yet in is listed after

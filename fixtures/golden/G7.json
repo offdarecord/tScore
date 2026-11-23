@@ -1965,5 +1965,231 @@
       }
     ]
   },
-  "orderFromWorkbook": true
+  "checkOrder": true,
+  "published": {
+    "Trial 3": [
+      {
+        "number": 6,
+        "place": "1"
+      },
+      {
+        "number": 4,
+        "place": "2"
+      },
+      {
+        "number": 3,
+        "place": "3"
+      },
+      {
+        "number": 2,
+        "place": "DNF"
+      },
+      {
+        "number": 5,
+        "place": "DNF"
+      },
+      {
+        "number": 8,
+        "place": "DNF"
+      },
+      {
+        "number": 1,
+        "place": "DNS"
+      },
+      {
+        "number": 7,
+        "place": "DNS"
+      }
+    ],
+    "Trial 4 Plus": [
+      {
+        "number": 10,
+        "place": "1"
+      },
+      {
+        "number": 19,
+        "place": "2"
+      },
+      {
+        "number": 14,
+        "place": "3"
+      },
+      {
+        "number": 20,
+        "place": "4"
+      },
+      {
+        "number": 21,
+        "place": "5"
+      },
+      {
+        "number": 17,
+        "place": "6"
+      },
+      {
+        "number": 13,
+        "place": "7"
+      },
+      {
+        "number": 9,
+        "place": "8"
+      },
+      {
+        "number": 18,
+        "place": "9"
+      },
+      {
+        "number": 16,
+        "place": "10"
+      },
+      {
+        "number": 15,
+        "place": "11"
+      },
+      {
+        "number": 12,
+        "place": "DNF"
+      },
+      {
+        "number": 11,
+        "place": "DNF"
+      },
+      {
+        "number": 53,
+        "place": "DNS"
+      }
+    ],
+    "Trial 4": [
+      {
+        "number": 25,
+        "place": "1"
+      },
+      {
+        "number": 22,
+        "place": "2"
+      },
+      {
+        "number": 31,
+        "place": "3"
+      },
+      {
+        "number": 28,
+        "place": "4"
+      },
+      {
+        "number": 26,
+        "place": "5"
+      },
+      {
+        "number": 30,
+        "place": "6"
+      },
+      {
+        "number": 27,
+        "place": "7"
+      },
+      {
+        "number": 29,
+        "place": "8"
+      },
+      {
+        "number": 24,
+        "place": "DNF"
+      }
+    ],
+    "Juniors": [
+      {
+        "number": 35,
+        "place": "1"
+      },
+      {
+        "number": 36,
+        "place": "2"
+      },
+      {
+        "number": 33,
+        "place": "3"
+      },
+      {
+        "number": 32,
+        "place": "4"
+      },
+      {
+        "number": 34,
+        "place": "DNF"
+      }
+    ],
+    "Sub Junior": [
+      {
+        "number": 37,
+        "place": "1"
+      }
+    ],
+    "Trial 5": [
+      {
+        "number": 47,
+        "place": "1"
+      },
+      {
+        "number": 39,
+        "place": "2"
+      },
+      {
+        "number": 46,
+        "place": "3"
+      },
+      {
+        "number": 52,
+        "place": "4"
+      },
+      {
+        "number": 23,
+        "place": "5"
+      },
+      {
+        "number": 51,
+        "place": "6"
+      },
+      {
+        "number": 42,
+        "place": "7"
+      },
+      {
+        "number": 48,
+        "place": "8"
+      },
+      {
+        "number": 49,
+        "place": "9"
+      },
+      {
+        "number": 45,
+        "place": "10"
+      },
+      {
+        "number": 44,
+        "place": "11"
+      },
+      {
+        "number": 43,
+        "place": "DNF"
+      },
+      {
+        "number": 50,
+        "place": "DNF"
+      },
+      {
+        "number": 38,
+        "place": "DNF"
+      },
+      {
+        "number": 40,
+        "place": "DNS"
+      },
+      {
+        "number": 41,
+        "place": "DNS"
+      }
+    ]
+  }
 }

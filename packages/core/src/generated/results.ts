@@ -121,7 +121,7 @@ export interface Entry {
   riders: Person[];
   club?: string;
   /**
-   * competitive: placed 1, 2, 3... no_award: scored and ranked among themselves, shown 'NA', no placing. non_competitive: scored, shown 'NC', listed last.
+   * competitive: placed 1, 2, 3... no_award: scored and ranked among themselves, shown 'NA', no placing. non_competitive: shown 'NC' after the No award riders, with counts only: their total, scores and penalties are never published (governing-body rule).
    */
   tier: 'competitive' | 'no_award' | 'non_competitive';
   /**
@@ -141,7 +141,7 @@ export interface Entry {
    */
   tied_with_previous?: boolean;
   /**
-   * Event total including penalties. null for DNS.
+   * Event total including penalties. null for DNS and for non-competitive entries (not published).
    */
   total: number | null;
   /**
@@ -150,7 +150,13 @@ export interface Entry {
   counts?: {
     [k: string]: number;
   };
+  /**
+   * Every lap's section scores. Left out for DNS and non-competitive entries.
+   */
   days?: EntryDay[];
+  /**
+   * Left out for DNS and non-competitive entries.
+   */
   penalties?: Penalty[];
   /**
    * Position in a ride-off, if one decided a tie.

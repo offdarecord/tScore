@@ -8,7 +8,7 @@
 
 tScore is a Windows desktop app that:
 
-1. **Scores trials events.** Days, classes, sections and laps; tiers, DNF/DNS, penalties,
+1. **Scores trials events.** Single or multiple days, classes, sections and laps; DNF/DNS, penalties,
    second classes and sidecars; results ranked with the usual tie-breaks.
 2. **Reads punched observer scorecards** with a cheap USB document camera, so nobody types
    scores. Only cards that need a human go to a review queue.

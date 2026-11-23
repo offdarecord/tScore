@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { app, BrowserWindow, ipcMain, shell, type IpcMainInvokeEvent } from 'electron';
 import log from 'electron-log/main';
-import { IPC, type AppInfo } from '../shared/ipc';
+import { IPC, type AppInfo, type ExportKind } from '../shared/ipc';
 import { closeEvents, eventHandlers, eventsDir } from './events';
 import { checkForUpdatesWhenSafe } from './updates';
 
@@ -76,6 +76,11 @@ function registerIpc(): void {
     eventHandlers.addPenalty(penalty),
   );
   handle(IPC.removePenalty, (_e, id: string) => eventHandlers.removePenalty(id));
+  handle(IPC.results, () => eventHandlers.results());
+  handle(IPC.exportResults, (e, kind: ExportKind, juniorInitials: boolean) =>
+    eventHandlers.exportResults(kind, juniorInitials, BrowserWindow.fromWebContents(e.sender)),
+  );
+  handle(IPC.openExport, () => eventHandlers.openExport());
 }
 
 function createWindow(): void {

@@ -30,15 +30,18 @@ import type {
   CardDesk,
   DeskRider,
   EntryListFile,
+  ExportKind,
   NewPenalty,
   OpenEvent,
   Outcome,
   PenaltyReason,
   RecentEventInfo,
+  ResultsView,
   RiderChange,
   RiderInfo,
   SaveCard,
 } from '../shared/ipc';
+import { exportResults, openLastExport, resultsView } from './results';
 
 const PENALTY_REASONS: readonly PenaltyReason[] = [
   'time',
@@ -147,20 +150,32 @@ function attempt<T>(what: string, fn: () => T): Outcome<T> {
   try {
     return { ok: true, value: fn() };
   } catch (err) {
-    log.warn(`${what} failed`, err);
-    let error: AppError;
-    if (err instanceof SetupError) {
-      error = { code: err.code, message: err.message, issues: err.issues };
-    } else if (err instanceof StoreError || err instanceof ImportError) {
-      error = { code: err.code, message: err.message };
-    } else {
-      error = {
-        code: 'APP_UNEXPECTED',
-        message: `Something went wrong (${what}). The details are in tScore's log.`,
-      };
-    }
-    return { ok: false, error };
+    return failed(what, err);
   }
+}
+
+async function attemptAsync<T>(what: string, fn: () => Promise<T>): Promise<Outcome<T>> {
+  try {
+    return { ok: true, value: await fn() };
+  } catch (err) {
+    return failed(what, err);
+  }
+}
+
+function failed(what: string, err: unknown): { ok: false; error: AppError } {
+  log.warn(`${what} failed`, err);
+  let error: AppError;
+  if (err instanceof SetupError) {
+    error = { code: err.code, message: err.message, issues: err.issues };
+  } else if (err instanceof StoreError || err instanceof ImportError) {
+    error = { code: err.code, message: err.message };
+  } else {
+    error = {
+      code: 'APP_UNEXPECTED',
+      message: `Something went wrong (${what}). The details are in tScore's log.`,
+    };
+  }
+  return { ok: false, error };
 }
 
 export const eventHandlers = {
@@ -354,6 +369,30 @@ export const eventHandlers = {
       store.removePenalty(id);
       log.info('penalty removed', { eventId: store.eventId });
       return cardDesk(store);
+    });
+  },
+
+  results(): Outcome<ResultsView> {
+    return attempt('working out results', () => resultsView(openStore()));
+  },
+
+  exportResults(
+    kind: ExportKind,
+    juniorInitials: boolean,
+    win: BrowserWindow | null,
+  ): Promise<Outcome<string | null>> {
+    return attemptAsync('saving results', async () => {
+      const store = openStore();
+      const path = await exportResults(store, kind, juniorInitials, win);
+      if (path) log.info('results saved', { eventId: store.eventId, kind, juniorInitials });
+      return path;
+    });
+  },
+
+  openExport(): Promise<Outcome<null>> {
+    return attemptAsync('opening the saved results', async () => {
+      await openLastExport();
+      return null;
     });
   },
 

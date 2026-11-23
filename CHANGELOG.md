@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.0](https://github.com/offdarecord/tScore/compare/v0.2.0...v0.3.0) (2026-11-23)
+
+
+### Added
+
+* create, open and set up events in the app ([#19](https://github.com/offdarecord/tScore/issues/19)) ([07919c0](https://github.com/offdarecord/tScore/commit/07919c04ec61835c62097fc5841bdfa425b694ac))
+* event store, one SQLite file per event with append-only scores ([#17](https://github.com/offdarecord/tScore/issues/17)) ([0d97f0a](https://github.com/offdarecord/tScore/commit/0d97f0a2aac948a954abc07b968f88d954cfbf77))
+
+
+### Fixed
+
+* explain why New event and Open event can't be used yet ([#11](https://github.com/offdarecord/tScore/issues/11)) ([08c63f0](https://github.com/offdarecord/tScore/commit/08c63f0663524a3b5e610e37bdd7ba5928e02ea0))
+* never publish non-competitive scores, and list non-starters with their group ([#16](https://github.com/offdarecord/tScore/issues/16)) ([c1baecc](https://github.com/offdarecord/tScore/commit/c1baeccc202a9f4aaaa096303a691e83af61b0d0))
+* order DNF riders by cleans, as past club results do ([#13](https://github.com/offdarecord/tScore/issues/13)) ([06c5440](https://github.com/offdarecord/tScore/commit/06c5440b2543764b6efa0651372d2f1f32e8c1ea))
+
 ## [0.2.0](https://github.com/offdarecord/tScore/compare/v0.1.0...v0.2.0) (2026-11-22)
 
 > tScore is still in early development and not ready for events. This release adds the scoring rules behind the scenes; there are no new screens yet.

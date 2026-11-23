@@ -1,6 +1,6 @@
 # 0006. SQLite driver: `node:sqlite` preferred, `better-sqlite3` fallback
 
-- **Status:** Proposed (confirm at the start of Phase 2, when the event store is built)
+- **Status:** Accepted (2026-11-23, with the event store)
 - **Date:** 2026-11-22
 
 ## Context
@@ -25,6 +25,19 @@ Checked on 2026-11-22 with Electron 45.4.1 (bundled Node 24.22.3):
   backup API, performance) or regresses in an Electron upgrade.
 - Re-check `node:sqlite` stability status at the start of Phase 2 and on each Electron major
   upgrade; mark this ADR Accepted (or supersede it) then.
+
+## Confirmation (2026-11-23)
+
+The event store (`packages/store`) is built on `node:sqlite`. Checked with Node 24.20 and
+with Electron 45.4.1's own runtime (Node 24.22.3, SQLite 3.54.1):
+
+- WAL with `synchronous=FULL`, foreign keys, `STRICT` tables and triggers all work.
+- **Kill test passes:** a child process recording cards is killed mid-stream. The file then
+  passes `quick_check`, and holds every card reported saved and no half card. It runs in CI
+  with Node; it was also run once by hand with Electron's runtime.
+- **Backups use `VACUUM INTO`** rather than the async `backup()` function. It makes a
+  consistent copy inside SQLite, synchronously, which keeps the store's API synchronous. Event
+  files are small (a few MB), so the brief pause doesn't matter.
 
 ## Consequences
 

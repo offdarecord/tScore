@@ -254,8 +254,14 @@ function ClassTable(props: {
       <Text c="dark.6">
         {classSummary(cls)} · {cls.entries.length} {cls.entries.length === 1 ? 'entry' : 'entries'}
       </Text>
-      <Table.ScrollContainer minWidth={760}>
-        <Table verticalSpacing={8} aria-label={`${cls.name} results`}>
+      {/* On a narrow window the table scrolls sideways; focusable so the keyboard can scroll it. */}
+      <div
+        role="region"
+        aria-label={`${cls.name} results, scrolls sideways`}
+        tabIndex={0}
+        style={{ overflowX: 'auto' }}
+      >
+        <Table verticalSpacing={8} miw={760} aria-label={`${cls.name} results`}>
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Place</Table.Th>
@@ -322,7 +328,7 @@ function ClassTable(props: {
             })}
           </Table.Tbody>
         </Table>
-      </Table.ScrollContainer>
+      </div>
     </Stack>
   );
 }

@@ -166,6 +166,8 @@ test('the Results screen meets WCAG 2.2 AA (automated check)', async () => {
   await typeCards([[1, '0000000001']]);
   await nav().getByRole('button', { name: 'Results' }).click();
   await window.getByRole('button', { name: 'See what’s missing' }).click();
+  // The smallest window tScore allows, so the table has to scroll sideways (as on CI).
+  await window.setViewportSize({ width: 1024, height: 700 });
   const results = await new AxeBuilder({ page: window })
     .setLegacyMode(true)
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])

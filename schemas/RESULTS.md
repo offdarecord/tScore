@@ -77,15 +77,22 @@ Results
 
 ### Tiers, status and position
 
-Within a class, entries come in this order:
+Within a class, entries come in this order (checked against past events' official results):
 
-| Order | Who                       | `tier`            | `status`   | `position` | `rank_in_tier` | Show as    |
-| ----- | ------------------------- | ----------------- | ---------- | ---------- | -------------- | ---------- |
-| 1     | Competitive finishers     | `competitive`     | `finished` | 1, 2, 3 …  | null           | 1st, 2nd … |
-| 2     | Competitive non-finishers | `competitive`     | `dnf`      | null       | null           | DNF        |
-| 3     | No Award                  | `no_award`        | `finished` | null       | 1, 2 …         | NA         |
-| 4     | Non-competitive           | `non_competitive` | `finished` | null       | 1, 2 …         | NC         |
-| 5     | Did not start             | any               | `dns`      | null       | null           | DNS        |
+| Order | Who                           | `tier`            | `status`   | `position` | `rank_in_tier` | Show as    |
+| ----- | ----------------------------- | ----------------- | ---------- | ---------- | -------------- | ---------- |
+| 1     | Competitive finishers         | `competitive`     | `finished` | 1, 2, 3 …  | null           | 1st, 2nd … |
+| 2     | Competitive non-finishers     | `competitive`     | `dnf`      | null       | null           | DNF        |
+| 3     | No Award finishers            | `no_award`        | `finished` | null       | 1, 2 …         | NA         |
+| 4     | No Award non-finishers        | `no_award`        | `dnf`      | null       | null           | NA, DNF    |
+| 5     | Non-competitive finishers     | `non_competitive` | `finished` | null       | 1, 2 …         | NC         |
+| 6     | Non-competitive non-finishers | `non_competitive` | `dnf`      | null       | null           | NC, DNF    |
+| 7     | Did not start                 | any               | `dns`      | null       | null           | DNS        |
+
+- **DNF riders** didn't ride every lap, so their totals aren't comparable. They're ordered by
+  the tie-breaks without the total: most cleans first, then most 1s, 2s and 3s, then fewest 5s.
+- **Provisional results only:** a rider still riding with a card not yet in is listed after
+  those in their group with every card in. Final results never contain such riders.
 
 Consumers should show entries in the order given rather than re-sorting them. Two entries
 with every tie-break equal share a placing: `tied_with_previous` is `true` on the second.

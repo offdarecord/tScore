@@ -169,6 +169,43 @@ describe('computeResults', () => {
         [5, null, null],
       ]);
     });
+
+    it('orders DNF riders by most cleans, not by total (as past club results do)', () => {
+      const entries = [
+        rider(1, { status: 'dnf' }),
+        rider(2, { status: 'dnf' }),
+        rider(3, { status: 'dnf' }),
+      ];
+      // Totals 2, 15, 6; cleans 1, 2, 0. Club order is by cleans: 2, 1, 3.
+      const { results } = computeResults(
+        small({ 1: [1, 1, 0], 2: [5, 0, 0], 3: [3, 3, null] }, entries),
+        provisional,
+      );
+      expect(results.classes[0]!.entries.map((e) => e.number)).toEqual([2, 1, 3]);
+    });
+
+    it('lists riders with a card missing after those with every card in (provisional)', () => {
+      const input: EventInput = {
+        ...small({}),
+        classes: [
+          { name: 'Open', order: 1, scored: true, days: [{ day: 1, sections: 2, laps: 2 }] },
+        ],
+        entries: [rider(1), rider(2), rider(3)],
+        cards: [
+          { number: 1, day: 1, lap: 1, scores: [0, 0] }, // lap 2 not in yet: total 0 so far
+          { number: 2, day: 1, lap: 1, scores: [5, 5] },
+          { number: 2, day: 1, lap: 2, scores: [5, 5] },
+          { number: 3, day: 1, lap: 1, scores: [1, 0] },
+          { number: 3, day: 1, lap: 2, scores: [0, 0] },
+        ],
+      };
+      const { results } = computeResults(input, provisional);
+      expect(results.classes[0]!.entries.map((e) => [e.number, e.position])).toEqual([
+        [3, 1],
+        [2, 2],
+        [1, 3],
+      ]);
+    });
   });
 
   describe('event features', () => {

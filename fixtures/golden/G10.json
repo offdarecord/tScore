@@ -1,0 +1,1743 @@
+{
+  "source": "Golden event G10: anonymised from a real club event's scoring workbook. Riders are identified only by number; no names, clubs, licences, dates or venues.",
+  "event": {
+    "id": "00000000-0000-4000-8000-000000473130",
+    "code": "G10",
+    "name": "Golden event G10",
+    "days": [
+      {
+        "day": 1,
+        "date": "2000-01-01"
+      }
+    ],
+    "classes": [
+      {
+        "name": "Trial 3",
+        "order": 310,
+        "scored": true,
+        "days": [
+          {
+            "day": 1,
+            "sections": 8,
+            "laps": 5
+          }
+        ]
+      },
+      {
+        "name": "Trial 4 Plus",
+        "order": 315,
+        "scored": true,
+        "days": [
+          {
+            "day": 1,
+            "sections": 8,
+            "laps": 5
+          }
+        ]
+      },
+      {
+        "name": "Trial 4",
+        "order": 320,
+        "scored": true,
+        "days": [
+          {
+            "day": 1,
+            "sections": 8,
+            "laps": 5
+          }
+        ]
+      },
+      {
+        "name": "Trial 5",
+        "order": 325,
+        "scored": true,
+        "days": [
+          {
+            "day": 1,
+            "sections": 8,
+            "laps": 5
+          }
+        ]
+      },
+      {
+        "name": "Masters",
+        "order": 330,
+        "scored": true,
+        "days": [
+          {
+            "day": 1,
+            "sections": 8,
+            "laps": 5
+          }
+        ]
+      },
+      {
+        "name": "Veterans",
+        "order": 335,
+        "scored": true,
+        "days": [
+          {
+            "day": 1,
+            "sections": 8,
+            "laps": 5
+          }
+        ]
+      },
+      {
+        "name": "Twinshock",
+        "order": 348,
+        "scored": true,
+        "days": [
+          {
+            "day": 1,
+            "sections": 8,
+            "laps": 5
+          }
+        ]
+      },
+      {
+        "name": "Juniors",
+        "order": 360,
+        "scored": true,
+        "days": [
+          {
+            "day": 1,
+            "sections": 8,
+            "laps": 5
+          }
+        ]
+      },
+      {
+        "name": "Sub Junior",
+        "order": 365,
+        "scored": true,
+        "days": [
+          {
+            "day": 1,
+            "sections": 8,
+            "laps": 3
+          }
+        ]
+      }
+    ],
+    "entries": [
+      {
+        "number": 1,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "1"
+          }
+        ],
+        "tier": "competitive",
+        "status": "dnf",
+        "classes": ["Trial 3"]
+      },
+      {
+        "number": 2,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "2"
+          }
+        ],
+        "tier": "competitive",
+        "status": "dnf",
+        "classes": ["Trial 3"]
+      },
+      {
+        "number": 3,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "3"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Trial 3"]
+      },
+      {
+        "number": 4,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "4"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Trial 4 Plus"]
+      },
+      {
+        "number": 5,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "5"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Trial 4 Plus"]
+      },
+      {
+        "number": 6,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "6"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Trial 4 Plus"]
+      },
+      {
+        "number": 7,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "7"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Trial 4 Plus"]
+      },
+      {
+        "number": 8,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "8"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Trial 4"]
+      },
+      {
+        "number": 9,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "9"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Trial 4"]
+      },
+      {
+        "number": 10,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "10"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Trial 4"]
+      },
+      {
+        "number": 11,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "11"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Trial 4"]
+      },
+      {
+        "number": 12,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "12"
+          }
+        ],
+        "tier": "competitive",
+        "status": "dnf",
+        "classes": ["Trial 4"]
+      },
+      {
+        "number": 13,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "13"
+          }
+        ],
+        "tier": "competitive",
+        "status": "dnf",
+        "classes": ["Trial 4"]
+      },
+      {
+        "number": 14,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "14"
+          }
+        ],
+        "tier": "competitive",
+        "status": "dnf",
+        "classes": ["Trial 4"]
+      },
+      {
+        "number": 15,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "15"
+          }
+        ],
+        "tier": "competitive",
+        "status": "dnf",
+        "classes": ["Trial 5"]
+      },
+      {
+        "number": 16,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "16"
+          }
+        ],
+        "tier": "competitive",
+        "status": "dns",
+        "classes": ["Trial 5"]
+      },
+      {
+        "number": 17,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "17"
+          }
+        ],
+        "tier": "no_award",
+        "status": "riding",
+        "classes": ["Trial 5"]
+      },
+      {
+        "number": 18,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "18"
+          }
+        ],
+        "tier": "competitive",
+        "status": "dnf",
+        "classes": ["Trial 5"]
+      },
+      {
+        "number": 19,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "19"
+          }
+        ],
+        "tier": "non_competitive",
+        "status": "dnf",
+        "classes": ["Trial 5"]
+      },
+      {
+        "number": 20,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "20"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Masters"]
+      },
+      {
+        "number": 21,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "21"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Masters"]
+      },
+      {
+        "number": 22,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "22"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Veterans"]
+      },
+      {
+        "number": 23,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "23"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Veterans"]
+      },
+      {
+        "number": 24,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "24"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Veterans"]
+      },
+      {
+        "number": 25,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "25"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Veterans"]
+      },
+      {
+        "number": 26,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "26"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Veterans"]
+      },
+      {
+        "number": 27,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "27"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Veterans"]
+      },
+      {
+        "number": 28,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "28"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Veterans"]
+      },
+      {
+        "number": 29,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "29"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Veterans"]
+      },
+      {
+        "number": 30,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "30"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Veterans"]
+      },
+      {
+        "number": 31,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "31"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Veterans"]
+      },
+      {
+        "number": 32,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "32"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Veterans"]
+      },
+      {
+        "number": 33,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "33"
+          }
+        ],
+        "tier": "competitive",
+        "status": "dnf",
+        "classes": ["Twinshock"]
+      },
+      {
+        "number": 34,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "34"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Twinshock"]
+      },
+      {
+        "number": 35,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "35"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Twinshock"]
+      },
+      {
+        "number": 36,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "36"
+          }
+        ],
+        "tier": "competitive",
+        "status": "dns",
+        "classes": ["Twinshock"]
+      },
+      {
+        "number": 37,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "37"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Juniors"]
+      },
+      {
+        "number": 38,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "38"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Sub Junior"]
+      },
+      {
+        "number": 42,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "42"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Trial 4"]
+      },
+      {
+        "number": 43,
+        "riders": [
+          {
+            "givenName": "Rider",
+            "familyName": "43"
+          }
+        ],
+        "tier": "competitive",
+        "status": "riding",
+        "classes": ["Masters"]
+      }
+    ],
+    "cards": [
+      {
+        "number": 1,
+        "day": 1,
+        "lap": 1,
+        "scores": [2, 5, 5, 1, 1, 3, 1, 5]
+      },
+      {
+        "number": 3,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 0, 3, 1, 2, 5, 5, 3]
+      },
+      {
+        "number": 3,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 0, 0, 0, 0, 5, 1, 0]
+      },
+      {
+        "number": 3,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 0, 1, 0, 0, 1, 1, 2]
+      },
+      {
+        "number": 3,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 1, 0, 0, 5, 1, 0, 0]
+      },
+      {
+        "number": 3,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 1, 0, 0, 0, 5, 1, 1]
+      },
+      {
+        "number": 4,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 0, 0, 2, 5, 5, 3, 3]
+      },
+      {
+        "number": 4,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 0, 0, 5, 5, 1, 5, 0]
+      },
+      {
+        "number": 4,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 0, 0, 5, 0, 0, 0, 0]
+      },
+      {
+        "number": 4,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 0, 5, 1, 0, 1, 0]
+      },
+      {
+        "number": 4,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 3, 1, 1, 1, 0]
+      },
+      {
+        "number": 5,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 0, 0, 2, 2, 0, 0, 0]
+      },
+      {
+        "number": 5,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 1, 0, 5, 2, 3, 5, 0]
+      },
+      {
+        "number": 5,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 0, 0, 1, 3, 0, 5, 0]
+      },
+      {
+        "number": 5,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 0, 1, 0, 0, 5, 0]
+      },
+      {
+        "number": 5,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 3, 3, 1, 0, 0]
+      },
+      {
+        "number": 6,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 0, 0, 5, 0, 1, 1, 1]
+      },
+      {
+        "number": 6,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 1, 0, 5, 1, 0, 1, 0]
+      },
+      {
+        "number": 6,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 0, 0, 1, 0, 0, 1, 0]
+      },
+      {
+        "number": 6,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 0, 1, 1, 0, 0, 0]
+      },
+      {
+        "number": 6,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 3, 0, 1, 0, 0]
+      },
+      {
+        "number": 7,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 0, 0, 5, 5, 0, 1, 3]
+      },
+      {
+        "number": 7,
+        "day": 1,
+        "lap": 2,
+        "scores": [5, 0, 1, 1, 3, 5, 5, 0]
+      },
+      {
+        "number": 7,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 0, 0, 5, 0, 1, 3, 0]
+      },
+      {
+        "number": 7,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 1, 0, 0, 0, 5, 1]
+      },
+      {
+        "number": 7,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 0, 2, 5, 5, 0]
+      },
+      {
+        "number": 8,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 1, 0, 3, 1, 1, 5, 1]
+      },
+      {
+        "number": 8,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 0, 0, 3, 1, 0, 0, 1]
+      },
+      {
+        "number": 8,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 0, 0, 1, 0, 0, 0, 0]
+      },
+      {
+        "number": 8,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 1, 0, 0, 1, 0, 0, 0]
+      },
+      {
+        "number": 8,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "number": 9,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 1, 0, 0, 0, 0, 0, 1]
+      },
+      {
+        "number": 9,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 0, 0, 0, 5, 0, 1, 0]
+      },
+      {
+        "number": 9,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 0, 0, 0, 2, 1, 0, 0]
+      },
+      {
+        "number": 9,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 1, 0, 5, 1, 0, 1, 1]
+      },
+      {
+        "number": 9,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "number": 10,
+        "day": 1,
+        "lap": 1,
+        "scores": [1, 5, 3, 5, 1, 3, 1, 5]
+      },
+      {
+        "number": 10,
+        "day": 1,
+        "lap": 2,
+        "scores": [5, 5, 1, 5, 1, 5, 1, 2]
+      },
+      {
+        "number": 10,
+        "day": 1,
+        "lap": 3,
+        "scores": [2, 3, 3, 5, 5, 5, 0, 5]
+      },
+      {
+        "number": 10,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 3, 0, 3, 1, 2, 0, 0]
+      },
+      {
+        "number": 10,
+        "day": 1,
+        "lap": 5,
+        "scores": [2, 2, 0, 3, 1, 5, 1, 0]
+      },
+      {
+        "number": 11,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 5, 0, 5, 3, 0, 1, 5]
+      },
+      {
+        "number": 11,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 3, 0, 5, 2, 0, 0, 1]
+      },
+      {
+        "number": 11,
+        "day": 1,
+        "lap": 3,
+        "scores": [5, 1, 0, 5, 3, 0, 0, 5]
+      },
+      {
+        "number": 11,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 5, 0, 3, 2, 0, 0, 2]
+      },
+      {
+        "number": 11,
+        "day": 1,
+        "lap": 5,
+        "scores": [1, 3, 0, 5, 5, 0, 0, 5]
+      },
+      {
+        "number": 12,
+        "day": 1,
+        "lap": 1,
+        "scores": [5, 5, 1, 5, 5, 2, 5, 5]
+      },
+      {
+        "number": 12,
+        "day": 1,
+        "lap": 2,
+        "scores": [3, 5, 1, 5, 3, 0, 3, 5]
+      },
+      {
+        "number": 12,
+        "day": 1,
+        "lap": 3,
+        "scores": [5, 2, 2, 5, 5, 5, 5, 5]
+      },
+      {
+        "number": 12,
+        "day": 1,
+        "lap": 4,
+        "scores": [5, 5, 1, 5, 3, 5, 5, 5]
+      },
+      {
+        "number": 13,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 3, 2, 5, 5, 3, 5, 3]
+      },
+      {
+        "number": 13,
+        "day": 1,
+        "lap": 2,
+        "scores": [5, 5, 0, 3, 3, 3, 2, 3]
+      },
+      {
+        "number": 13,
+        "day": 1,
+        "lap": 3,
+        "scores": [1, 5, 5, 5, 3, 3, 0, 3]
+      },
+      {
+        "number": 13,
+        "day": 1,
+        "lap": 4,
+        "scores": [1, 3, 5, 0, 2, 5, 0, 1]
+      },
+      {
+        "number": 14,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 3, 0, 5, 5, 3, 0, 5]
+      },
+      {
+        "number": 14,
+        "day": 1,
+        "lap": 2,
+        "scores": [3, 5, 2, 5, 3, 5, 3, 5]
+      },
+      {
+        "number": 14,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 5, 2, 5, 5, 3, 1, 5]
+      },
+      {
+        "number": 14,
+        "day": 1,
+        "lap": 4,
+        "scores": [3, 5, 3, 5, 5, 1, 3, 5]
+      },
+      {
+        "number": 15,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 3, 0, 2, 5, 0, 1, 0]
+      },
+      {
+        "number": 17,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 0, 0, 0, 1, 0, 0, 0]
+      },
+      {
+        "number": 17,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 5, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "number": 17,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 5, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "number": 17,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 0, 0, 1, 0, 0, 0]
+      },
+      {
+        "number": 17,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 0, 1, 0, 0, 0]
+      },
+      {
+        "number": 18,
+        "day": 1,
+        "lap": 1,
+        "scores": [2, 3, 2, 0, 5, 0, 0, 0]
+      },
+      {
+        "number": 19,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 5, 0, 3, 5, 3, 0, 5]
+      },
+      {
+        "number": 20,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 2, 0, 5, 0, 5, 1, 0]
+      },
+      {
+        "number": 20,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 0, 0, 0, 0, 0, 1, 1]
+      },
+      {
+        "number": 20,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 0, 5, 0, 0, 0, 0, 0]
+      },
+      {
+        "number": 20,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "number": 20,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "number": 21,
+        "day": 1,
+        "lap": 1,
+        "scores": [5, 3, 3, 5, 3, 5, 5, 3]
+      },
+      {
+        "number": 21,
+        "day": 1,
+        "lap": 2,
+        "scores": [2, 5, 5, 3, 0, 3, 5, 3]
+      },
+      {
+        "number": 21,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 5, 5, 5, 2, 3, 3, 3]
+      },
+      {
+        "number": 21,
+        "day": 1,
+        "lap": 4,
+        "scores": [1, 3, 5, 5, 0, 5, 3, 5]
+      },
+      {
+        "number": 21,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 5, 3, 3, 0, 5, 5, 5]
+      },
+      {
+        "number": 22,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 1, 1, 5, 2, 0, 5, 1]
+      },
+      {
+        "number": 22,
+        "day": 1,
+        "lap": 2,
+        "scores": [1, 1, 0, 2, 2, 0, 0, 0]
+      },
+      {
+        "number": 22,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 3, 0, 5, 0, 2, 0, 0]
+      },
+      {
+        "number": 22,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 0, 1, 0, 0, 0, 0]
+      },
+      {
+        "number": 22,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 1, 0, 0, 0, 0]
+      },
+      {
+        "number": 23,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 1, 1, 1, 1, 5, 0, 0]
+      },
+      {
+        "number": 23,
+        "day": 1,
+        "lap": 2,
+        "scores": [1, 1, 0, 0, 2, 0, 0, 0]
+      },
+      {
+        "number": 23,
+        "day": 1,
+        "lap": 3,
+        "scores": [1, 1, 0, 0, 1, 0, 0, 1]
+      },
+      {
+        "number": 23,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "number": 23,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 0, 1, 0, 0, 0]
+      },
+      {
+        "number": 24,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 1, 0, 2, 3, 3, 0, 0]
+      },
+      {
+        "number": 24,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 0, 0, 5, 0, 0, 0, 0]
+      },
+      {
+        "number": 24,
+        "day": 1,
+        "lap": 3,
+        "scores": [1, 0, 0, 0, 1, 1, 0, 0]
+      },
+      {
+        "number": 24,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 0, 5, 3, 0, 0, 0]
+      },
+      {
+        "number": 24,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 0, 1, 0, 0, 0]
+      },
+      {
+        "number": 25,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 1, 3, 5, 2, 1, 0, 2]
+      },
+      {
+        "number": 25,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 0, 0, 0, 5, 1, 0, 0]
+      },
+      {
+        "number": 25,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 0, 0, 0, 0, 0, 0, 1]
+      },
+      {
+        "number": 25,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 0, 2, 1, 5, 0, 1]
+      },
+      {
+        "number": 25,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 2, 2, 0, 0, 0]
+      },
+      {
+        "number": 26,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 0, 0, 1, 0, 0, 0, 0]
+      },
+      {
+        "number": 26,
+        "day": 1,
+        "lap": 2,
+        "scores": [2, 0, 0, 1, 0, 0, 1, 0]
+      },
+      {
+        "number": 26,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 0, 0, 1, 1, 0, 0, 0]
+      },
+      {
+        "number": 26,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "number": 26,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 1, 0, 1, 0, 1]
+      },
+      {
+        "number": 27,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 0, 0, 0, 2, 0, 0, 0]
+      },
+      {
+        "number": 27,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 0, 0, 5, 1, 0, 0, 0]
+      },
+      {
+        "number": 27,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 0, 0, 1, 0, 0, 0, 0]
+      },
+      {
+        "number": 27,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 0, 1, 0, 0, 0, 0]
+      },
+      {
+        "number": 27,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 1, 0, 1, 0, 0]
+      },
+      {
+        "number": 28,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 0, 5, 5, 2, 0, 0, 0]
+      },
+      {
+        "number": 28,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 0, 5, 0, 1, 0, 1, 0]
+      },
+      {
+        "number": 28,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 0, 0, 1, 0, 0, 0, 0]
+      },
+      {
+        "number": 28,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "number": 28,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "number": 29,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 0, 0, 5, 0, 3, 0, 2]
+      },
+      {
+        "number": 29,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 0, 0, 1, 0, 0, 0, 0]
+      },
+      {
+        "number": 29,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 0, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "number": 29,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 0, 0, 1, 0, 0, 0]
+      },
+      {
+        "number": 29,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 1, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "number": 30,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 0, 1, 5, 1, 1, 5, 3]
+      },
+      {
+        "number": 30,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 3, 0, 3, 3, 1, 1, 1]
+      },
+      {
+        "number": 30,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 2, 0, 5, 3, 0, 0, 5]
+      },
+      {
+        "number": 30,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 0, 5, 3, 0, 0, 0]
+      },
+      {
+        "number": 30,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 5, 2, 0, 2, 0]
+      },
+      {
+        "number": 31,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 0, 0, 2, 0, 2, 0, 0]
+      },
+      {
+        "number": 31,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 3, 0, 5, 1, 0, 0, 0]
+      },
+      {
+        "number": 31,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 0, 0, 1, 3, 3, 0, 1]
+      },
+      {
+        "number": 31,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 0, 0, 1, 0, 0, 1]
+      },
+      {
+        "number": 31,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 3, 0, 0, 0, 1]
+      },
+      {
+        "number": 32,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 0, 0, 1, 1, 0, 0, 0]
+      },
+      {
+        "number": 32,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 0, 0, 1, 0, 0, 0, 0]
+      },
+      {
+        "number": 32,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 0, 0, 2, 0, 0, 0, 0]
+      },
+      {
+        "number": 32,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 0, 1, 0, 0, 0, 0]
+      },
+      {
+        "number": 32,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 1, 0, 0, 0, 0]
+      },
+      {
+        "number": 34,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 0, 0, 0, 0, 0, 0, 2]
+      },
+      {
+        "number": 34,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 0, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "number": 34,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 0, 0, 0, 1, 1, 1, 0]
+      },
+      {
+        "number": 34,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "number": 34,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 1, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "number": 35,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 0, 0, 2, 0, 1, 0, 0]
+      },
+      {
+        "number": 35,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 0, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        "number": 35,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 0, 0, 0, 1, 0, 0, 5]
+      },
+      {
+        "number": 35,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 0, 1, 0, 1, 0, 0]
+      },
+      {
+        "number": 35,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 0, 0, 0, 1, 0]
+      },
+      {
+        "number": 37,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 3, 0, 3, 5, 3, 0, 5]
+      },
+      {
+        "number": 37,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 3, 0, 5, 5, 5, 0, 3]
+      },
+      {
+        "number": 37,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 2, 0, 3, 2, 0, 0, 0]
+      },
+      {
+        "number": 37,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 3, 0, 3, 5, 3, 0, 3]
+      },
+      {
+        "number": 37,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 2, 0, 3, 3, 5, 0, 0]
+      },
+      {
+        "number": 38,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 0, 0, 3, 3, 3, 0, 3]
+      },
+      {
+        "number": 38,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 2, 0, 5, 3, 5, 0, 3]
+      },
+      {
+        "number": 38,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 1, 0, 5, 3, 3, 0, 0]
+      },
+      {
+        "number": 42,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 0, 0, 5, 3, 1, 0, 1]
+      },
+      {
+        "number": 42,
+        "day": 1,
+        "lap": 2,
+        "scores": [0, 0, 0, 0, 3, 1, 0, 1]
+      },
+      {
+        "number": 42,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 0, 0, 1, 3, 0, 0, 1]
+      },
+      {
+        "number": 42,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 0, 0, 1, 3, 0, 0, 0]
+      },
+      {
+        "number": 42,
+        "day": 1,
+        "lap": 5,
+        "scores": [1, 0, 0, 3, 2, 1, 0, 1]
+      },
+      {
+        "number": 43,
+        "day": 1,
+        "lap": 1,
+        "scores": [0, 0, 1, 5, 0, 2, 5, 5]
+      },
+      {
+        "number": 43,
+        "day": 1,
+        "lap": 2,
+        "scores": [1, 1, 0, 3, 0, 5, 0, 0]
+      },
+      {
+        "number": 43,
+        "day": 1,
+        "lap": 3,
+        "scores": [0, 1, 0, 0, 0, 1, 0, 1]
+      },
+      {
+        "number": 43,
+        "day": 1,
+        "lap": 4,
+        "scores": [0, 1, 0, 0, 0, 0, 5, 3]
+      },
+      {
+        "number": 43,
+        "day": 1,
+        "lap": 5,
+        "scores": [0, 0, 0, 0, 0, 2, 0, 1]
+      }
+    ]
+  },
+  "expected": {
+    "Trial 3": [
+      {
+        "number": 3,
+        "total": 45
+      },
+      {
+        "number": 1,
+        "total": "DNF"
+      },
+      {
+        "number": 2,
+        "total": "DNF"
+      }
+    ],
+    "Trial 4 Plus": [
+      {
+        "number": 4,
+        "total": 52
+      },
+      {
+        "number": 6,
+        "total": 24
+      },
+      {
+        "number": 5,
+        "total": 42
+      },
+      {
+        "number": 7,
+        "total": 62
+      }
+    ],
+    "Trial 4": [
+      {
+        "number": 42,
+        "total": 32
+      },
+      {
+        "number": 10,
+        "total": 100
+      },
+      {
+        "number": 9,
+        "total": 20
+      },
+      {
+        "number": 8,
+        "total": 20
+      },
+      {
+        "number": 11,
+        "total": 80
+      },
+      {
+        "number": 14,
+        "total": "DNF"
+      },
+      {
+        "number": 13,
+        "total": "DNF"
+      },
+      {
+        "number": 12,
+        "total": "DNF"
+      }
+    ],
+    "Trial 5": [
+      {
+        "number": 17,
+        "total": 13
+      },
+      {
+        "number": 15,
+        "total": "DNF"
+      },
+      {
+        "number": 18,
+        "total": "DNF"
+      },
+      {
+        "number": 16,
+        "total": "DNS"
+      },
+      {
+        "number": 19,
+        "total": "DNF"
+      }
+    ],
+    "Masters": [
+      {
+        "number": 20,
+        "total": 20
+      },
+      {
+        "number": 43,
+        "total": 43
+      },
+      {
+        "number": 21,
+        "total": 137
+      }
+    ],
+    "Veterans": [
+      {
+        "number": 32,
+        "total": 7
+      },
+      {
+        "number": 26,
+        "total": 10
+      },
+      {
+        "number": 29,
+        "total": 13
+      },
+      {
+        "number": 28,
+        "total": 20
+      },
+      {
+        "number": 24,
+        "total": 26
+      },
+      {
+        "number": 31,
+        "total": 27
+      },
+      {
+        "number": 22,
+        "total": 33
+      },
+      {
+        "number": 25,
+        "total": 34
+      },
+      {
+        "number": 27,
+        "total": 12
+      },
+      {
+        "number": 23,
+        "total": 18
+      },
+      {
+        "number": 30,
+        "total": 60
+      }
+    ],
+    "Twinshock": [
+      {
+        "number": 34,
+        "total": 6
+      },
+      {
+        "number": 35,
+        "total": 12
+      },
+      {
+        "number": 33,
+        "total": "DNF"
+      },
+      {
+        "number": 36,
+        "total": "DNS"
+      }
+    ],
+    "Juniors": [
+      {
+        "number": 37,
+        "total": 77
+      }
+    ],
+    "Sub Junior": [
+      {
+        "number": 38,
+        "total": 42
+      }
+    ]
+  },
+  "orderFromWorkbook": false
+}

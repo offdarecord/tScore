@@ -23,7 +23,9 @@ much machinery for volunteer contributors.
 ## Consequences
 
 - Undo and "who changed this?" are straightforward.
-- Edits always require a reason in the UI.
+- ~~Edits always require a reason in the UI.~~ Amended 2026-11-23: the desk is **never asked
+  for a reason** (requirement N3, "remove friction"). A reason is stored when one is given. The
+  audit log still records who, when, and the old and new score, and the card photo is kept.
 - Slightly more storage; negligible at event scale.
 
 ## Alternatives considered

@@ -36,7 +36,7 @@ export default tseslint.config(
   },
   // No `any` in the pure packages (Definition of Done).
   {
-    files: ['packages/core/**/*.ts', 'packages/vision/**/*.ts'],
+    files: ['packages/core/**/*.ts', 'packages/vision/**/*.ts', 'packages/store/**/*.ts'],
     ignores: ['**/*.test.ts'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',

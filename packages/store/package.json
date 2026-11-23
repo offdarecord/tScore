@@ -1,0 +1,17 @@
+{
+  "name": "@tscore/store",
+  "version": "0.0.0",
+  "private": true,
+  "description": "tScore event store: one SQLite file per event, append-only scores and audit log. Runs in Electron's main process and in Node 24+.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@tscore/core": "*"
+  }
+}

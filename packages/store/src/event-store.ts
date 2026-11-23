@@ -26,7 +26,7 @@ import {
   type Tier,
 } from '@tscore/core';
 import { backupTo, openDatabase, transaction } from './database.js';
-import { StoreError } from './errors.js';
+import { SetupError, StoreError } from './errors.js';
 
 export const EVENT_FILE = 'event.sqlite';
 export const EVENT_DIRS = ['cards', 'exports', 'backups'] as const;
@@ -177,9 +177,14 @@ export class EventStore {
     return this.#setup;
   }
 
-  /** Replace the event setup (validated first). The event id can't change. */
+  /**
+   * Replace the event setup (validated first). The event id can't change. Changes after riders
+   * and cards exist are allowed (and logged), except ones that would strand them: removing a
+   * class that has riders, or a day, lap or section that already has scores.
+   */
   updateSetup(setup: unknown): void {
     const valid = checkSetup(setup);
+    this.#checkSetupChange(valid);
     const stored: EventSetup = { ...valid, event: { ...valid.event, id: this.eventId } };
     this.#tx(() => {
       this.#db
@@ -570,6 +575,39 @@ export class EventStore {
     });
   }
 
+  #checkSetupChange(next: EventSetup): void {
+    const classes = new Map(classesFromSetup(next).map((c) => [c.name, c]));
+    const entries = this.entries();
+    for (const e of entries) {
+      for (const c of e.classes) {
+        if (!classes.has(c)) {
+          throw new StoreError(
+            'STORE_CLASS_IN_USE',
+            `Class "${c}" has riders (rider ${e.number}), so it can't be removed or renamed. Move its riders to another class first.`,
+          );
+        }
+      }
+    }
+    const byNumber = new Map(entries.map((e) => [e.number, e]));
+    for (const card of this.cards()) {
+      const cls = classes.get(byNumber.get(card.number)?.classes[0] ?? '');
+      const d = cls?.days.find((x) => x.day === card.day);
+      if (!d || card.lap > d.laps) {
+        throw new StoreError(
+          'STORE_CARD_IN_USE',
+          `Rider ${card.number} already has a card for day ${card.day} lap ${card.lap}, so that lap can't be removed.`,
+        );
+      }
+      const scoredTo = card.scores.reduce<number>((n, s, i) => (s === null ? n : i + 1), 0);
+      if (scoredTo > d.sections) {
+        throw new StoreError(
+          'STORE_CARD_IN_USE',
+          `Rider ${card.number}'s card for day ${card.day} lap ${card.lap} has scores up to section ${scoredTo}, so this class needs at least ${scoredTo} sections.`,
+        );
+      }
+    }
+  }
+
   #classes(): Map<string, ClassInput> {
     return new Map(classesFromSetup(this.#setup).map((c) => [c.name, c]));
   }
@@ -674,13 +712,7 @@ function toEntry(r: EntryRow, penalties: PenaltyInput[] | undefined): EntryInput
 
 function checkSetup(setup: unknown): EventSetup {
   const r = validateEventSetup(setup);
-  if (!r.ok) {
-    const first = r.issues
-      .slice(0, 3)
-      .map((i) => (i.path ? `${i.path}: ${i.message}` : i.message))
-      .join('; ');
-    throw new StoreError('STORE_BAD_SETUP', `The event setup isn't valid: ${first}`);
-  }
+  if (!r.ok) throw new SetupError(r.issues);
   return r.value;
 }
 

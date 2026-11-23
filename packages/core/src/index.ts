@@ -10,3 +10,11 @@ export type { EventSetup } from './generated/event-setup.js';
 export type { Results } from './generated/results.js';
 export type * as EventSetupTypes from './generated/event-setup.js';
 export type * as ResultsTypes from './generated/results.js';
+export {
+  newEventSetup,
+  suggestEventCode,
+  isEventCode,
+  STARTER_CLASSES,
+  STARTER_SECTIONS,
+  STARTER_LAPS,
+} from './setup-defaults.js';

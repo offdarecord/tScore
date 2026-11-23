@@ -1,6 +1,6 @@
 {
   "name": "tscore-monorepo",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "tScore: open-source scoring for motorcycle trials, with punched-card scanning.",
   "license": "Apache-2.0",

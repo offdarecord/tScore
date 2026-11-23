@@ -1381,37 +1381,37 @@
         "number": 33,
         "day": 1,
         "lap": 1,
-        "scores": [0, 0, 0, 1, 0, 0, 0, 2, 1]
+        "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0]
       },
       {
         "number": 33,
         "day": 1,
         "lap": 2,
-        "scores": [2, 0, 1, 0, 0, 0, 0, 2, 0]
+        "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0]
       },
       {
         "number": 33,
         "day": 1,
         "lap": 3,
-        "scores": [0, 0, 1, 0, 0, 0, 0, 1, 1]
+        "scores": [1, 1, 1, 1, 1, 1, 2, 2, 2]
       },
       {
         "number": 34,
         "day": 1,
         "lap": 1,
-        "scores": [5, 0, 0, 3, 0, 0, 0, 5, 0]
+        "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0]
       },
       {
         "number": 34,
         "day": 1,
         "lap": 2,
-        "scores": [2, 0, 0, 0, 0, 0, 0, 5, 0]
+        "scores": [0, 0, 0, 0, 0, 0, 0, 0, 0]
       },
       {
         "number": 34,
         "day": 1,
         "lap": 3,
-        "scores": [1, 0, 0, 0, 0, 0, 0, 0, 0]
+        "scores": [0, 0, 0, 1, 2, 3, 5, 5, 5]
       },
       {
         "number": 36,
@@ -1597,13 +1597,173 @@
     "Beginners": [
       {
         "number": 33,
-        "total": 12
+        "total": "NC"
       },
       {
         "number": 34,
-        "total": 21
+        "total": "NC"
       }
     ]
   },
-  "orderFromWorkbook": true
+  "checkOrder": true,
+  "published": {
+    "Trial 2": [
+      {
+        "number": 1,
+        "place": "1"
+      }
+    ],
+    "Trial 3": [
+      {
+        "number": 3,
+        "place": "1"
+      },
+      {
+        "number": 4,
+        "place": "2"
+      },
+      {
+        "number": 2,
+        "place": "3"
+      }
+    ],
+    "Trial 4 Plus": [
+      {
+        "number": 12,
+        "place": "1"
+      },
+      {
+        "number": 8,
+        "place": "2"
+      },
+      {
+        "number": 9,
+        "place": "3"
+      },
+      {
+        "number": 5,
+        "place": "4"
+      },
+      {
+        "number": 11,
+        "place": "5"
+      },
+      {
+        "number": 36,
+        "place": "6"
+      },
+      {
+        "number": 10,
+        "place": "7"
+      },
+      {
+        "number": 7,
+        "place": "DNF"
+      },
+      {
+        "number": 6,
+        "place": "DNS"
+      }
+    ],
+    "Trial 4": [
+      {
+        "number": 16,
+        "place": "1"
+      },
+      {
+        "number": 17,
+        "place": "2"
+      },
+      {
+        "number": 13,
+        "place": "3"
+      },
+      {
+        "number": 14,
+        "place": "4"
+      },
+      {
+        "number": 15,
+        "place": "DNS"
+      }
+    ],
+    "Trial 5": [
+      {
+        "number": 18,
+        "place": "1"
+      },
+      {
+        "number": 19,
+        "place": "DNF"
+      }
+    ],
+    "Masters": [
+      {
+        "number": 21,
+        "place": "1"
+      },
+      {
+        "number": 20,
+        "place": "DNS"
+      }
+    ],
+    "Veterans": [
+      {
+        "number": 28,
+        "place": "1"
+      },
+      {
+        "number": 24,
+        "place": "2"
+      },
+      {
+        "number": 27,
+        "place": "3"
+      },
+      {
+        "number": 23,
+        "place": "4"
+      },
+      {
+        "number": 22,
+        "place": "5"
+      },
+      {
+        "number": 26,
+        "place": "6"
+      },
+      {
+        "number": 25,
+        "place": "DNF"
+      }
+    ],
+    "Twinshock": [
+      {
+        "number": 30,
+        "place": "1"
+      },
+      {
+        "number": 31,
+        "place": "2"
+      },
+      {
+        "number": 32,
+        "place": "3"
+      },
+      {
+        "number": 29,
+        "place": "4"
+      }
+    ],
+    "Beginners": [
+      {
+        "number": 33,
+        "place": "NC"
+      },
+      {
+        "number": 34,
+        "place": "NC"
+      }
+    ]
+  }
 }

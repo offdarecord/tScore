@@ -123,14 +123,14 @@ export function computeResults(input: EventInput, options: ResultsOptions): Resu
     const inTier = (tier: Tier, f: (s: Scored) => boolean) =>
       scored.filter((s) => s.entry.tier === tier && f(s));
 
-    // Display order, matching club results (checked against past events' scoring workbooks).
-    // For each tier in turn (competitive, No award, Non-competitive):
+    // Display order, matching club results (checked against past events' scoring workbooks and
+    // published results). For each tier in turn (competitive, No award, Non-competitive):
     //   1. riders still in with every card in, ranked by the full tie-breaks;
     //   2. riders still in with a card missing or a score undecided (provisional results only),
     //      ranked the same way on what's in so far;
     //   3. DNF riders, ranked by the tie-breaks without the total (most cleans first), since
-    //      they didn't ride every lap.
-    // Then DNS riders, by number.
+    //      they didn't ride every lap;
+    //   4. DNS riders, by number.
     const out: Entry[] = [];
     for (const tier of tiers) {
       let placed = 0;
@@ -153,11 +153,11 @@ export function computeResults(input: EventInput, options: ResultsOptions): Resu
       for (const p of rank(dnf, (s) => s.key, compareDnf, byNumber)) {
         out.push(entryOut(p.item, cls, { position: null, rankInTier: null, tied: false }));
       }
+      members
+        .filter((e) => e.tier === tier && e.status === 'dns')
+        .sort((a, b) => a.number - b.number)
+        .forEach((e) => out.push(dnsOut(e, cls)));
     }
-    members
-      .filter((e) => e.status === 'dns')
-      .sort((a, b) => a.number - b.number)
-      .forEach((e) => out.push(dnsOut(e, cls)));
 
     return {
       name: cls.name,
@@ -265,18 +265,20 @@ export function computeResults(input: EventInput, options: ResultsOptions): Resu
     const e = s.entry;
     const rideOff = e.rideOff?.[cls.name];
     const others = e.classes.filter((c) => c !== cls.name);
+    // Governing-body rule: a non-competitive rider's scores are never published, only their
+    // counts. Leave them out of the payload entirely (not hidden) so no output can leak them.
+    const scoresPublic = e.tier !== 'non_competitive';
     return {
       ...base(e, cls),
       status: e.status === 'dnf' ? 'dnf' : 'finished',
       position: place.position,
       rank_in_tier: place.rankInTier,
       ...(place.tied && { tied_with_previous: true }),
-      total: s.total,
+      total: scoresPublic ? s.total : null,
       counts: Object.fromEntries(
         input.scoring.scoreValues.map((v) => [String(v), s.counts.get(v) ?? 0]),
       ),
-      days: s.days,
-      penalties: s.penalties,
+      ...(scoresPublic && { days: s.days, penalties: s.penalties }),
       ...(rideOff !== undefined && { ride_off: rideOff }),
       ...(others.length > 0 && { also_in: others }),
     };

@@ -1,0 +1,169 @@
+import { writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import AxeBuilder from '@axe-core/playwright';
+import { expect, test, type Page } from '@playwright/test';
+import * as XLSX from 'xlsx';
+import { launchApp, type Launched } from './app';
+
+// Synthetic entry lists: the entry systems' real column names, invented people. Never use a
+// real export here.
+
+let run: Launched;
+let window: Page;
+
+test.beforeEach(async () => {
+  run = await launchApp();
+  ({ window } = run);
+});
+
+test.afterEach(async () => {
+  await run?.app.close();
+});
+
+const RIDERNET = [
+  ['registrationDate', 'First_Name', 'Last_Name', 'RidernetID', 'DOB', 'Phone', 'Emergency_Contact_Name', 'Event_Role', 'Event_Class_Name', 'Class_Reg_Status', 'Licence_Type', 'Club', 'Riding_Number'],
+  ["{ts '2027-01-02 10:00:00'}", 'Avery', 'Stone', '900001', '01/01/1990', '0400 000 001', 'Contact One', 'Rider', 'Trial 4', 'Active', 'SRN', 'Example Trials Club', '1234'],
+  ["{ts '2027-01-02 10:01:00'}", 'Blake', 'River', '900002', '02/02/2012', '0400 000 002', 'Contact Two', 'Rider', 'Trial 4', 'Active', 'JRN', 'Example Trials Club', 'Blake'],
+  ["{ts '2027-01-02 10:02:00'}", 'Casey', 'Hill', '900003', '03/03/1985', '0400 000 003', 'Contact Three', 'Rider', 'Trial 4 Plus', 'Active', 'SRN', 'Example Trials Club', ''],
+  ["{ts '2027-01-02 10:03:00'}", 'Casey', 'Hill', '900003', '03/03/1985', '0400 000 003', 'Contact Three', 'Rider', 'Trial 4', 'Active', 'SRN', 'Example Trials Club', ''],
+  ["{ts '2027-01-02 10:04:00'}", 'Drew', 'Field', '900004', '04/04/1975', '0400 000 004', 'Contact Four', 'Rider', 'TMTC Minder', 'Active', 'SRN', 'Example Trials Club', '0'],
+  ["{ts '2027-01-02 10:05:00'}", 'Emery', 'Lake', '900005', '05/05/1970', '0400 000 005', 'Contact Five', 'Crew', 'Trial 2', '', 'SRN', 'Example Trials Club', ''],
+  ["{ts '2027-01-02 10:06:00'}", 'Gray', 'Moss', '900007', '07/07/1995', '0400 000 007', 'Contact Seven', 'Rider', 'Trial 5', 'Active', 'OREC', '', ''],
+  ["{ts '2027-01-02 10:07:00'}", 'Harper', 'Vale', '900008', '08/08/1965', '0400 000 008', 'Contact Eight', 'Rider', 'Twinshock', 'Active', 'SNA', 'Example Trials Club', ''],
+]; // prettier-ignore
+
+function writeRidernet(): string {
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book, XLSX.utils.aoa_to_sheet(RIDERNET), 'Sheet1');
+  const path = join(run.userData, 'eventRiders-1-2027-01-03.xls');
+  writeFileSync(path, XLSX.write(book, { type: 'buffer', bookType: 'biff8' }) as Buffer);
+  return path;
+}
+
+/** Stand in for the Windows file dialog: the desk picks this file. */
+async function pick(path: string) {
+  await run.app.evaluate(({ dialog }, picked) => {
+    dialog.showOpenDialog = (() =>
+      Promise.resolve({ canceled: false, filePaths: [picked] })) as typeof dialog.showOpenDialog;
+  }, path);
+}
+
+async function newEventAtRiders() {
+  await window.getByRole('button', { name: 'New event' }).click();
+  await window.getByLabel('Event name').fill('Example Club Trial');
+  await window.getByLabel('Date', { exact: true }).fill('2027-02-06');
+  await window.getByRole('button', { name: 'Create event' }).click();
+  await expect(window.getByRole('heading', { name: 'Event setup', level: 1 })).toBeVisible();
+  await window
+    .getByRole('navigation', { name: 'Event' })
+    .getByRole('button', { name: 'Riders' })
+    .click();
+  await expect(window.getByRole('heading', { name: 'Riders', level: 2 })).toBeVisible();
+}
+
+async function importRidernet() {
+  await pick(writeRidernet());
+  await window.getByRole('button', { name: 'Import from entry list…' }).click();
+  await expect(window.getByRole('heading', { name: 'Import riders' })).toBeVisible();
+}
+
+test('a Ridernet export is checked, matched and imported, without personal details', async () => {
+  await newEventAtRiders();
+  await expect(window.getByText('No riders yet.')).toBeVisible();
+  await importRidernet();
+
+  await expect(window.getByText('✓ Recognised: Ridernet export')).toBeVisible();
+  const fromFile = window.getByRole('region', { name: 'From this file' });
+  await expect(fromFile).toContainText('8 rows read');
+  await expect(fromFile).toContainText('1 minders skipped');
+  await expect(fromFile).toContainText('1 crew skipped');
+
+  // Twinshock isn't one of this event's classes; Casey is entered twice.
+  const importButton = window.getByRole('button', { name: /^Import \d+ riders?$/ });
+  await expect(importButton).toBeDisabled();
+  await window.getByLabel('Event class for Twinshock').selectOption('Trial 4');
+  await window.getByRole('radio', { name: 'Only Trial 4', exact: true }).check();
+
+  const preview = window.getByRole('table', { name: 'New riders' });
+  await expect(preview).toContainText('Moss');
+  await expect(importButton).toHaveText('Import 5 riders');
+  await expect(importButton).toBeEnabled();
+  await importButton.click();
+
+  await expect(window.getByRole('status')).toHaveText('5 riders imported.');
+  await expect(window.getByText('5 riders.')).toBeVisible();
+  const list = window.getByRole('region', { name: 'Rider list' });
+  // Numbered by class order (Trial 4, then Trial 5), then surname.
+  await expect(list.getByRole('row').nth(1)).toContainText('1Casey Hill');
+  await expect(list.getByRole('row', { name: /Gray Moss/ })).toContainText('NC');
+  await expect(list).not.toContainText('0400');
+
+  // The class match was saved as an alias in the event's setup.
+  await window.getByRole('navigation', { name: 'Event' }).getByRole('button', { name: 'Event setup' }).click();
+  await window.getByRole('navigation', { name: 'Event' }).getByRole('button', { name: /Riders/ }).click();
+
+  // Importing the same file again adds no one.
+  await importRidernet();
+  await expect(window.getByRole('region', { name: 'From this file' })).toContainText(
+    '5 riders already in this event',
+  );
+  await expect(window.getByText('No new riders to add.')).toBeVisible();
+  await expect(window.getByRole('button', { name: 'Import', exact: true })).toBeDisabled();
+}); // prettier-ignore
+
+test('the desk can change a rider’s tier and class, and it is kept', async () => {
+  await newEventAtRiders();
+  await importRidernet();
+  await window.getByLabel('Event class for Twinshock').selectOption('Trial 4');
+  await window.getByRole('radio', { name: 'Only Trial 4', exact: true }).check();
+  await window.getByRole('button', { name: 'Import 5 riders' }).click();
+
+  await window.getByRole('button', { name: 'Change rider 2' }).click();
+  const dialog = window.getByRole('dialog');
+  await dialog.getByLabel('Tier').selectOption('No award');
+  await dialog.getByLabel('Class', { exact: true }).selectOption('Trial 3');
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await expect(dialog).toBeHidden();
+
+  await run.app.close();
+  run = await launchApp(run);
+  ({ window } = run);
+  await window.getByRole('button', { name: 'Open Example Club Trial' }).click();
+  await window.getByRole('navigation', { name: 'Event' }).getByRole('button', { name: /Riders/ }).click();
+  const row = window.getByRole('row', { name: /^2 / });
+  await expect(row).toContainText('NA');
+  await expect(row).toContainText('Trial 3');
+}); // prettier-ignore
+
+test('a file tScore does not recognise is refused in plain words', async () => {
+  await newEventAtRiders();
+  const path = join(run.userData, 'something.csv');
+  writeFileSync(path, 'Name,Grade\r\nAvery Stone,Trial 1\r\n');
+  await pick(path);
+  await window.getByRole('button', { name: 'Import from entry list…' }).click();
+  const alert = window.getByRole('alert').filter({ hasText: "The entry list wasn't read" });
+  await expect(alert).toContainText("tScore doesn't recognise this file");
+  await expect(alert).toContainText('IMPORT_UNKNOWN_FORMAT');
+});
+
+test('the import and riders screens meet WCAG 2.2 AA (automated check)', async () => {
+  await newEventAtRiders();
+  await importRidernet();
+  const check = async () => {
+    const results = await new AxeBuilder({ page: window })
+      .setLegacyMode(true)
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+      .analyze();
+    expect(
+      results.violations.map(
+        (v) => `${v.id}: ${v.help} (${v.nodes.map((n) => n.target.join(' ')).join(', ')})`,
+      ),
+    ).toEqual([]);
+  };
+  await check();
+  await window.getByLabel('Event class for Twinshock').selectOption('Trial 4');
+  await window.getByRole('radio', { name: 'Only Trial 4', exact: true }).check();
+  await window.getByRole('button', { name: 'Import 5 riders' }).click();
+  await expect(window.getByRole('status')).toBeVisible();
+  await check();
+});

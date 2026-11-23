@@ -12,3 +12,4 @@ export {
 export { StoreError, NewerFileError, DamagedFileError, SetupError } from './errors.js';
 export { EventLibrary, type LibraryOptions, type RecentEvent } from './library.js';
 export { SCHEMA_VERSION } from './migrations.js';
+export { readEntryFile } from './entry-file.js';

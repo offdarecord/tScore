@@ -215,8 +215,49 @@ export class EventStore {
   /** Add a rider. Penalties on the input are ignored: use `addPenalty`. */
   addEntry(entry: EntryInput): void {
     this.#checkClasses(entry.number, entry.classes);
-    const now = stamp(this.#ctx);
+    this.#tx(() => this.#insertEntry(entry));
+  }
+
+  /**
+   * Add riders from an entry list, and save the class names the desk matched as aliases, all
+   * in one transaction: every rider is added, or none is.
+   */
+  importEntries(
+    entries: readonly EntryInput[],
+    aliases: readonly { readonly className: string; readonly alias: string }[] = [],
+    source = 'entry list',
+  ): void {
+    let setup = this.#setup;
+    if (aliases.length > 0) {
+      setup = {
+        ...setup,
+        classes: setup.classes.map((c) => {
+          const add = aliases
+            .filter((a) => a.className === c.name)
+            .map((a) => a.alias)
+            .filter((a) => !(c.aliases ?? []).some((x) => x.toLowerCase() === a.toLowerCase()));
+          return add.length ? { ...c, aliases: [...(c.aliases ?? []), ...add] } : c;
+        }),
+      };
+      checkSetup(setup);
+    }
+    for (const e of entries) this.#checkClasses(e.number, e.classes);
     this.#tx(() => {
+      if (setup !== this.#setup) {
+        this.#db
+          .prepare('UPDATE event SET setup_json = ?, updated_at = ?')
+          .run(JSON.stringify(setup), stamp(this.#ctx));
+        this.#audit('setup.aliases', this.eventId, { added: aliases });
+      }
+      for (const e of entries) this.#insertEntry(e);
+      this.#audit('entry.import', this.eventId, { source, riders: entries.length });
+    });
+    this.#setup = setup;
+  }
+
+  #insertEntry(entry: EntryInput): void {
+    const now = stamp(this.#ctx);
+    {
       try {
         this.#db
           .prepare(
@@ -246,7 +287,7 @@ export class EventStore {
       }
       const detail = Object.fromEntries(Object.entries(entry).filter(([k]) => k !== 'penalties'));
       this.#audit('entry.add', `rider ${entry.number}`, detail);
-    });
+    }
   }
 
   /** Move a rider to another class (or classes), e.g. from Trial 4 Plus to Trial 4 on the day. */

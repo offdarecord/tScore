@@ -16,6 +16,10 @@ const api: TscoreApi = {
   currentEvent: call(IPC.currentEvent),
   updateSetup: call(IPC.updateSetup),
   closeEvent: call(IPC.closeEvent),
+  riders: call(IPC.riders),
+  updateRider: call(IPC.updateRider),
+  chooseEntryList: call(IPC.chooseEntryList),
+  importRiders: call(IPC.importRiders),
 };
 
 contextBridge.exposeInMainWorld('tscore', api);

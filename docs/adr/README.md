@@ -21,3 +21,4 @@ Template: [`0000-template.md`](0000-template.md).
 | [0011](0011-releases-and-changelog.md)                     | Conventional Commits, release-please, SemVer                      | Accepted |
 | [0012](0012-logging-and-error-codes.md)                    | Separate audit and diagnostic logs; error codes                   | Accepted |
 | [0013](0013-trials-result-protocol.md)                     | Keep `tscore.results/1`; export Entryplace `trials-result`        | Accepted |
+| [0014](0014-reading-entry-list-spreadsheets.md)            | Reading entry lists: SheetJS CE pinned from its CDN               | Accepted |

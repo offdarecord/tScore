@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/offdarecord/tScore/main/schemas/tscore.import_mapping.v1.schema.json",
+  "title": "ImportMapping",
+  "description": "tscore.import_mapping/1: how to read one entry system's export into tScore riders. Which columns to read (nothing else is read), which rows to skip, how to set each rider's tier, and the entry system's class names. Presets live in presets/import-mappings/ and contain no personal data.",
+  "type": "object",
+  "required": ["schema", "id", "name", "detect", "columns"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "description": "Format identifier and major version.",
+      "const": "tscore.import_mapping/1"
+    },
+    "id": {
+      "description": "Stable id, e.g. entryplace.",
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,40}$"
+    },
+    "name": {
+      "description": "Shown to the desk, e.g. \"Entryplace export\".",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 60
+    },
+    "detect": {
+      "description": "A file is this source when its header row has every one of these column names (any case, spaces trimmed).",
+      "type": "object",
+      "required": ["headers"],
+      "additionalProperties": false,
+      "properties": {
+        "headers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "sheet": {
+      "description": "For a workbook, the sheet to read when present; otherwise the first sheet.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 60
+    },
+    "columns": {
+      "description": "For each field tScore reads, the column names it may have in the export (first found wins). Only these columns are read; every other column is dropped when the file is read.",
+      "type": "object",
+      "required": ["given_name", "family_name", "class"],
+      "additionalProperties": false,
+      "properties": {
+        "given_name": {
+          "$ref": "#/$defs/Headers"
+        },
+        "family_name": {
+          "$ref": "#/$defs/Headers"
+        },
+        "class": {
+          "$ref": "#/$defs/Headers"
+        },
+        "club": {
+          "$ref": "#/$defs/Headers"
+        },
+        "licence": {
+          "description": "Licence or member number. Used to spot the same person twice and on re-import; never published.",
+          "$ref": "#/$defs/Headers"
+        },
+        "number": {
+          "description": "Rider number, only read when keep_numbers is true.",
+          "$ref": "#/$defs/Headers"
+        },
+        "tier": {
+          "$ref": "#/$defs/Headers"
+        },
+        "group": {
+          "$ref": "#/$defs/Headers"
+        },
+        "role": {
+          "$ref": "#/$defs/Headers"
+        },
+        "status": {
+          "$ref": "#/$defs/Headers"
+        },
+        "licence_type": {
+          "$ref": "#/$defs/Headers"
+        }
+      }
+    },
+    "skip_rows": {
+      "description": "Rows that aren't riders (observers, crew, minders, withdrawn entries). A row matching any rule is skipped and counted under its reason. Rows with no class or no name are always skipped.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/SkipRule"
+      }
+    },
+    "tier_rules": {
+      "description": "The first matching rule sets the rider's tier; otherwise competitive.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TierRule"
+      }
+    },
+    "class_aliases": {
+      "description": "Class names in this entry system, and the tScore class (or candidate classes, first that exists in the event) each one means.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "minItems": 1
+      }
+    },
+    "keep_numbers": {
+      "description": "true when the file's own rider numbers are kept (tScore's rider-list CSV). Entry systems' numbers are typed by riders and aren't reliable.",
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "$defs": {
+    "Headers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "minItems": 1
+    },
+    "Field": {
+      "type": "string",
+      "enum": [
+        "given_name",
+        "family_name",
+        "class",
+        "club",
+        "licence",
+        "number",
+        "tier",
+        "group",
+        "role",
+        "status",
+        "licence_type"
+      ]
+    },
+    "SkipRule": {
+      "type": "object",
+      "required": ["field", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "field": {
+          "$ref": "#/$defs/Field"
+        },
+        "in": {
+          "description": "The value is one of these (any case, spaces trimmed).",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "not_in": {
+          "description": "The value is none of these.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "pattern": {
+          "description": "A regular expression (ignoring case) finds the value. Use exactly one of in, not_in and pattern; tScore checks this when it loads the preset.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "reason": {
+          "description": "Shown to the desk as the count's label, e.g. \"observers\".",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        }
+      }
+    },
+    "TierRule": {
+      "type": "object",
+      "required": ["field", "tier"],
+      "additionalProperties": false,
+      "properties": {
+        "field": {
+          "$ref": "#/$defs/Field"
+        },
+        "in": {
+          "description": "The value is one of these (any case, spaces trimmed).",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "not_in": {
+          "description": "The value is none of these.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "pattern": {
+          "description": "A regular expression (ignoring case) finds the value. Use exactly one of in, not_in and pattern; tScore checks this when it loads the preset.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "tier": {
+          "type": "string",
+          "enum": ["competitive", "no_award", "non_competitive"]
+        }
+      }
+    }
+  }
+}

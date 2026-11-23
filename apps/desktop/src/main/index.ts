@@ -56,6 +56,18 @@ function registerIpc(): void {
     eventHandlers.updateSetup(setup),
   );
   handle(IPC.closeEvent, () => eventHandlers.close());
+  handle(IPC.riders, () => eventHandlers.riders());
+  handle(
+    IPC.updateRider,
+    (_e, number: number, change: Parameters<typeof eventHandlers.updateRider>[1]) =>
+      eventHandlers.updateRider(number, change),
+  );
+  handle(IPC.chooseEntryList, (e) =>
+    eventHandlers.chooseEntryList(BrowserWindow.fromWebContents(e.sender)),
+  );
+  handle(IPC.importRiders, (_e, choices: Parameters<typeof eventHandlers.importRiders>[0]) =>
+    eventHandlers.importRiders(choices),
+  );
 }
 
 function createWindow(): void {

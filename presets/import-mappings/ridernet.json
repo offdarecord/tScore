@@ -1,0 +1,27 @@
+{
+  "schema": "tscore.import_mapping/1",
+  "id": "ridernet",
+  "name": "Ridernet export",
+  "detect": { "headers": ["RidernetID", "Event_Class_Name", "Event_Role"] },
+  "columns": {
+    "given_name": ["First_Name"],
+    "family_name": ["Last_Name"],
+    "class": ["Event_Class_Name"],
+    "club": ["Club"],
+    "licence": ["RidernetID"],
+    "role": ["Event_Role"],
+    "status": ["Class_Reg_Status"],
+    "licence_type": ["Licence_Type"]
+  },
+  "skip_rows": [
+    { "field": "role", "not_in": ["Rider"], "reason": "crew" },
+    { "field": "status", "in": ["Withdrawn"], "reason": "withdrawn entries" },
+    { "field": "class", "pattern": "\\bminders?\\b", "reason": "minders" }
+  ],
+  "tier_rules": [{ "field": "licence_type", "in": ["OREC"], "tier": "non_competitive" }],
+  "class_aliases": {
+    "Mini Trial Small Wheel (Non-Comp)": ["Junior", "Juniors"],
+    "TMTC Trial 6 JNR (Up to 200CC)": ["Junior", "Juniors"],
+    "TMTC SNR Non Comp": ["Trial 5"]
+  }
+}

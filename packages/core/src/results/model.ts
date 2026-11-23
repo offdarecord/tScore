@@ -46,6 +46,8 @@ export interface ClassInput {
 export interface PersonInput {
   readonly givenName: string;
   readonly familyName: string;
+  /** Licence or member number, from the entry list. Matches riders on re-import; never published. */
+  readonly licence?: string;
 }
 
 export type EntryStatus = 'riding' | 'dnf' | 'dns';

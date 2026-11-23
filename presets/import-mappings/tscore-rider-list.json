@@ -1,0 +1,24 @@
+{
+  "schema": "tscore.import_mapping/1",
+  "id": "tscore-rider-list",
+  "name": "tScore rider list",
+  "detect": { "headers": ["Given name", "Family name", "Class"] },
+  "columns": {
+    "given_name": ["Given name"],
+    "family_name": ["Family name"],
+    "class": ["Class"],
+    "club": ["Club"],
+    "licence": ["Licence"],
+    "number": ["Number"],
+    "tier": ["Tier"]
+  },
+  "tier_rules": [
+    {
+      "field": "tier",
+      "in": ["NC", "Non-competitive", "Non competitive"],
+      "tier": "non_competitive"
+    },
+    { "field": "tier", "in": ["NA", "No award", "No-award"], "tier": "no_award" }
+  ],
+  "keep_numbers": true
+}

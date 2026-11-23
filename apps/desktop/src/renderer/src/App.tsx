@@ -3,12 +3,13 @@ import { useDisclosure } from '@mantine/hooks';
 import { newEventSetup } from '@tscore/core';
 import { useEffect, useState } from 'react';
 import type { AppInfo, OpenEvent } from '../../shared/ipc';
-import { EventMain, EventNav } from './EventShell';
+import { EventMain, EventNav, type EventPage } from './EventShell';
 import { today } from './format';
 import { Home } from './Home';
 import { SetupForm } from './setup/SetupForm';
 
-type Screen = { kind: 'home' } | { kind: 'new' } | { kind: 'event'; event: OpenEvent };
+type Screen =
+  { kind: 'home' } | { kind: 'new' } | { kind: 'event'; event: OpenEvent; page: EventPage };
 
 export function App() {
   const [info, setInfo] = useState<AppInfo | null>(null);
@@ -19,7 +20,7 @@ export function App() {
     void window.tscore.getAppInfo().then(setInfo);
     // After a window reload the event is still open in the main process: go back to it.
     void window.tscore.currentEvent().then((event) => {
-      if (event) setScreen({ kind: 'event', event });
+      if (event) setScreen({ kind: 'event', event, page: { name: 'setup' } });
     });
   }, []);
 
@@ -28,7 +29,14 @@ export function App() {
     document.title = eventName ? `${eventName} – tScore` : 'tScore';
   }, [eventName]);
 
-  const open = (event: OpenEvent) => setScreen({ kind: 'event', event });
+  /** Show the event: a newly opened one at its setup, the same one on the page it's on. */
+  const open = (event: OpenEvent) =>
+    setScreen((s) => ({
+      kind: 'event',
+      event,
+      page: s.kind === 'event' && s.event.folder === event.folder ? s.page : { name: 'setup' },
+    }));
+  const navigate = (page: EventPage) => setScreen((s) => (s.kind === 'event' ? { ...s, page } : s));
   const closeEvent = () => void window.tscore.closeEvent().then(() => setScreen({ kind: 'home' }));
 
   return (
@@ -50,7 +58,12 @@ export function App() {
 
       {screen.kind === 'event' && (
         <AppShell.Navbar p="sm">
-          <EventNav event={screen.event} onClose={closeEvent} />
+          <EventNav
+            event={screen.event}
+            page={screen.page}
+            onClose={closeEvent}
+            onNavigate={navigate}
+          />
         </AppShell.Navbar>
       )}
 
@@ -70,7 +83,14 @@ export function App() {
             onCancel={() => setScreen({ kind: 'home' })}
           />
         )}
-        {screen.kind === 'event' && <EventMain event={screen.event} onChange={open} />}
+        {screen.kind === 'event' && (
+          <EventMain
+            event={screen.event}
+            page={screen.page}
+            onChange={open}
+            onNavigate={navigate}
+          />
+        )}
       </AppShell.Main>
 
       <Modal opened={aboutOpen} onClose={about.close} title="About tScore">

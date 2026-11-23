@@ -1,0 +1,39 @@
+{
+  "schema": "tscore.import_mapping/1",
+  "id": "entryplace",
+  "name": "Entryplace export",
+  "detect": { "headers": ["Entry Form Reference", "Entry Group", "Competitive"] },
+  "sheet": "Entry List",
+  "columns": {
+    "given_name": ["First Name"],
+    "family_name": ["Last Name"],
+    "class": ["Class"],
+    "club": ["Club"],
+    "licence": ["Licence Number"],
+    "tier": ["Competitive"],
+    "group": ["Entry Group"]
+  },
+  "skip_rows": [
+    { "field": "group", "in": ["Observer"], "reason": "observers" },
+    { "field": "class", "in": ["Observer"], "reason": "observers" },
+    { "field": "class", "pattern": "\\bminders?\\b", "reason": "minders" }
+  ],
+  "tier_rules": [
+    {
+      "field": "tier",
+      "in": ["N", "No", "Non-competitive", "Non competitive"],
+      "tier": "non_competitive"
+    },
+    { "field": "tier", "in": ["No award", "No-award", "NA"], "tier": "no_award" }
+  ],
+  "class_aliases": {
+    "Trial 1 (Expert)": ["Trial 1"],
+    "Trial 1 (A+ Grade)": ["Trial 1"],
+    "Trial 2 (A Grade)": ["Trial 2"],
+    "Trial 3 (B Grade)": ["Trial 3"],
+    "Trial 4+ (C+ Grade)": ["Trial 4 Plus"],
+    "Trial 4 (C Grade)": ["Trial 4"],
+    "Trial 5 (Clubperson)": ["Trial 5"],
+    "Juniors (under 16 yo)": ["Juniors", "Junior"]
+  }
+}

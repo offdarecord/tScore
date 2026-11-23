@@ -18,3 +18,6 @@ export {
   STARTER_SECTIONS,
   STARTER_LAPS,
 } from './setup-defaults.js';
+
+// Rider import (architecture §8; presets in presets/import-mappings/).
+export * from './import/index.js';

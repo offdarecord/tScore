@@ -4,7 +4,14 @@
  * Every channel is listed here; the preload exposes only these, and the main process
  * validates the sender of every message. Add a channel here first, then implement it.
  */
-import type { EventSetup, ValidationIssue } from '@tscore/core';
+import type {
+  EntryList,
+  EntryStatus,
+  EventSetup,
+  ImportChoices,
+  Tier,
+  ValidationIssue,
+} from '@tscore/core';
 
 export const IPC = {
   appInfo: 'app:info',
@@ -16,6 +23,10 @@ export const IPC = {
   currentEvent: 'event:current',
   updateSetup: 'event:update-setup',
   closeEvent: 'event:close',
+  riders: 'event:riders',
+  updateRider: 'event:update-rider',
+  chooseEntryList: 'import:choose-file',
+  importRiders: 'import:riders',
 } as const;
 
 export interface AppInfo {
@@ -50,6 +61,32 @@ export interface OpenEvent {
   readonly cards: number;
 }
 
+/** A rider (or sidecar crew), as the screens show them. Licence numbers stay in the main process. */
+export interface RiderInfo {
+  readonly number: number;
+  readonly riders: readonly { readonly givenName: string; readonly familyName: string }[];
+  readonly club?: string;
+  readonly tier: Tier;
+  readonly status: EntryStatus;
+  /** One class, or two for a second-class entry. */
+  readonly classes: readonly string[];
+}
+
+export interface RiderChange {
+  readonly classes?: readonly string[];
+  readonly tier?: Tier;
+  readonly status?: EntryStatus;
+}
+
+/**
+ * An entry list the desk picked, reduced to the columns its preset reads (no dates of birth,
+ * contact or medical details: those never leave the main process).
+ */
+export interface EntryListFile {
+  readonly fileName: string;
+  readonly list: EntryList;
+}
+
 /** A problem to show the desk, in plain words, with a stable code for support. */
 export interface AppError {
   readonly code: string;
@@ -74,4 +111,10 @@ export interface TscoreApi {
   currentEvent(): Promise<OpenEvent | null>;
   updateSetup(setup: EventSetup): Promise<Outcome<OpenEvent>>;
   closeEvent(): Promise<void>;
+  riders(): Promise<RiderInfo[]>;
+  updateRider(number: number, change: RiderChange): Promise<Outcome<RiderInfo[]>>;
+  /** Shows the open dialog and reads the file. `null` if the desk cancels. */
+  chooseEntryList(): Promise<Outcome<EntryListFile | null>>;
+  /** Import the chosen list's riders, with the desk's choices. */
+  importRiders(choices: ImportChoices): Promise<Outcome<OpenEvent>>;
 }

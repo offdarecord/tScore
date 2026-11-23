@@ -59,6 +59,40 @@ export interface RecordCard {
   readonly confidence?: readonly (number | null)[];
   /** The card photo, relative to the event folder (e.g. `cards/12-1-2.jpg`). */
   readonly imagePath?: string;
+  /**
+   * When the desk got the card (ISO 8601). Defaults to now; the desk changes it only for a card
+   * handed in earlier. Lap times are worked out from it.
+   */
+  readonly receivedAt?: string;
+}
+
+/** Replace a whole card's scores (an edit on Manual entry). Unchanged sections are left alone. */
+export interface AmendCard {
+  readonly number: number;
+  readonly day: number;
+  readonly lap: number;
+  readonly scores: readonly (number | null)[];
+  readonly source: ScoreSource;
+}
+
+/** A card as the desk lists it: current scores, when it came in and how it was entered. */
+export interface CardSummary {
+  readonly number: number;
+  readonly day: number;
+  readonly lap: number;
+  readonly scores: readonly (number | null)[];
+  readonly receivedAt: string;
+  /** How the card was first entered. */
+  readonly source: ScoreSource;
+  /** Any score changed since. */
+  readonly edited: boolean;
+}
+
+/** A penalty in force, with its id (to remove it). */
+export interface PenaltyRecord extends PenaltyInput {
+  readonly id: string;
+  readonly number: number;
+  readonly createdAt: string;
 }
 
 export interface CorrectScore {
@@ -328,13 +362,14 @@ export class EventStore {
     }
     card.scores.forEach((v, i) => this.#checkScore(v, card, i + 1));
     const now = stamp(this.#ctx);
+    const receivedAt = card.receivedAt === undefined ? now : checkTime(card.receivedAt);
     const cardId = newId(this.#ctx);
     this.#tx(() => {
       try {
         this.#db
           .prepare(
-            `INSERT INTO card (id, number, day, lap, image_path, station_id, operator, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO card (id, number, day, lap, image_path, station_id, operator, created_at,
+               received_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           )
           .run(
             cardId,
@@ -345,6 +380,7 @@ export class EventStore {
             this.#ctx.stationId,
             this.#ctx.operator ?? null,
             now,
+            receivedAt,
           );
       } catch (err) {
         if (String(err).includes('UNIQUE')) {
@@ -375,6 +411,7 @@ export class EventStore {
       this.#audit('card.record', `rider ${card.number} day ${card.day} lap ${card.lap}`, {
         scores: card.scores,
         source: card.source,
+        ...(receivedAt !== now && { receivedAt }),
       });
     });
     return cardId;
@@ -393,28 +430,8 @@ export class EventStore {
       throw new StoreError('STORE_NO_SECTION', `Section ${change.section} isn't on this card.`);
     }
     if (current.value === change.value) return;
-    const id = newId(this.#ctx);
     this.#tx(() => {
-      // Retire the current version, then add the new one (the link is checked at commit).
-      this.#db
-        .prepare('UPDATE score_version SET superseded_by = ? WHERE id = ?')
-        .run(id, current.id);
-      this.#db
-        .prepare(
-          `INSERT INTO score_version (id, card_id, section, value, source, confidence, reason,
-             station_id, operator, created_at) VALUES (?, ?, ?, ?, ?, NULL, ?, ?, ?, ?)`,
-        )
-        .run(
-          id,
-          card,
-          change.section,
-          change.value,
-          change.source,
-          change.reason ?? null,
-          this.#ctx.stationId,
-          this.#ctx.operator ?? null,
-          stamp(this.#ctx),
-        );
+      this.#supersede(card, change.section, current.id, change.value, change.source, change.reason);
       this.#audit(
         'score.correct',
         `rider ${change.number} day ${change.day} lap ${change.lap} section ${change.section}`,
@@ -426,6 +443,90 @@ export class EventStore {
         },
       );
     });
+  }
+
+  /**
+   * Replace a card's scores in one go (editing a card on Manual entry), in one transaction.
+   * Only sections whose score changes get a new version; the old ones are kept. Returns how
+   * many sections changed.
+   */
+  amendCard(change: AmendCard): number {
+    const card = this.#cardId(change.number, change.day, change.lap);
+    const sections = this.#sectionsFor(change.number, change.day, change.lap);
+    if (change.scores.length !== sections) {
+      throw new StoreError(
+        'STORE_WRONG_SECTION_COUNT',
+        `Rider ${change.number}, day ${change.day} lap ${change.lap}: ${change.scores.length} scores, but the class rides ${sections} sections.`,
+      );
+    }
+    change.scores.forEach((v, i) => this.#checkScore(v, change, i + 1));
+    const current = this.#db
+      .prepare(
+        'SELECT id, section, value FROM score_version WHERE card_id = ? AND superseded_by IS NULL',
+      )
+      .all(card) as { id: string; section: number; value: number | null }[];
+    const bySection = new Map(current.map((r) => [r.section, r]));
+    const changes = change.scores
+      .map((value, i) => ({ section: i + 1, value, was: bySection.get(i + 1) }))
+      .filter((c) => c.was !== undefined && c.was.value !== c.value);
+    if (changes.length === 0) return 0;
+    this.#tx(() => {
+      for (const c of changes) {
+        if (c.was) this.#supersede(card, c.section, c.was.id, c.value, change.source);
+      }
+      this.#audit('card.amend', `rider ${change.number} day ${change.day} lap ${change.lap}`, {
+        changes: changes.map((c) => ({ section: c.section, from: c.was?.value, to: c.value })),
+        source: change.source,
+      });
+    });
+    return changes.length;
+  }
+
+  /** Every card with its current scores, newest first, as the desk lists them. */
+  cardLog(): CardSummary[] {
+    const rows = this.#db
+      .prepare(
+        `SELECT c.id, c.number, c.day, c.lap, coalesce(c.received_at, c.created_at) AS received_at,
+                s.section, s.value, s.superseded_by,
+                (SELECT f.source FROM score_version f WHERE f.card_id = c.id
+                  ORDER BY f.rowid LIMIT 1) AS first_source
+           FROM card c JOIN score_version s ON s.card_id = c.id
+          ORDER BY c.rowid DESC, s.section, s.rowid`,
+      )
+      .all() as {
+      id: string;
+      number: number;
+      day: number;
+      lap: number;
+      received_at: string;
+      section: number;
+      value: number | null;
+      superseded_by: string | null;
+      first_source: ScoreSource;
+    }[];
+    // Rows arrive grouped by card (newest card first); Map keeps that order.
+    const byCard = new Map<
+      string,
+      { first: (typeof rows)[number]; scores: (number | null)[]; edited: boolean }
+    >();
+    for (const r of rows) {
+      let c = byCard.get(r.id);
+      if (!c) {
+        c = { first: r, scores: [], edited: false };
+        byCard.set(r.id, c);
+      }
+      if (r.superseded_by === null) c.scores[r.section - 1] = r.value;
+      else c.edited = true;
+    }
+    return [...byCard.values()].map(({ first, scores, edited }) => ({
+      number: first.number,
+      day: first.day,
+      lap: first.lap,
+      scores,
+      receivedAt: first.received_at,
+      source: first.first_source,
+      edited,
+    }));
   }
 
   /** The current version of every card. */
@@ -516,6 +617,34 @@ export class EventStore {
     return id;
   }
 
+  /** Penalties in force, oldest first. */
+  penaltyList(): PenaltyRecord[] {
+    const rows = this.#db
+      .prepare('SELECT * FROM penalty WHERE removed_at IS NULL ORDER BY created_at, rowid')
+      .all() as {
+      id: string;
+      number: number;
+      points: number;
+      reason: PenaltyInput['reason'];
+      note: string | null;
+      day: number | null;
+      lap: number | null;
+      classes_json: string | null;
+      created_at: string;
+    }[];
+    return rows.map((r) => ({
+      id: r.id,
+      number: r.number,
+      createdAt: r.created_at,
+      points: r.points,
+      reason: r.reason,
+      ...(r.note !== null && { note: r.note }),
+      ...(r.day !== null && { day: r.day }),
+      ...(r.lap !== null && { lap: r.lap }),
+      ...(r.classes_json !== null && { classes: JSON.parse(r.classes_json) as string[] }),
+    }));
+  }
+
   removePenalty(id: string): void {
     this.#tx(() => {
       const r = this.#db
@@ -598,6 +727,36 @@ export class EventStore {
 
   #audit(kind: string, subject: string | null, detail: unknown): void {
     audit(this.#db, this.#ctx, kind, subject, detail);
+  }
+
+  /** Retire a score version and add its replacement. Call inside a transaction. */
+  #supersede(
+    cardId: string,
+    section: number,
+    currentId: string,
+    value: number | null,
+    source: ScoreSource,
+    reason?: string,
+  ): void {
+    const id = newId(this.#ctx);
+    // Retire the current version, then add the new one (the link is checked at commit).
+    this.#db.prepare('UPDATE score_version SET superseded_by = ? WHERE id = ?').run(id, currentId);
+    this.#db
+      .prepare(
+        `INSERT INTO score_version (id, card_id, section, value, source, confidence, reason,
+           station_id, operator, created_at) VALUES (?, ?, ?, ?, ?, NULL, ?, ?, ?, ?)`,
+      )
+      .run(
+        id,
+        cardId,
+        section,
+        value,
+        source,
+        reason ?? null,
+        this.#ctx.stationId,
+        this.#ctx.operator ?? null,
+        stamp(this.#ctx),
+      );
   }
 
   #updateEntry(
@@ -755,6 +914,15 @@ function checkSetup(setup: unknown): EventSetup {
   const r = validateEventSetup(setup);
   if (!r.ok) throw new SetupError(r.issues);
   return r.value;
+}
+
+/** A valid ISO 8601 time, normalised to UTC. */
+function checkTime(value: string): string {
+  const t = Date.parse(value);
+  if (typeof value !== 'string' || Number.isNaN(t)) {
+    throw new StoreError('STORE_BAD_TIME', `"${String(value)}" isn't a time.`);
+  }
+  return new Date(t).toISOString();
 }
 
 function makeFolders(folder: string): void {

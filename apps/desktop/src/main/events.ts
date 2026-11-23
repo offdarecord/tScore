@@ -4,9 +4,13 @@
  */
 import { basename, dirname, join } from 'node:path';
 import {
+  CARD_PROFILE_ROWS,
+  classesFromSetup,
+  DEFAULT_CARD_PROFILE,
   ImportError,
   planImport,
   readEntryList,
+  scoringFromSetup,
   type EntryInput,
   type EntryList,
   type EventSetup,
@@ -23,13 +27,56 @@ import { app, dialog, type BrowserWindow } from 'electron';
 import log from 'electron-log/main';
 import type {
   AppError,
+  CardDesk,
+  DeskRider,
   EntryListFile,
+  NewPenalty,
   OpenEvent,
   Outcome,
+  PenaltyReason,
   RecentEventInfo,
   RiderChange,
   RiderInfo,
+  SaveCard,
 } from '../shared/ipc';
+
+const PENALTY_REASONS: readonly PenaltyReason[] = [
+  'time',
+  'dissent',
+  'outside_assistance',
+  'course_cutting',
+  'other',
+];
+
+const isWhole = (n: unknown, min = 1): n is number => Number.isInteger(n) && (n as number) >= min;
+
+function cardDesk(store: EventStore): CardDesk {
+  const classes = new Map(classesFromSetup(store.setup).map((c) => [c.name, c]));
+  const riders: DeskRider[] = store.entries().map((e) => {
+    const cls = classes.get(e.classes[0] ?? '');
+    const rides: Record<number, { sections: number; laps: number }> = {};
+    for (const d of cls?.days ?? []) rides[d.day] = { sections: d.sections, laps: d.laps };
+    return { ...rider(e), rides };
+  });
+  const profile = store.setup.event.card_profile ?? DEFAULT_CARD_PROFILE;
+  return {
+    riders,
+    cards: store.cardLog(),
+    penalties: store.penaltyList().map((p) => ({
+      id: p.id,
+      number: p.number,
+      points: p.points,
+      reason: p.reason,
+      createdAt: p.createdAt,
+      ...(p.note !== undefined && { note: p.note }),
+      ...(p.day !== undefined && { day: p.day }),
+      ...(p.lap !== undefined && { lap: p.lap }),
+    })),
+    scoreValues: scoringFromSetup(store.setup).scoreValues,
+    cardRows: CARD_PROFILE_ROWS[profile] ?? 16,
+    days: store.setup.days.map((d) => ({ day: d.day, ...(d.date ? { date: d.date } : {}) })),
+  };
+}
 
 let library: EventLibrary | null = null;
 
@@ -233,6 +280,80 @@ export const eventHandlers = {
       pending = { eventId: store.eventId, list };
       log.info('entry list read', { source: list.presetId, rows: list.rows.length });
       return { fileName: basename(file), list };
+    });
+  },
+
+  cardDesk(): Outcome<CardDesk> {
+    return attempt('reading the cards', () => cardDesk(openStore()));
+  },
+
+  saveCard(card: SaveCard): Outcome<CardDesk> {
+    return attempt('saving a card', () => {
+      const store = openStore();
+      if (
+        typeof card !== 'object' ||
+        !isWhole(card.number) ||
+        !isWhole(card.day) ||
+        !isWhole(card.lap) ||
+        !Array.isArray(card.scores) ||
+        !card.scores.every((s) => isWhole(s, 0))
+      ) {
+        throw new StoreError('APP_BAD_REQUEST', 'That card is incomplete.');
+      }
+      const where = { number: card.number, day: card.day, lap: card.lap };
+      if (card.editing) {
+        const changed = store.amendCard({ ...where, scores: card.scores, source: 'amend' });
+        log.info('card edited', { eventId: store.eventId, ...where, sections: changed });
+      } else {
+        store.recordCard({
+          ...where,
+          scores: card.scores,
+          source: 'manual',
+          ...(typeof card.receivedAt === 'string' && { receivedAt: card.receivedAt }),
+        });
+        log.info('card typed', { eventId: store.eventId, ...where });
+      }
+      return cardDesk(store);
+    });
+  },
+
+  addPenalty(p: NewPenalty): Outcome<CardDesk> {
+    return attempt('adding a penalty', () => {
+      const store = openStore();
+      if (
+        typeof p !== 'object' ||
+        !isWhole(p.number) ||
+        !isWhole(p.points) ||
+        !PENALTY_REASONS.includes(p.reason) ||
+        (p.day !== undefined && !isWhole(p.day)) ||
+        (p.lap !== undefined && !isWhole(p.lap)) ||
+        (p.note !== undefined && typeof p.note !== 'string')
+      ) {
+        throw new StoreError('APP_BAD_REQUEST', 'That penalty is incomplete.');
+      }
+      const note = p.note?.trim();
+      if (p.reason === 'other' && !note) {
+        throw new StoreError('APP_PENALTY_NOTE', 'Say what the penalty is for.');
+      }
+      store.addPenalty(p.number, {
+        points: p.points,
+        reason: p.reason,
+        ...(note ? { note } : {}),
+        ...(p.day !== undefined && { day: p.day }),
+        ...(p.lap !== undefined && { lap: p.lap }),
+      });
+      log.info('penalty added', { eventId: store.eventId, number: p.number, reason: p.reason });
+      return cardDesk(store);
+    });
+  },
+
+  removePenalty(id: string): Outcome<CardDesk> {
+    return attempt('removing a penalty', () => {
+      const store = openStore();
+      if (typeof id !== 'string') throw new StoreError('APP_BAD_REQUEST', 'No such penalty.');
+      store.removePenalty(id);
+      log.info('penalty removed', { eventId: store.eventId });
+      return cardDesk(store);
     });
   },
 

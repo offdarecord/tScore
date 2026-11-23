@@ -68,6 +68,14 @@ function registerIpc(): void {
   handle(IPC.importRiders, (_e, choices: Parameters<typeof eventHandlers.importRiders>[0]) =>
     eventHandlers.importRiders(choices),
   );
+  handle(IPC.cardDesk, () => eventHandlers.cardDesk());
+  handle(IPC.saveCard, (_e, card: Parameters<typeof eventHandlers.saveCard>[0]) =>
+    eventHandlers.saveCard(card),
+  );
+  handle(IPC.addPenalty, (_e, penalty: Parameters<typeof eventHandlers.addPenalty>[0]) =>
+    eventHandlers.addPenalty(penalty),
+  );
+  handle(IPC.removePenalty, (_e, id: string) => eventHandlers.removePenalty(id));
 }
 
 function createWindow(): void {

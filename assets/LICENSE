@@ -1,0 +1,16 @@
+tScore artwork: all rights reserved
+
+The tScore name, logo, app icon and banner artwork are copyright 2026 the tScore
+project owner (github.com/offdarecord). All rights reserved.
+
+This covers:
+  - everything in this assets/ folder (e.g. tscore-banner.jpg);
+  - the app icon, apps/desktop/build/icon.ico and apps/desktop/build/icon.png.
+
+They are NOT licensed under the Apache License 2.0 that covers tScore's code,
+nor under the licences for schemas/ (MIT) or docs/ (CC BY 4.0).
+
+You may show them unchanged to refer to tScore itself, for example in a link to
+the project, a review, or official tScore builds. Any other use, including in a
+modified version of tScore, needs written permission. A modified version must
+use a different name and its own icon.

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/offdarecord/tScore/compare/v0.3.0...v0.4.0) (2026-11-23)
+
+
+### Added
+
+* give tScore its own app icon ([#23](https://github.com/offdarecord/tScore/issues/23)) ([dcf866c](https://github.com/offdarecord/tScore/commit/dcf866c82926108df2b34a10c60622667214e819))
+* import riders from Entryplace, Ridernet and tScore rider lists ([#21](https://github.com/offdarecord/tScore/issues/21)) ([a016f71](https://github.com/offdarecord/tScore/commit/a016f71258e0ad38f68717a8347e5d8bef432be7))
+
 ## [0.3.0](https://github.com/offdarecord/tScore/compare/v0.2.0...v0.3.0) (2026-11-23)
 
 

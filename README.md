@@ -63,5 +63,8 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 - Application: [Apache License 2.0](LICENSE) (see also [NOTICE](NOTICE)).
 - File formats in `schemas/`: [MIT](schemas/LICENSE).
 - Documentation in `docs/`: [CC BY 4.0](docs/LICENSE).
+- The tScore logo, app icon and banner (`assets/`, `apps/desktop/build/icon.*`): **all rights
+  reserved**, not covered by the licences above ([details](assets/LICENSE)).
 
-"tScore" is the name of this project; modified versions should use a different name.
+"tScore" is the name of this project; modified versions should use a different name and their
+own icon.

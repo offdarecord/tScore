@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/tscore-banner.jpg" width="900" alt="tScore: Mototrials scoring app. Automated card scanning. Works offline.">
+</p>
+
 # tScore
 
 **Free, open-source scoring for motorcycle trials, built for club volunteers at venues with no internet.**
@@ -46,6 +50,7 @@ npm start
 | `packages/vision` | Card reading. Pure TypeScript; runs in Node and in a Web Worker  |
 | `apps/desktop`    | Electron app: main process, preload, React + Mantine UI          |
 | `schemas/`        | JSON Schemas for tScore's file formats (MIT)                     |
+| `assets/`         | tScore artwork (banner) for the README and project pages         |
 | `presets/`        | Class lists, rulesets, label templates, card profiles, as data   |
 | `fixtures/`       | Anonymised test data: card images, golden events                 |
 | `docs/adr/`       | Architecture decision records: _why_ things are the way they are |

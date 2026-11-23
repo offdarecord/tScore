@@ -78,6 +78,8 @@ function createWindow(): void {
     minHeight: 700,
     show: false,
     title: 'tScore',
+    // An installed copy takes its icon from tScore.exe; this covers running from source.
+    ...(!app.isPackaged && { icon: join(__dirname, '../../build/icon.ico') }),
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

@@ -24,6 +24,9 @@ const api: TscoreApi = {
   saveCard: call(IPC.saveCard),
   addPenalty: call(IPC.addPenalty),
   removePenalty: call(IPC.removePenalty),
+  results: call(IPC.results),
+  exportResults: call(IPC.exportResults),
+  openExport: call(IPC.openExport),
 };
 
 contextBridge.exposeInMainWorld('tscore', api);

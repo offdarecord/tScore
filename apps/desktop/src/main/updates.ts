@@ -1,16 +1,9 @@
 import { app } from 'electron';
 import log from 'electron-log/main';
 import electronUpdater from 'electron-updater';
+import { isEventOpen } from './events';
 
 const { autoUpdater } = electronUpdater;
-
-/**
- * Updates must never happen mid-event (ADR 0011). Until events exist this always
- * returns false; the event store will provide the real answer.
- */
-function isEventOpen(): boolean {
-  return false;
-}
 
 /**
  * Check GitHub Releases for a newer version, but only in an installed build and only

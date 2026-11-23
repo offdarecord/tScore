@@ -1,19 +1,42 @@
-import { AppShell, Button, Center, Group, Modal, Stack, Text, Title, Anchor } from '@mantine/core';
+import { Anchor, AppShell, Button, Group, Modal, Stack, Text, Title } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
+import { newEventSetup } from '@tscore/core';
 import { useEffect, useState } from 'react';
-import type { AppInfo } from '../../shared/ipc';
-import { ComingSoonButton } from './ComingSoonButton';
+import type { AppInfo, OpenEvent } from '../../shared/ipc';
+import { EventMain, EventNav } from './EventShell';
+import { today } from './format';
+import { Home } from './Home';
+import { SetupForm } from './setup/SetupForm';
+
+type Screen = { kind: 'home' } | { kind: 'new' } | { kind: 'event'; event: OpenEvent };
 
 export function App() {
   const [info, setInfo] = useState<AppInfo | null>(null);
   const [aboutOpen, about] = useDisclosure(false);
+  const [screen, setScreen] = useState<Screen>({ kind: 'home' });
 
   useEffect(() => {
     void window.tscore.getAppInfo().then(setInfo);
+    // After a window reload the event is still open in the main process: go back to it.
+    void window.tscore.currentEvent().then((event) => {
+      if (event) setScreen({ kind: 'event', event });
+    });
   }, []);
 
+  const eventName = screen.kind === 'event' ? screen.event.setup.event.name : null;
+  useEffect(() => {
+    document.title = eventName ? `${eventName} – tScore` : 'tScore';
+  }, [eventName]);
+
+  const open = (event: OpenEvent) => setScreen({ kind: 'event', event });
+  const closeEvent = () => void window.tscore.closeEvent().then(() => setScreen({ kind: 'home' }));
+
   return (
-    <AppShell header={{ height: 60 }} padding="lg">
+    <AppShell
+      header={{ height: 60 }}
+      {...(screen.kind === 'event' && { navbar: { width: 260, breakpoint: 0 } })}
+      padding="lg"
+    >
       <AppShell.Header>
         <Group h="100%" px="lg" justify="space-between">
           <Title order={1} size="h3">
@@ -25,19 +48,29 @@ export function App() {
         </Group>
       </AppShell.Header>
 
+      {screen.kind === 'event' && (
+        <AppShell.Navbar p="sm">
+          <EventNav event={screen.event} onClose={closeEvent} />
+        </AppShell.Navbar>
+      )}
+
       <AppShell.Main>
-        <Center mih="70vh">
-          <Stack align="center" gap="md" maw={520}>
-            <Title order={2}>No event open</Title>
-            <Text ta="center" c="dimmed">
-              tScore is in early development. Event setup, card scanning and results are on the way.
-            </Text>
-            <Group>
-              <ComingSoonButton>New event</ComingSoonButton>
-              <ComingSoonButton variant="default">Open event</ComingSoonButton>
-            </Group>
-          </Stack>
-        </Center>
+        {screen.kind === 'home' && (
+          <Home info={info} onNew={() => setScreen({ kind: 'new' })} onOpened={open} />
+        )}
+        {screen.kind === 'new' && (
+          <SetupForm
+            mode="new"
+            setup={newEventSetup(today())}
+            onSave={async (setup) => {
+              const r = await window.tscore.createEvent(setup);
+              if (r.ok) open(r.value);
+              return r;
+            }}
+            onCancel={() => setScreen({ kind: 'home' })}
+          />
+        )}
+        {screen.kind === 'event' && <EventMain event={screen.event} onChange={open} />}
       </AppShell.Main>
 
       <Modal opened={aboutOpen} onClose={about.close} title="About tScore">

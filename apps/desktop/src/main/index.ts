@@ -2,6 +2,7 @@ import { join } from 'node:path';
 import { app, BrowserWindow, ipcMain, shell, type IpcMainInvokeEvent } from 'electron';
 import log from 'electron-log/main';
 import { IPC, type AppInfo } from '../shared/ipc';
+import { closeEvents, eventHandlers, eventsDir } from './events';
 import { checkForUpdatesWhenSafe } from './updates';
 
 // Automated tests run the app with its own data folder, so they never touch (or get blocked by)
@@ -23,17 +24,38 @@ function isTrustedSender(event: IpcMainInvokeEvent): boolean {
   return url.startsWith('file://');
 }
 
-function registerIpc(): void {
-  ipcMain.handle(IPC.appInfo, (event): AppInfo => {
+/** Register a channel that only the app's own window may call. */
+function handle<A extends unknown[], R>(
+  channel: string,
+  fn: (event: IpcMainInvokeEvent, ...args: A) => R,
+): void {
+  ipcMain.handle(channel, (event, ...args) => {
     if (!isTrustedSender(event)) throw new Error('Untrusted IPC sender');
-    return {
-      name: app.getName(),
-      version: app.getVersion(),
-      electron: process.versions.electron,
-      platform: process.platform,
-      arch: process.arch,
-    };
+    return fn(event, ...(args as A));
   });
+}
+
+function registerIpc(): void {
+  handle(IPC.appInfo, (): AppInfo => ({
+    name: app.getName(),
+    version: app.getVersion(),
+    electron: process.versions.electron,
+    platform: process.platform,
+    arch: process.arch,
+    eventsDir: eventsDir(),
+  }));
+  handle(IPC.recentEvents, () => eventHandlers.recent());
+  handle(IPC.createEvent, (_e, setup: Parameters<typeof eventHandlers.create>[0]) =>
+    eventHandlers.create(setup),
+  );
+  handle(IPC.openEventFile, (e) => eventHandlers.openFile(BrowserWindow.fromWebContents(e.sender)));
+  handle(IPC.openRecentEvent, (_e, folder: string) => eventHandlers.openRecent(folder));
+  handle(IPC.forgetEvent, (_e, folder: string) => eventHandlers.forget(folder));
+  handle(IPC.currentEvent, () => eventHandlers.current());
+  handle(IPC.updateSetup, (_e, setup: Parameters<typeof eventHandlers.updateSetup>[0]) =>
+    eventHandlers.updateSetup(setup),
+  );
+  handle(IPC.closeEvent, () => eventHandlers.close());
 }
 
 function createWindow(): void {
@@ -96,4 +118,6 @@ if (!app.requestSingleInstanceLock()) {
   });
 
   app.on('window-all-closed', () => app.quit());
+  // Close the event file cleanly. (A crash is safe too: every save is already committed.)
+  app.on('will-quit', () => closeEvents());
 }

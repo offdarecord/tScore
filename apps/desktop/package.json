@@ -26,6 +26,7 @@
     "@mantine/hooks": "^9.8.2",
     "@playwright/test": "^1.65.1",
     "@tscore/core": "*",
+    "@tscore/store": "*",
     "@tscore/vision": "*",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

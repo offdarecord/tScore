@@ -23,6 +23,7 @@ test('opens on the "No event open" screen', async () => {
   await expect(window).toHaveTitle('tScore');
   await expect(window.getByRole('heading', { name: 'tScore', level: 1 })).toBeVisible();
   await expect(window.getByRole('heading', { name: 'No event open' })).toBeVisible();
+  await expect(window.getByText('No events yet.')).toBeVisible();
 });
 
 test('About shows the installed version', async () => {
@@ -34,24 +35,22 @@ test('About shows the installed version', async () => {
   await expect(dialog).toBeHidden();
 });
 
-for (const name of ['New event', 'Open event']) {
-  test(`"${name}" is marked as coming later and explains why`, async () => {
-    const button = window.getByRole('button', { name });
-    await expect(button).toHaveAttribute('aria-disabled', 'true');
+test('"Restore from backup" is marked as coming later and explains why', async () => {
+  const button = window.getByRole('button', { name: 'Restore from backup' });
+  await expect(button).toHaveAttribute('aria-disabled', 'true');
 
-    await button.hover();
-    await expect(window.getByRole('tooltip')).toHaveText('Coming in a later version of tScore');
+  await button.hover();
+  await expect(window.getByRole('tooltip')).toHaveText('Coming in a later version of tScore');
 
-    // Clicking does nothing: still on the same screen, no dialog opened. `force` because
-    // Playwright won't click an aria-disabled button by default; a volunteer still can.
-    await button.click({ force: true });
-    await expect(window.getByRole('heading', { name: 'No event open' })).toBeVisible();
-    await expect(window.getByRole('dialog')).toHaveCount(0);
-  });
-}
+  // Clicking does nothing: still on the same screen, no dialog opened. `force` because
+  // Playwright won't click an aria-disabled button by default; a volunteer still can.
+  await button.click({ force: true });
+  await expect(window.getByRole('heading', { name: 'No event open' })).toBeVisible();
+  await expect(window.getByRole('dialog')).toHaveCount(0);
+});
 
 test('keyboard users get the same explanation', async () => {
-  await window.getByRole('button', { name: 'New event' }).focus();
+  await window.getByRole('button', { name: 'Restore from backup' }).focus();
   await expect(window.getByRole('tooltip')).toHaveText('Coming in a later version of tScore');
 });
 

@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { computeResults, DEFAULT_SCORING, type EntryInput, type EventInput } from '@tscore/core';
 import { afterEach, describe, expect, it } from 'vitest';
-import { NewerFileError, StoreError } from './errors.js';
+import { NewerFileError, SetupError, StoreError } from './errors.js';
 import { EVENT_FILE, EventStore } from './event-store.js';
 import { SCHEMA_VERSION } from './migrations.js';
 import { SETUP, tempFolder, testContext } from './test-support.js';
@@ -94,6 +94,56 @@ describe('creating and opening an event', () => {
     EventStore.create(folder, SETUP, testContext()).close();
     writeFileSync(join(folder, EVENT_FILE), 'not a database at all, just some text '.repeat(200));
     expect(() => EventStore.open(folder, testContext())).toThrow();
+  });
+});
+
+describe('changing the setup', () => {
+  const withRider = () => {
+    const store = newEvent();
+    store.addEntry(rider(7));
+    return store;
+  };
+  const setupWith = (trial4: { sections: number; laps: number } | null) => ({
+    ...SETUP,
+    classes: [
+      ...(trial4 ? [{ name: 'Trial 4', order: 40, days: { '1': trial4 } }] : []),
+      SETUP.classes[1],
+    ],
+  });
+
+  it('allows changes after riders and cards exist, and logs them', () => {
+    const store = withRider();
+    store.recordCard({ number: 7, day: 1, lap: 1, scores: [0, 1, 2, 3], source: 'scan' });
+    store.updateSetup(setupWith({ sections: 6, laps: 3 }));
+    expect(store.setup.classes[0]!.days['1']).toEqual({ sections: 6, laps: 3 });
+    expect(store.auditLog().at(-1)!.kind).toBe('setup.update');
+  });
+
+  it('refuses to remove a class that has riders', () => {
+    const store = withRider();
+    expect(code(() => store.updateSetup(setupWith(null)))).toBe('STORE_CLASS_IN_USE');
+  });
+
+  it('refuses to remove a lap or sections that already have scores', () => {
+    const store = withRider();
+    store.recordCard({ number: 7, day: 1, lap: 2, scores: [0, 1, 2, 3], source: 'scan' });
+    expect(code(() => store.updateSetup(setupWith({ sections: 4, laps: 1 })))).toBe(
+      'STORE_CARD_IN_USE',
+    );
+    expect(code(() => store.updateSetup(setupWith({ sections: 3, laps: 2 })))).toBe(
+      'STORE_CARD_IN_USE',
+    );
+    expect(store.setup.classes[0]!.days['1']).toEqual({ sections: 4, laps: 2 });
+  });
+
+  it('lists every problem with an invalid setup', () => {
+    const store = newEvent();
+    try {
+      store.updateSetup({ ...SETUP, event: { name: '', code: 'x' } });
+      expect.unreachable();
+    } catch (err) {
+      expect((err as SetupError).issues.map((i) => i.path)).toEqual(['event.name', 'event.code']);
+    }
   });
 });
 

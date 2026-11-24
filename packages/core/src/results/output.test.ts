@@ -7,6 +7,7 @@ import {
   gapWords,
   lapColumns,
   ordinal,
+  placeChanges,
   placeLabels,
   resultsCsv,
   resultsHtml,
@@ -132,5 +133,57 @@ describe('the printable results (PDF)', () => {
     expect(tieBreakWords(report.results)).toBe(
       'Lowest total wins. Ties are split by most 0s, then most 1s, then most 2s, then most 3s, then fewest 5s, then a ride-off.',
     );
+  });
+});
+
+describe('final results and revisions', () => {
+  const final = (revision: number, event = DEMO_EVENT) =>
+    computeResults(event, { ...DEMO_OPTIONS, status: 'final', revision }).results;
+
+  it('prints FINAL instead of PROVISIONAL, with the revision from 2 on', () => {
+    const html = resultsHtml(final(1), { gaps: [], dates: '', footer: '' });
+    expect(html).toContain('FINAL RESULTS');
+    expect(html).not.toContain('REVISION');
+    expect(html).not.toContain('PROVISIONAL');
+    const revised = resultsHtml(final(2), {
+      gaps: [],
+      dates: '',
+      footer: '',
+      revisionNote: {
+        replaces: 1,
+        replacedAt: 'Sat 6 Feb 2027 17:05',
+        reason: 'Rider 2 <card misread>',
+        changes: ['Trial 2: rider 2, 2nd → 1st'],
+      },
+    });
+    expect(revised).toContain('FINAL RESULTS · REVISION 2');
+    expect(revised).toContain('Replaces revision 1 of Sat 6 Feb 2027 17:05.');
+    expect(revised).toContain('Rider 2 &lt;card misread&gt;');
+    expect(revised).toContain('<li>Trial 2: rider 2, 2nd → 1st</li>');
+  });
+
+  it('lists the places that changed, and riders added or removed', () => {
+    const before = final(1);
+    expect(placeChanges(before, before)).toEqual([]);
+    // A big penalty on rider 1 moves them down; everyone they passed moves up.
+    const event = {
+      ...DEMO_EVENT,
+      entries: DEMO_EVENT.entries.map((e) =>
+        e.number === 1
+          ? { ...e, penalties: [...(e.penalties ?? []), { points: 50, reason: 'time' as const }] }
+          : e,
+      ),
+    };
+    const changes = placeChanges(before, final(2, event));
+    expect(changes.length).toBeGreaterThan(0);
+    expect(changes.some((c) => c.includes('rider 1,') && c.includes('→'))).toBe(true);
+    const fewer = {
+      ...before,
+      classes: before.classes.map((c) => ({
+        ...c,
+        entries: c.entries.filter((e) => e.number !== 1),
+      })),
+    };
+    expect(placeChanges(before, fewer).some((c) => c.endsWith('removed'))).toBe(true);
   });
 });

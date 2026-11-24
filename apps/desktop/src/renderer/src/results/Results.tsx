@@ -2,12 +2,14 @@ import {
   Alert,
   Button,
   Checkbox,
+  Modal,
   Group,
   Paper,
   Stack,
   Table,
   Tabs,
   Text,
+  Textarea,
   Title,
 } from '@mantine/core';
 import {
@@ -122,7 +124,10 @@ export function Results({ event }: { readonly event: OpenEvent }) {
         </Paper>
       ) : (
         <>
-          <Status gaps={gaps} open={showGaps} onToggle={() => setShowGaps((s) => !s)} />
+          {!(view.final && !view.final.reopened) && (
+            <Status gaps={gaps} open={showGaps} onToggle={() => setShowGaps((s) => !s)} />
+          )}
+          <FinalPanel view={view} onChange={setView} />
 
           <Paper withBorder radius="md" p="md" component="section" aria-label="Class results">
             <Tabs value={current} onChange={setTab}>
@@ -343,5 +348,179 @@ function ErrorAlert({ error, onClose }: { error: AppError; onClose?: () => void 
         ({error.code})
       </Text>
     </Alert>
+  );
+}
+
+const when = (iso: string) =>
+  new Date(iso).toLocaleString('en-AU', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  });
+
+/**
+ * Final results: mark them final once every card is in (a numbered revision), or, when final,
+ * reopen them with a reason to correct something. Nothing that affects results can change
+ * while they're final.
+ */
+function FinalPanel(props: { view: ResultsView; onChange: (view: ResultsView) => void }) {
+  const { view } = props;
+  const [asking, setAsking] = useState<'final' | 'reopen' | null>(null);
+  const [reason, setReason] = useState('');
+  const [error, setError] = useState<AppError | null>(null);
+  const [busy, setBusy] = useState(false);
+  const final = view.final && !view.final.reopened ? view.final : null;
+  const reopened = view.final?.reopened ? view.final : null;
+  const complete = view.gaps.length === 0 && view.results.classes.some((c) => c.entries.length);
+
+  async function run(
+    call: () => Promise<{ ok: true; value: ResultsView } | { ok: false; error: AppError }>,
+  ) {
+    setBusy(true);
+    setError(null);
+    const r = await call();
+    setBusy(false);
+    if (r.ok) {
+      props.onChange(r.value);
+      setAsking(null);
+      setReason('');
+    } else setError(r.error);
+  }
+
+  const problem = error && (
+    <Alert color="red" role="alert">
+      {error.message}{' '}
+      <Text span c="dimmed" size="sm">
+        ({error.code})
+      </Text>
+    </Alert>
+  );
+
+  if (final) {
+    return (
+      <Paper
+        radius="md"
+        p="md"
+        component="section"
+        aria-label="Final results"
+        style={{ background: '#e3f4e6', color: '#123b17', border: '2px solid #1f5f26' }}
+      >
+        <Group justify="space-between" wrap="wrap" gap="sm" align="flex-start">
+          <div>
+            <Text fw={800} fz="xl">
+              FINAL{final.revision > 1 ? ` · REVISION ${final.revision}` : ''}
+            </Text>
+            <Text>
+              Marked final {when(final.markedAt)}. Saved PDFs and CSVs say FINAL. Cards, penalties,
+              riders and the setup can&apos;t change until the results are reopened.
+            </Text>
+          </div>
+          <Button variant="default" onClick={() => setAsking('reopen')}>
+            Reopen…
+          </Button>
+        </Group>
+        <Modal
+          opened={asking === 'reopen'}
+          onClose={() => setAsking(null)}
+          title={`Reopen revision ${final.revision}`}
+          closeButtonProps={{ 'aria-label': 'Close' }}
+        >
+          <Stack gap="md">
+            <Text>
+              Say what needs correcting. The reason is logged, and printed on the next revision
+              along with any places that change.
+            </Text>
+            <Textarea
+              label="Why are the results being reopened?"
+              placeholder="e.g. Rider 12, lap 3 section 6: observer card misread, 3 not 5"
+              autosize
+              minRows={2}
+              maxLength={300}
+              value={reason}
+              onChange={(e) => setReason(e.currentTarget.value)}
+            />
+            {problem}
+            <Group justify="flex-end">
+              <Button variant="default" onClick={() => setAsking(null)}>
+                Cancel
+              </Button>
+              <Button
+                loading={busy}
+                disabled={!reason.trim()}
+                onClick={() => void run(() => window.tscore.reopenResults(reason))}
+              >
+                Reopen results
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
+      </Paper>
+    );
+  }
+
+  return (
+    <Paper withBorder radius="md" p="md" component="section" aria-label="Mark results final">
+      <Stack gap="sm">
+        {reopened && (
+          <div>
+            <Text fw={700}>
+              Revision {reopened.revision} reopened: {reopened.reopenReason}
+            </Text>
+            {view.changes && view.changes.length > 0 ? (
+              <>
+                <Text size="sm">Places changed since revision {reopened.revision}:</Text>
+                <ul style={{ margin: '4px 0 0', paddingLeft: 20 }}>
+                  {view.changes.map((c) => (
+                    <li key={c}>
+                      <Text size="sm">{c}</Text>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <Text size="sm">No places have changed since revision {reopened.revision} yet.</Text>
+            )}
+          </div>
+        )}
+        <Group justify="space-between" wrap="wrap" gap="sm">
+          <Text>
+            {complete
+              ? `When the results are confirmed, mark them final${view.nextRevision > 1 ? ` as revision ${view.nextRevision}` : ''}.`
+              : 'Results can be marked final once every expected card is in.'}
+          </Text>
+          {complete && (
+            <Button onClick={() => setAsking('final')}>
+              Mark results final{view.nextRevision > 1 ? ` (revision ${view.nextRevision})` : ''}…
+            </Button>
+          )}
+        </Group>
+        {asking !== 'final' && problem}
+      </Stack>
+      <Modal
+        opened={asking === 'final'}
+        onClose={() => setAsking(null)}
+        title={`Mark results final${view.nextRevision > 1 ? ` (revision ${view.nextRevision})` : ''}`}
+        closeButtonProps={{ 'aria-label': 'Close' }}
+      >
+        <Stack gap="md">
+          <Text>
+            Saved PDFs and CSVs will say FINAL. Cards, penalties, riders and the setup can&apos;t
+            change until you reopen the results, with a reason.
+          </Text>
+          {problem}
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setAsking(null)}>
+              Cancel
+            </Button>
+            <Button loading={busy} onClick={() => void run(() => window.tscore.markFinal())}>
+              Mark final
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+    </Paper>
   );
 }

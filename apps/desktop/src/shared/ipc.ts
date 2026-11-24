@@ -39,6 +39,8 @@ export const IPC = {
   results: 'results:view',
   exportResults: 'results:export',
   openExport: 'results:open-export',
+  markFinal: 'results:mark-final',
+  reopenResults: 'results:reopen',
   labels: 'labels:view',
   saveLabels: 'labels:save',
   saveLabelTestPage: 'labels:save-test-page',
@@ -168,6 +170,17 @@ export interface ResultsView {
   readonly gaps: readonly ResultsGapInfo[];
   /** Classes whose surnames become an initial in anything saved to share, if the desk chooses. */
   readonly juniorClasses: readonly string[];
+  /** The latest revision marked final, if any. Reopened: being corrected. */
+  readonly final?: {
+    readonly revision: number;
+    readonly markedAt: string;
+    readonly reopened: boolean;
+    readonly reopenReason?: string;
+  };
+  /** The revision the next "mark final" makes. */
+  readonly nextRevision: number;
+  /** While reopened: the places that would change from the last final revision. */
+  readonly changes?: readonly string[];
 }
 
 export interface AppInfo {
@@ -359,6 +372,10 @@ export interface TscoreApi {
   exportResults(kind: ExportKind, juniorInitials: boolean): Promise<Outcome<string | null>>;
   /** Open the file just saved. */
   openExport(): Promise<Outcome<null>>;
+  /** Freeze the results as the next revision. */
+  markFinal(): Promise<Outcome<ResultsView>>;
+  /** Reopen final results to correct something, saying why. */
+  reopenResults(reason: string): Promise<Outcome<ResultsView>>;
   labels(request: LabelRequest): Promise<Outcome<LabelsView>>;
   /** Shows the save dialog, then saves the Word document. `null` if the desk cancels. */
   saveLabels(

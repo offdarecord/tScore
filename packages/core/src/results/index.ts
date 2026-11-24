@@ -15,11 +15,13 @@ export {
   ordinal,
   penaltyPoints,
   placeLabels,
+  placeChanges,
   resultsCsv,
   resultsHtml,
   tieBreakWords,
   type LapColumn,
   type PrintOptions,
+  type RevisionNote,
 } from './output.js';
 export {
   classesFromSetup,

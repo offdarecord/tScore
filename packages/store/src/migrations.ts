@@ -135,6 +135,20 @@ export const MIGRATIONS: readonly string[] = [
   `
   ALTER TABLE entry ADD COLUMN machine TEXT;
   `,
+  // 6: results marked final, one row per revision, with the results exactly as declared.
+  // Reopening (to correct something) keeps the row and says why; marking final again adds the
+  // next revision.
+  `
+  CREATE TABLE results_final (
+    revision      INTEGER PRIMARY KEY,
+    marked_at     TEXT NOT NULL,
+    station_id    TEXT NOT NULL,
+    operator      TEXT,
+    results_json  TEXT NOT NULL,
+    reopened_at   TEXT,
+    reopen_reason TEXT
+  ) STRICT;
+  `,
 ];
 
 /** The schema version a fresh event file gets, and the newest this build can open. */

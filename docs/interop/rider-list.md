@@ -14,16 +14,26 @@ checked against [`tscore.import_mapping/1`](../../schemas/tscore.import_mapping.
 
 ## What is read, and what isn't
 
-tScore reads **only** the columns scoring needs: name, class, club, licence or member number,
-and the columns that say whether an entry is a rider and whether they're competitive. Every
-other column (dates of birth, addresses, phone numbers, email, medical, emergency contacts,
-bikes, payments) is dropped as the file is read. It is never saved in the event, written to
+tScore reads **only** these columns: name, class, club, machine (make and model), licence or
+member number, and the columns that say whether an entry is a rider and whether they're
+competitive. Every other column (dates of birth, addresses, phone numbers, email, medical,
+emergency contacts, VIN and engine numbers, payments) is dropped as the file is read. It is never saved in the event, written to
 the log, or shown on screen.
 
 Rows that aren't riders are skipped and counted: observers (Entryplace), crew, minders and
 withdrawn entries (Ridernet). Numbers riders type into Ridernet's `Riding_Number` are ignored:
 tScore numbers riders itself, in class order, then by surname, from the event's first rider
 number.
+
+## Machine
+
+- **Entryplace:** the `Machine` column.
+- **Ridernet:** `Bike_Make` and `Bike_Model` from the rider's profile, joined ("Beta" +
+  "Evo 300"). Riders don't always keep their profile bike up to date, so the desk can change
+  it on the Riders screen.
+- **tScore rider list:** the optional `Machine` column.
+
+The machine is for the desk only. It isn't printed on labels or published in results.
 
 ## Competition statuses
 
@@ -53,11 +63,12 @@ For entry systems tScore doesn't know, save the list as **CSV UTF-8** with these
 | `Licence`            | 123456       | Optional. Spots a rider entered twice, and on re-import |
 | `Number`             | 42           | Optional. Kept when every rider has a different number  |
 | `Competition status` | NC           | Optional. `NC` = non-competitive, `NA` = No award       |
+| `Machine`            | Beta Evo 300 | Optional. Make and model; the desk can change it later  |
 
 ```csv
-Number,Given name,Family name,Class,Club,Licence,Competition status
-1,Avery,Stone,Trial 1,Example MCC,123456,
-2,Blake,River,Trial 4 Plus,Example MCC,234567,NC
+Number,Given name,Family name,Class,Club,Licence,Competition status,Machine
+1,Avery,Stone,Trial 1,Example MCC,123456,,Beta Evo 300
+2,Blake,River,Trial 4 Plus,Example MCC,234567,NC,
 ```
 
 ## Importing again

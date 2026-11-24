@@ -156,13 +156,23 @@ export interface RiderInfo {
   readonly number: number;
   readonly riders: readonly { readonly givenName: string; readonly familyName: string }[];
   readonly club?: string;
+  /** Make and model, e.g. "Beta Evo 300". For the desk only, never published. */
+  readonly machine?: string;
   readonly competitionStatus: CompetitionStatus;
   readonly status: EntryStatus;
   /** One class, or two for a second-class entry. */
   readonly classes: readonly string[];
+  /** Some of this rider's card labels have been saved for printing. */
+  readonly labelsPrinted?: boolean;
 }
 
 export interface RiderChange {
+  /** One name per rider on the entry (driver then passenger for a sidecar), in order. */
+  readonly riders?: readonly { readonly givenName: string; readonly familyName: string }[];
+  /** null or "" clears it. */
+  readonly club?: string | null;
+  /** null or "" clears it. */
+  readonly machine?: string | null;
   readonly classes?: readonly string[];
   readonly competitionStatus?: CompetitionStatus;
   readonly status?: EntryStatus;

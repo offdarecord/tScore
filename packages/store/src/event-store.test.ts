@@ -174,6 +174,80 @@ describe('riders', () => {
     ]);
     expect(log.every((a) => a.operator === 'Desk 1')).toBe(true);
   });
+
+  it('corrects a name, club and machine, keeping the number, licence and cards', () => {
+    const store = newEvent();
+    store.addEntry(
+      rider(14, {
+        riders: [{ givenName: 'Avrey', familyName: 'stone', licence: '123456' }],
+        machine: 'Beta Evo 300',
+      }),
+    );
+    store.recordCard({ number: 14, day: 1, lap: 1, scores: [0, 1, 2, 3], source: 'scan' });
+    store.renameRiders(14, [{ givenName: ' Avery ', familyName: 'Stone' }]);
+    store.setClub(14, 'Example  MCC');
+    store.setMachine(14, 'Montesa 4Ride');
+    expect(store.entry(14)).toMatchObject({
+      number: 14,
+      riders: [{ givenName: 'Avery', familyName: 'Stone', licence: '123456' }],
+      club: 'Example MCC',
+      machine: 'Montesa 4Ride',
+    });
+    expect(store.cardLog().map((c) => c.number)).toEqual([14]);
+    const log = store.auditLog().filter((a) => a.subject === 'rider 14');
+    expect(log.slice(-3).map((a) => [a.kind, a.detail])).toEqual([
+      [
+        'entry.names',
+        {
+          from: [{ givenName: 'Avrey', familyName: 'stone' }],
+          to: [{ givenName: 'Avery', familyName: 'Stone' }],
+        },
+      ],
+      ['entry.club', { from: null, to: 'Example MCC' }],
+      ['entry.machine', { from: 'Beta Evo 300', to: 'Montesa 4Ride' }],
+    ]);
+  });
+
+  it('clears a club or machine, and refuses an empty name or the wrong number of names', () => {
+    const store = newEvent();
+    store.addEntry(rider(3, { club: 'Example MCC', machine: 'Beta Evo 300' }));
+    store.setClub(3, '  ');
+    store.setMachine(3, null);
+    expect(store.entry(3).club).toBeUndefined();
+    expect(store.entry(3).machine).toBeUndefined();
+    expect(code(() => store.renameRiders(3, [{ givenName: ' ', familyName: '' }]))).toBe(
+      'STORE_BAD_NAME',
+    );
+    expect(
+      code(() =>
+        store.renameRiders(3, [
+          { givenName: 'A', familyName: 'B' },
+          { givenName: 'C', familyName: 'D' },
+        ]),
+      ),
+    ).toBe('STORE_BAD_NAME');
+    expect(code(() => store.setMachine(3, 'x'.repeat(61)))).toBe('STORE_BAD_MACHINE');
+    expect(code(() => store.renameRiders(99, [{ givenName: 'A', familyName: 'B' }]))).toBe(
+      'STORE_NO_RIDER',
+    );
+  });
+
+  it('renames a sidecar driver and passenger together', () => {
+    const store = newEvent();
+    store.addEntry(
+      rider(50, {
+        riders: [
+          { givenName: 'Drew', familyName: 'Driver' },
+          { givenName: 'Pat', familyName: 'Pasenger' },
+        ],
+      }),
+    );
+    store.renameRiders(50, [
+      { givenName: 'Drew', familyName: 'Driver' },
+      { givenName: 'Pat', familyName: 'Passenger' },
+    ]);
+    expect(store.entry(50).riders.map((p) => p.familyName)).toEqual(['Driver', 'Passenger']);
+  });
 });
 
 describe('cards and scores', () => {
@@ -323,7 +397,7 @@ describe('cards and scores', () => {
     first.close();
     const db = new DatabaseSync(join(folder, EVENT_FILE));
     db.exec(
-      'ALTER TABLE entry RENAME COLUMN competition_status TO tier; DROP TABLE label_print; ALTER TABLE card DROP COLUMN received_at; PRAGMA user_version = 1',
+      'ALTER TABLE entry DROP COLUMN machine; ALTER TABLE entry RENAME COLUMN competition_status TO tier; DROP TABLE label_print; ALTER TABLE card DROP COLUMN received_at; PRAGMA user_version = 1',
     );
     db.close();
     const store = track(EventStore.open(folder, testContext()));

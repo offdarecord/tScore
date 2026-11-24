@@ -338,8 +338,8 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
             </Title>
             <Text>
               Dates of birth, addresses, phone numbers, medical and emergency details stay in the
-              entry system. tScore keeps only what scoring needs: name, class, club, licence number
-              and competitionStatus.
+              entry system. tScore keeps only the name, class, club, machine, licence number and
+              competition status.
             </Text>
           </Paper>
         </Stack>

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { EventSetup } from '../generated/event-setup.js';
 import { newEventSetup } from '../setup-defaults.js';
 import { readEntryList, ImportError, type SourceTable } from './extract.js';
-import { planImport, tidyClass, tidyName } from './plan.js';
+import { machineOf, planImport, tidyClass, tidyName } from './plan.js';
 import { IMPORT_PRESETS, checkPreset, detectPreset } from './presets.js';
 
 // Synthetic entry lists. The headers are the entry systems' real column names; every name,
@@ -404,5 +404,37 @@ describe('files that are not an entry list', () => {
       missing: ['Event_Class_Name', 'Event_Role'],
     });
     expect(JSON.stringify(err.diagnostics)).not.toMatch(/Avery|Stone|900001|Trial 1|Grade/);
+  });
+});
+
+describe("the rider's machine", () => {
+  it('reads one machine column, or joins make and model without repeating the make', () => {
+    expect(machineOf({ machine: '  Beta   Evo 300 ' })).toEqual({ machine: 'Beta Evo 300' });
+    expect(machineOf({ machine_make: 'Beta', machine_model: 'Evo 300' })).toEqual({
+      machine: 'Beta Evo 300',
+    });
+    expect(machineOf({ machine_make: 'GasGas', machine_model: 'GasGas TXT 280' })).toEqual({
+      machine: 'GasGas TXT 280',
+    });
+    expect(machineOf({ machine_make: 'Sherco', machine_model: '' })).toEqual({ machine: 'Sherco' });
+    expect(machineOf({ machine_make: ' ', machine_model: '' })).toEqual({});
+    expect(machineOf({}).machine).toBeUndefined();
+    expect(machineOf({ machine: 'x'.repeat(80) }).machine).toHaveLength(60);
+  });
+
+  it('comes in from the tScore rider list', () => {
+    const t = table(
+      ['Given name', 'Family name', 'Class', 'Machine'],
+      [
+        {
+          'Given name': 'Avery',
+          'Family name': 'Stone',
+          Class: 'Trial 1',
+          Machine: 'Beta Evo 300',
+        },
+      ],
+    );
+    const plan = planImport(readEntryList([t]), setup(), []);
+    expect(plan.entries.map((e) => e.machine)).toEqual(['Beta Evo 300']);
   });
 });

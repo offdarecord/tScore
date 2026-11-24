@@ -94,16 +94,26 @@ let pending: { eventId: string; list: EntryList } | null = null;
 const COMPETITION_STATUSES = ['competitive', 'no_award', 'non_competitive'] as const;
 const STATUSES = ['riding', 'dnf', 'dns'] as const;
 
-function rider(e: EntryInput): RiderInfo {
+function rider(e: EntryInput, printed?: ReadonlySet<number>): RiderInfo {
   return {
     number: e.number,
     riders: e.riders.map((p) => ({ givenName: p.givenName, familyName: p.familyName })),
     ...(e.club ? { club: e.club } : {}),
+    ...(e.machine ? { machine: e.machine } : {}),
+    ...(printed?.has(e.number) && { labelsPrinted: true }),
     competitionStatus: e.competitionStatus,
     status: e.status,
     classes: e.classes,
   };
 }
+
+/** Every rider, as the Riders screen shows them. */
+function ridersOf(store: EventStore): RiderInfo[] {
+  const printed = new Set(store.printedLabels().map((l) => l.number));
+  return store.entries().map((e) => rider(e, printed));
+}
+
+const isText = (v: unknown): v is string | null => v === null || typeof v === 'string';
 
 function openStore(): EventStore {
   const store = library?.current;
@@ -264,13 +274,31 @@ export const eventHandlers = {
   },
 
   riders(): RiderInfo[] {
-    return library?.current?.entries().map(rider) ?? [];
+    const store = library?.current;
+    return store ? ridersOf(store) : [];
   },
 
   updateRider(number: number, change: RiderChange): Outcome<RiderInfo[]> {
     return attempt('changing a rider', () => {
       const store = openStore();
       if (!Number.isInteger(number)) throw new StoreError('APP_BAD_REQUEST', 'No such rider.');
+      if (change.riders !== undefined) {
+        const ok =
+          Array.isArray(change.riders) &&
+          change.riders.every(
+            (p) => typeof p?.givenName === 'string' && typeof p?.familyName === 'string',
+          );
+        if (!ok) throw new StoreError('APP_BAD_REQUEST', 'Give the rider a name.');
+        store.renameRiders(number, change.riders);
+      }
+      if (change.club !== undefined) {
+        if (!isText(change.club)) throw new StoreError('APP_BAD_REQUEST', 'Type a club.');
+        store.setClub(number, change.club);
+      }
+      if (change.machine !== undefined) {
+        if (!isText(change.machine)) throw new StoreError('APP_BAD_REQUEST', 'Type a machine.');
+        store.setMachine(number, change.machine);
+      }
       if (change.classes !== undefined) {
         if (!Array.isArray(change.classes) || !change.classes.every((c) => typeof c === 'string'))
           throw new StoreError('APP_BAD_REQUEST', 'Choose a class.');
@@ -287,7 +315,7 @@ export const eventHandlers = {
         store.setStatus(number, change.status);
       }
       log.info('rider changed', { eventId: store.eventId, number, fields: Object.keys(change) });
-      return store.entries().map(rider);
+      return ridersOf(store);
     });
   },
 

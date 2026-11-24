@@ -10,7 +10,8 @@
     "club": ["Club"],
     "licence": ["Licence"],
     "number": ["Number"],
-    "competition_status": ["Competition status", "Tier"]
+    "competition_status": ["Competition status", "Tier"],
+    "machine": ["Machine"]
   },
   "competition_status_rules": [
     {

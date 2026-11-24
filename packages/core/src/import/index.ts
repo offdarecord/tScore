@@ -7,6 +7,7 @@ export {
   type SourceTable,
 } from './extract.js';
 export {
+  machineOf,
   planImport,
   tidyClass,
   tidyName,

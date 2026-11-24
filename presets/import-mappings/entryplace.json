@@ -11,6 +11,7 @@
     "club": ["Club"],
     "licence": ["Licence Number"],
     "competition_status": ["Competitive"],
+    "machine": ["Machine"],
     "group": ["Entry Group"]
   },
   "skip_rows": [

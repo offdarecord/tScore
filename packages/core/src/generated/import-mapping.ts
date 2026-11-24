@@ -20,6 +20,24 @@ export type Headers1 = string[];
  */
 export type Headers2 = string[];
 /**
+ * The rider's machine, make and model in one column (e.g. Beta Evo 300). Never VIN, engine number or registration.
+ *
+ * @minItems 1
+ */
+export type Headers3 = string[];
+/**
+ * The machine's make, when the export keeps make and model apart. Joined with machine_model.
+ *
+ * @minItems 1
+ */
+export type Headers4 = string[];
+/**
+ * The machine's model, when the export keeps make and model apart.
+ *
+ * @minItems 1
+ */
+export type Headers5 = string[];
+/**
  * This interface was referenced by `ImportMapping`'s JSON-Schema
  * via the `definition` "Field".
  */
@@ -31,6 +49,9 @@ export type Field =
   | 'licence'
   | 'number'
   | 'competition_status'
+  | 'machine'
+  | 'machine_make'
+  | 'machine_model'
   | 'group'
   | 'role'
   | 'status'
@@ -89,6 +110,9 @@ export interface ImportMapping {
     licence?: Headers1;
     number?: Headers2;
     competition_status?: Headers;
+    machine?: Headers3;
+    machine_make?: Headers4;
+    machine_model?: Headers5;
     group?: Headers;
     role?: Headers;
     status?: Headers;

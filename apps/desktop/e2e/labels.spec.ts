@@ -108,7 +108,22 @@ test('labels follow the event setup, save as a Word document, and remember what 
   expect(documentXml(late)).toContain('Gray Lake');
   expect(documentXml(late)).not.toContain('Avery Stone');
   await expect(window.getByLabel('Only labels not printed yet (0)')).toBeVisible();
-});
+
+  // The late entry fixes a typo in their name: the desk is reminded to reprint, and does.
+  await nav().getByRole('button', { name: /Riders/ }).click();
+  await window.getByRole('button', { name: 'Change rider 5' }).click();
+  await window.getByRole('dialog').getByLabel('Surname').fill('Lakes');
+  await window.getByRole('dialog').getByRole('button', { name: 'Save' }).click();
+  await expect(window.getByRole('status').filter({ hasText: "Reprint rider 5's labels" })).toBeVisible();
+  await nav().getByRole('button', { name: 'Card labels' }).click();
+  await window.getByLabel('One rider (reprint)').check();
+  await window.getByLabel('Rider number').fill('5');
+  const reprint = join(run.userData, 'reprint.docx');
+  await stubDialog('showSaveDialog', reprint);
+  await window.getByRole('button', { name: 'Save Word document…' }).click();
+  await expect(window.getByRole('status').filter({ hasText: '4 labels saved' })).toBeVisible();
+  expect(documentXml(reprint)).toContain('Gray Lakes');
+}); // prettier-ignore
 
 test('the alignment test page and printer offset', async () => {
   await eventWithRiders();

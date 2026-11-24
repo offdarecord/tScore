@@ -126,6 +126,11 @@ export async function exportResults(
   return picked.filePath;
 }
 
+/** Note a file just saved elsewhere (e.g. card labels), so "Open" opens it. */
+export function rememberExport(path: string): void {
+  lastExport = path;
+}
+
 /** Open the file just saved, in its usual program (e.g. the PDF viewer). */
 export async function openLastExport(): Promise<void> {
   if (lastExport) {

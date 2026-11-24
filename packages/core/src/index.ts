@@ -28,3 +28,6 @@ export {
 
 // Rider import (architecture §8; presets in presets/import-mappings/).
 export * from './import/index.js';
+
+// Card labels (architecture §8.1; templates in presets/label-templates/).
+export * from './labels/index.js';

@@ -1,6 +1,7 @@
 import { Button, Stack, Text } from '@mantine/core';
 import type { EntryListFile, OpenEvent } from '../../shared/ipc';
 import { ManualEntry } from './cards/ManualEntry';
+import { CardLabels } from './labels/CardLabels';
 import { ComingSoonButton } from './ComingSoonButton';
 import { Results } from './results/Results';
 import { formatDate } from './format';
@@ -13,6 +14,7 @@ export type EventPage =
   | { readonly name: 'setup' }
   | { readonly name: 'riders'; readonly notice?: string }
   | { readonly name: 'import'; readonly file: EntryListFile }
+  | { readonly name: 'labels' }
   | { readonly name: 'manual' }
   | { readonly name: 'results' };
 
@@ -25,7 +27,6 @@ interface Props {
 
 /** Screens that aren't built yet, in the order of the agreed mock-ups. */
 const CHECK = 'Pre-event check';
-const LABELS = 'Card labels';
 const SCAN_DESK = 'Scan desk';
 const LATER_ON_THE_DAY = ['Review queue', 'Progress', 'Still on course'];
 
@@ -66,7 +67,11 @@ export function EventNav(props: {
         current={page.name === 'riders' || page.name === 'import'}
         onClick={() => onNavigate({ name: 'riders' })}
       />
-      <NavLater label={LABELS} />
+      <NavLink
+        label="Card labels"
+        current={page.name === 'labels'}
+        onClick={() => onNavigate({ name: 'labels' })}
+      />
       <NavHeading>On the day</NavHeading>
       <NavLater label={SCAN_DESK} />
       <NavLink
@@ -127,6 +132,7 @@ function NavLater({ label }: { label: string }) {
 /** The open event's main area. */
 export function EventMain({ event, page, onChange, onNavigate }: Props) {
   if (page.name === 'manual') return <ManualEntry event={event} />;
+  if (page.name === 'labels') return <CardLabels event={event} />;
   if (page.name === 'results') return <Results event={event} />;
   if (page.name === 'riders') {
     return (

@@ -1,0 +1,11 @@
+{
+  "schema": "tscore.label_template/1",
+  "id": "L7651",
+  "name": "Avery L7651 / J8651, Officeworks PPS78651 (65 per sheet)",
+  "page": { "width_mm": 210, "height_mm": 297 },
+  "columns": 5,
+  "rows": 13,
+  "label": { "width_mm": 38.1, "height_mm": 21.2 },
+  "margin": { "top_mm": 10.7, "left_mm": 4.7 },
+  "pitch": { "across_mm": 40.6, "down_mm": 21.2 }
+}

@@ -27,6 +27,10 @@ const api: TscoreApi = {
   results: call(IPC.results),
   exportResults: call(IPC.exportResults),
   openExport: call(IPC.openExport),
+  labels: call(IPC.labels),
+  saveLabels: call(IPC.saveLabels),
+  saveLabelTestPage: call(IPC.saveLabelTestPage),
+  setLabelOffset: call(IPC.setLabelOffset),
 };
 
 contextBridge.exposeInMainWorld('tscore', api);

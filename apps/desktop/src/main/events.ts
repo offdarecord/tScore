@@ -31,6 +31,9 @@ import type {
   DeskRider,
   EntryListFile,
   ExportKind,
+  LabelOffset,
+  LabelRequest,
+  LabelsView,
   NewPenalty,
   OpenEvent,
   Outcome,
@@ -41,6 +44,7 @@ import type {
   RiderInfo,
   SaveCard,
 } from '../shared/ipc';
+import { labelsView, saveLabels, saveLabelTestPage, setLabelOffset } from './labels';
 import { exportResults, openLastExport, resultsView } from './results';
 
 const PENALTY_REASONS: readonly PenaltyReason[] = [
@@ -386,6 +390,42 @@ export const eventHandlers = {
       const path = await exportResults(store, kind, juniorInitials, win);
       if (path) log.info('results saved', { eventId: store.eventId, kind, juniorInitials });
       return path;
+    });
+  },
+
+  labels(request: LabelRequest): Outcome<LabelsView> {
+    return attempt('planning card labels', () => labelsView(openStore(), request));
+  },
+
+  saveLabels(
+    request: LabelRequest,
+    win: BrowserWindow | null,
+  ): Promise<Outcome<{ path: string; labels: number } | null>> {
+    return attemptAsync('saving card labels', async () => {
+      const store = openStore();
+      const saved = await saveLabels(store, request, win);
+      if (saved) {
+        log.info('card labels saved', {
+          eventId: store.eventId,
+          labels: saved.labels,
+          which: typeof request.which === 'object' ? 'rider' : request.which,
+        });
+      }
+      return saved;
+    });
+  },
+
+  saveLabelTestPage(win: BrowserWindow | null): Promise<Outcome<string | null>> {
+    return attemptAsync('saving the alignment test page', () =>
+      saveLabelTestPage(openStore(), win),
+    );
+  },
+
+  setLabelOffset(offset: LabelOffset): Outcome<LabelOffset> {
+    return attempt('saving the printer offset', () => {
+      const saved = setLabelOffset(offset);
+      log.info('label printer offset set', saved);
+      return saved;
     });
   },
 

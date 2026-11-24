@@ -51,6 +51,11 @@ export interface LabelOptions {
   /** Leave room for the QR code (default true). */
   readonly qr?: boolean;
   /**
+   * Print labels for riders in classes that aren't scored (minders) too, for the laps their
+   * class has in the setup. Off by default: minders are left out.
+   */
+  readonly includeNotScored?: boolean;
+  /**
    * Labels to leave out because they're already printed (keys from `labelKey`): what's left
    * is late entries' labels and laps added since.
    */
@@ -142,7 +147,7 @@ export function planLabels(
     const skip = (reason: LabelSkip['reason']) =>
       skipped.push({ number: entry.number, reason, className });
     if (!cls) skip('unknown_class');
-    else if (cls.scored === false) skip('not_scored');
+    else if (cls.scored === false && !options.includeNotScored) skip('not_scored');
     else if (entry.status === 'dns') skip('dns');
     else if (days.every((d) => lapsFor(setup, className, d) === 0)) skip('no_laps');
     else riders.push({ entry, className });

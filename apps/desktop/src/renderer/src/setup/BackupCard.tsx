@@ -1,6 +1,7 @@
 import { Alert, Button, Group, Paper, Stack, Text, Title } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import type { AppError, BackupStatus, OpenEvent, Outcome } from '../../../shared/ipc';
+import { ErrorAlert } from '../ErrorAlert';
 
 const clock = (iso: string) =>
   new Date(iso).toLocaleTimeString('en-AU', {
@@ -36,7 +37,7 @@ export function BackupCard({ event }: { event: OpenEvent }) {
     }
   }
 
-  if (!status) return error ? <Problem error={error} /> : null;
+  if (!status) return error ? <ErrorAlert error={error} /> : null;
   const missing = status.secondPlace !== undefined && status.secondPlaceAvailable === false;
 
   return (
@@ -79,7 +80,7 @@ export function BackupCard({ event }: { event: OpenEvent }) {
             {status.problem}
           </Alert>
         )}
-        {error && <Problem error={error} />}
+        {error && <ErrorAlert error={error} />}
         {note && (
           <Text size="sm" role="status">
             {note}
@@ -115,16 +116,5 @@ export function BackupCard({ event }: { event: OpenEvent }) {
         </Group>
       </Stack>
     </Paper>
-  );
-}
-
-function Problem({ error }: { error: AppError }) {
-  return (
-    <Alert color="red" role="alert">
-      {error.message}{' '}
-      <Text span c="dimmed" size="sm">
-        ({error.code})
-      </Text>
-    </Alert>
   );
 }

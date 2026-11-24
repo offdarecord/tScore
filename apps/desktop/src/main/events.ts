@@ -19,6 +19,7 @@ import {
   type EntryList,
   type EventSetup,
   type ImportChoices,
+  publicErrorCode,
 } from '@tscore/core';
 import {
   EventLibrary,
@@ -203,18 +204,18 @@ async function attemptAsync<T>(what: string, fn: () => Promise<T>): Promise<Outc
 }
 
 function failed(what: string, err: unknown): { ok: false; error: AppError } {
-  log.warn(`${what} failed`, err);
   let error: AppError;
   if (err instanceof SetupError) {
-    error = { code: err.code, message: err.message, issues: err.issues };
+    error = { code: publicErrorCode(err.code), message: err.message, issues: err.issues };
   } else if (err instanceof StoreError || err instanceof ImportError) {
-    error = { code: err.code, message: err.message };
+    error = { code: publicErrorCode(err.code), message: err.message };
   } else {
     error = {
-      code: 'APP_UNEXPECTED',
+      code: publicErrorCode('APP_UNEXPECTED'),
       message: `Something went wrong (${what}). The details are in tScore's log.`,
     };
   }
+  log.warn(`${what} failed`, { code: error.code }, err);
   return { ok: false, error };
 }
 
@@ -251,7 +252,10 @@ export const eventHandlers = {
     if (typeof folder !== 'string' || !events().isRecent(folder)) {
       return {
         ok: false,
-        error: { code: 'APP_NOT_RECENT', message: "That event isn't in the recent list." },
+        error: {
+          code: publicErrorCode('APP_NOT_RECENT'),
+          message: "That event isn't in the recent list.",
+        },
       };
     }
     return this.open(folder);

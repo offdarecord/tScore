@@ -20,6 +20,7 @@ import type {
   LabelsView,
   OpenEvent,
 } from '../../../shared/ipc';
+import { ErrorAlert } from '../ErrorAlert';
 
 const LAYOUTS: { value: LabelLayoutChoice; label: string }[] = [
   { value: 'auto', label: 'Automatic' },
@@ -122,14 +123,7 @@ export function CardLabels({ event }: { readonly event: OpenEvent }) {
         </Text>
       </div>
 
-      {error && (
-        <Alert color="red" role="alert" withCloseButton onClose={() => setError(null)}>
-          {error.message}{' '}
-          <Text span c="dimmed" size="sm">
-            ({error.code})
-          </Text>
-        </Alert>
-      )}
+      {error && <ErrorAlert error={error} onClose={() => setError(null)} />}
       {saved && (
         <Alert color="green" role="status" withCloseButton onClose={() => setSaved(null)}>
           <Group justify="space-between" wrap="wrap" gap="sm">

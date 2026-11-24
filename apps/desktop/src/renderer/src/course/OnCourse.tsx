@@ -1,6 +1,7 @@
 import { Button, Group, Paper, Stack, Table, Text, Title } from '@mantine/core';
 import type { CourseView, OpenEvent } from '../../../shared/ipc';
-import { clock, DayPicker, ErrorAlert, MarkDnf, minutes, useCourse, useDnf } from './shared';
+import { clock, DayPicker, MarkDnf, minutes, useCourse, useDnf } from './shared';
+import { ErrorAlert } from '../ErrorAlert';
 
 type Rider = CourseView['riders'][number];
 

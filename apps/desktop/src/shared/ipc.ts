@@ -370,7 +370,7 @@ export interface NewPenalty {
   readonly lap?: number;
 }
 
-/** A problem to show the desk, in plain words, with a stable code for support. */
+/** A problem to show the desk, in plain words, with its public code (`TS-…`, ADR 0012). */
 export interface AppError {
   readonly code: string;
   readonly message: string;

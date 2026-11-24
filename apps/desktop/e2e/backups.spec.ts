@@ -88,6 +88,6 @@ test("restoring a file that isn't a backup says so, and changes nothing", async 
   await pick(junk);
   await window.getByRole('button', { name: 'Restore from backup…' }).click();
   const alert = window.getByRole('alert').filter({ hasText: "The event didn't open" });
-  await expect(alert).toContainText('STORE_DAMAGED');
+  await expect(alert).toContainText('TS-DB-003');
   expect(existsSync(run.eventsDir) ? readdirSync(run.eventsDir) : []).toEqual([]);
 });

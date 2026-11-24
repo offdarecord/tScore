@@ -23,3 +23,4 @@ Template: [`0000-template.md`](0000-template.md).
 | [0013](0013-trials-result-protocol.md)                     | Keep `tscore.results/1`; export Entryplace `trials-result`           | Accepted |
 | [0014](0014-reading-entry-list-spreadsheets.md)            | Reading entry lists: SheetJS CE pinned from its CDN                  | Accepted |
 | [0015](0015-card-labels-as-word-documents.md)              | Card labels as a hand-built Word document (fflate, qrcode-generator) | Accepted |
+| [0016](0016-user-guide-built-into-the-app.md)              | User guide built into the app, from the same Markdown as GitHub      | Accepted |

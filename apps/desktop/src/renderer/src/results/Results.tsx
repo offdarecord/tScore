@@ -31,6 +31,7 @@ import type {
   ResultsGapInfo,
   ResultsView,
 } from '../../../shared/ipc';
+import { ErrorAlert } from '../ErrorAlert';
 
 type ClassResults = ResultsTypes.ClassResults;
 
@@ -340,17 +341,6 @@ function ClassTable(props: {
   );
 }
 
-function ErrorAlert({ error, onClose }: { error: AppError; onClose?: () => void }) {
-  return (
-    <Alert color="red" role="alert" {...(onClose && { withCloseButton: true, onClose })}>
-      {error.message}{' '}
-      <Text span c="dimmed" size="sm">
-        ({error.code})
-      </Text>
-    </Alert>
-  );
-}
-
 const when = (iso: string) =>
   new Date(iso).toLocaleString('en-AU', {
     weekday: 'short',
@@ -390,14 +380,8 @@ function FinalPanel(props: { view: ResultsView; onChange: (view: ResultsView) =>
     } else setError(r.error);
   }
 
-  const problem = error && (
-    <Alert color="red" role="alert">
-      {error.message}{' '}
-      <Text span c="dimmed" size="sm">
-        ({error.code})
-      </Text>
-    </Alert>
-  );
+  // In a dialog, so no help link: the help panel would open behind it.
+  const problem = error && <ErrorAlert error={error} withHelp={false} />;
 
   if (final) {
     return (
@@ -497,7 +481,7 @@ function FinalPanel(props: { view: ResultsView; onChange: (view: ResultsView) =>
             </Button>
           )}
         </Group>
-        {asking !== 'final' && problem}
+        {asking !== 'final' && error && <ErrorAlert error={error} />}
       </Stack>
       <Modal
         opened={asking === 'final'}

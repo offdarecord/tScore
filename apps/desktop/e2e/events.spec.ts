@@ -134,7 +134,7 @@ test('a file that is not an event is refused with a plain message', async () => 
   await window.getByRole('button', { name: 'Open event file…' }).click();
   const alert = window.getByRole('alert').filter({ hasText: "The event didn't open" });
   await expect(alert).toContainText('No tScore event in this folder');
-  await expect(alert).toContainText('STORE_NOT_AN_EVENT');
+  await expect(alert).toContainText('TS-DB-001');
 });
 
 test('the event setup screen meets WCAG 2.2 AA (automated accessibility check)', async () => {

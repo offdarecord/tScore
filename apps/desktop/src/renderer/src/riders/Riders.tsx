@@ -29,6 +29,7 @@ import type {
   RiderChange,
   RiderInfo,
 } from '../../../shared/ipc';
+import { ErrorAlert } from '../ErrorAlert';
 
 export const COMPETITION_STATUS_LABEL: Record<CompetitionStatus, string> = {
   competitive: 'Competitive',
@@ -116,17 +117,11 @@ export function Riders({ event, notice, onImport, onLabels, onEventChange }: Pro
         </Alert>
       )}
       {error && (
-        <Alert
-          color="red"
+        <ErrorAlert
+          error={error}
           title="The entry list wasn't read"
-          withCloseButton
           onClose={() => setError(null)}
-        >
-          {error.message}{' '}
-          <Text span c="dimmed" size="sm">
-            ({error.code})
-          </Text>
-        </Alert>
+        />
       )}
       {added && (
         <Alert
@@ -402,14 +397,7 @@ function RiderDialog(props: {
             label: STATUS_LABEL[s],
           }))}
         />
-        {error && (
-          <Alert color="red" role="alert">
-            {error.message}{' '}
-            <Text span c="dimmed" size="sm">
-              ({error.code})
-            </Text>
-          </Alert>
-        )}
+        {error && <ErrorAlert error={error} withHelp={false} />}
         <Group justify="flex-end">
           <Button variant="default" onClick={props.onClose}>
             Cancel
@@ -559,14 +547,7 @@ function LateEntryDialog(props: {
             label: COMPETITION_STATUS_LABEL[t],
           }))}
         />
-        {error && (
-          <Alert color="red" role="alert">
-            {error.message}{' '}
-            <Text span c="dimmed" size="sm">
-              ({error.code})
-            </Text>
-          </Alert>
-        )}
+        {error && <ErrorAlert error={error} withHelp={false} />}
         <Group justify="flex-end">
           <Button variant="default" onClick={props.onClose}>
             Cancel

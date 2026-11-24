@@ -5,6 +5,9 @@ import { useEffect, useState } from 'react';
 import type { AppInfo, OpenEvent } from '../../shared/ipc';
 import { EventMain, EventNav, type EventPage } from './EventShell';
 import { today } from './format';
+import { HelpButton, HelpProvider, useHelp } from './help/Help';
+import { HelpPanel } from './help/HelpPanel';
+import type { HelpTopicName } from './help/topics';
 import { Home } from './Home';
 import { SetupForm } from './setup/SetupForm';
 
@@ -12,6 +15,22 @@ type Screen =
   { kind: 'home' } | { kind: 'new' } | { kind: 'event'; event: OpenEvent; page: EventPage };
 
 export function App() {
+  return (
+    <HelpProvider>
+      <Shell />
+    </HelpProvider>
+  );
+}
+
+/** The guide page for the screen in front of the desk. */
+function topicFor(screen: Screen): HelpTopicName {
+  if (screen.kind === 'home') return 'home';
+  if (screen.kind === 'new') return 'newEvent';
+  return screen.page.name;
+}
+
+function Shell() {
+  const help = useHelp();
   const [info, setInfo] = useState<AppInfo | null>(null);
   const [aboutOpen, about] = useDisclosure(false);
   const [screen, setScreen] = useState<Screen>({ kind: 'home' });
@@ -43,6 +62,11 @@ export function App() {
     <AppShell
       header={{ height: 60 }}
       {...(screen.kind === 'event' && { navbar: { width: 260, breakpoint: 0 } })}
+      aside={{
+        width: { base: 380, lg: 460 },
+        breakpoint: 0,
+        collapsed: { desktop: help.history.length === 0, mobile: help.history.length === 0 },
+      }}
       padding="lg"
     >
       <AppShell.Header>
@@ -50,9 +74,12 @@ export function App() {
           <Title order={1} size="h3">
             tScore
           </Title>
-          <Button variant="subtle" onClick={about.open}>
-            About
-          </Button>
+          <Group gap="xs">
+            <HelpButton topic={topicFor(screen)} />
+            <Button variant="subtle" onClick={about.open}>
+              About
+            </Button>
+          </Group>
         </Group>
       </AppShell.Header>
 
@@ -92,6 +119,10 @@ export function App() {
           />
         )}
       </AppShell.Main>
+
+      <AppShell.Aside aria-label="Help panel">
+        <HelpPanel />
+      </AppShell.Aside>
 
       <Modal opened={aboutOpen} onClose={about.close} title="About tScore">
         <Stack gap="xs">

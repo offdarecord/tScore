@@ -4,6 +4,7 @@
  * everything the form doesn't show (event id, tie-breaks, labels, aliases …) from the original.
  */
 import {
+  DEFAULT_OVERDUE_MARGIN_MINUTES,
   isEventCode,
   isJuniorClassName,
   validateEventSetup,
@@ -44,6 +45,8 @@ export interface Draft {
   club: string;
   firstNumber: string;
   direction: 'low_wins' | 'high_wins';
+  /** Minutes past the class's average lap before a rider is overdue. */
+  overdueMargin: string;
   days: DraftDay[];
   classes: DraftClass[];
 }
@@ -64,6 +67,7 @@ export function toDraft(setup: EventSetup): Draft {
     club: setup.event.club ?? '',
     firstNumber: String(setup.event.first_rider_number ?? 1),
     direction: setup.scoring?.direction ?? 'low_wins',
+    overdueMargin: String(setup.overdue_margin_minutes ?? DEFAULT_OVERDUE_MARGIN_MINUTES),
     days,
     classes: setup.classes.map((c) => ({
       key: newKey(),
@@ -140,10 +144,12 @@ export function toSetup(draft: Draft, base: EventSetup): EventSetup {
   if (draft.direction === 'high_wins') scoring.direction = 'high_wins';
   else delete scoring.direction;
 
+  const margin = whole(draft.overdueMargin);
   const setup: EventSetup = {
     ...base,
     event,
     scoring,
+    overdue_margin_minutes: margin,
     days: draft.days.map((d, i) => ({
       day: i + 1,
       ...(d.date && { date: d.date }),
@@ -201,6 +207,9 @@ export function problems(draft: Draft, base: EventSetup): Problem[] {
   const first = whole(draft.firstNumber);
   if (!(first >= 1 && first <= 9999))
     add('event.first_rider_number', 'First rider number: a whole number from 1 to 9999.');
+  const margin = whole(draft.overdueMargin);
+  if (!(margin >= 5 && margin <= 240))
+    add('overdue_margin_minutes', 'Overdue after: a whole number of minutes from 5 to 240.');
   draft.days.forEach((d, i) => {
     if (!d.date)
       add(`days[${i}].date`, `Choose the date${draft.days.length > 1 ? ` of day ${i + 1}` : ''}.`);

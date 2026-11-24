@@ -99,6 +99,7 @@ function registerIpc(): void {
     eventHandlers.saveLabelTestPage(BrowserWindow.fromWebContents(e.sender)),
   );
   handle(IPC.setLabelOffset, (_e, offset: LabelOffset) => eventHandlers.setLabelOffset(offset));
+  handle(IPC.course, (_e, day?: number) => eventHandlers.course(day));
 }
 
 function createWindow(): void {

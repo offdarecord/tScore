@@ -31,3 +31,6 @@ export * from './import/index.js';
 
 // Card labels (architecture §8.1; templates in presets/label-templates/).
 export * from './labels/index.js';
+
+// Progress and still on course (architecture §9).
+export * from './course.js';

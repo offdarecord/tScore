@@ -52,6 +52,10 @@ export interface EventSetup {
    */
   skipped_sections?: SkippedSection[];
   labels?: Labels;
+  /**
+   * On the day, a rider is overdue when it has been longer than their class's average lap plus this many minutes since their last card. Overdue never marks anyone DNF.
+   */
+  overdue_margin_minutes?: number;
 }
 /**
  * This interface was referenced by `EventSetup`'s JSON-Schema

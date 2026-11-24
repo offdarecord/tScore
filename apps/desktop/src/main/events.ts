@@ -31,6 +31,7 @@ import type {
   CardDesk,
   DeskRider,
   EntryListFile,
+  CourseView,
   ExportKind,
   LabelOffset,
   LabelRequest,
@@ -45,6 +46,7 @@ import type {
   RiderInfo,
   SaveCard,
 } from '../shared/ipc';
+import { courseView } from './course';
 import { labelsView, saveLabels, saveLabelTestPage, setLabelOffset } from './labels';
 import { exportResults, openLastExport, resultsView } from './results';
 
@@ -441,6 +443,15 @@ export const eventHandlers = {
       const path = await exportResults(store, kind, juniorInitials, win);
       if (path) log.info('results saved', { eventId: store.eventId, kind, juniorInitials });
       return path;
+    });
+  },
+
+  course(day?: number): Outcome<CourseView> {
+    return attempt('working out who is on course', () => {
+      if (day !== undefined && !isWhole(day)) {
+        throw new StoreError('APP_BAD_REQUEST', 'Choose a day.');
+      }
+      return courseView(openStore(), day);
     });
   },
 

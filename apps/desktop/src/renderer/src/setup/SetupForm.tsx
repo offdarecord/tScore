@@ -32,17 +32,6 @@ import {
   type Problem,
 } from './draft';
 
-/**
- * Help text under the box, not between label and box, so fields side by side keep their boxes
- * in line whether or not they have help text.
- */
-const BELOW: ('label' | 'input' | 'description' | 'error')[] = [
-  'label',
-  'input',
-  'description',
-  'error',
-];
-
 const SESSIONS = [
   { value: 'full', label: 'All day' },
   { value: 'am', label: 'Morning' },
@@ -150,7 +139,6 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
           <TextInput
             label="Event code"
             description="Goes in each label's QR code"
-            inputWrapperOrder={BELOW}
             data-field="event.code"
             value={draft.code}
             onChange={(e) => {
@@ -212,7 +200,6 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
               type="time"
               label={days > 1 ? `Day ${i + 1}: lap 1 starts` : 'Lap 1 starts'}
               description="Riders with their own start time keep it"
-              inputWrapperOrder={BELOW}
               data-field={`days[${i}].start_time`}
               value={d.startTime}
               onChange={(e) => {
@@ -242,7 +229,6 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
         <TextInput
           label="Overdue after (minutes)"
           description="A rider is overdue this long past their class's average lap. Overdue never marks anyone DNF."
-          inputWrapperOrder={BELOW}
           inputMode="numeric"
           data-field="overdue_margin_minutes"
           value={draft.overdueMargin}

@@ -9,3 +9,7 @@ Commons Attribution 4.0 International License (see docs/LICENSE).
 
 The name "tScore" is not licensed for use by modified versions. If you
 distribute a modified version, please give it a different name.
+
+The tScore logo, app icon and banner artwork (assets/ and
+apps/desktop/build/icon.*) are not covered by the Apache License: all rights
+reserved (see assets/LICENSE). A modified version must use its own icon.

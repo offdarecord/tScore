@@ -1,4 +1,4 @@
-import { Group, Paper, Stack, Table, Text, Title } from '@mantine/core';
+import { Button, Group, Paper, Stack, Table, Text, Title } from '@mantine/core';
 import type { CourseView, OpenEvent } from '../../../shared/ipc';
 import { clock, DayPicker, ErrorAlert, MarkDnf, minutes, useCourse, useDnf } from './shared';
 
@@ -27,7 +27,14 @@ const ORDER: Record<Rider['state'], number> = {
  * Still on course: who is still out, worked out only from the cards in and riders marked DNF
  * or DNS (decided 22 Nov 2026). The event can close when nobody is red.
  */
-export function OnCourse({ event }: { event: OpenEvent }) {
+export function OnCourse({
+  event,
+  onCloseEvent,
+}: {
+  event: OpenEvent;
+  /** Close down: go to Results to check them and mark them final. */
+  onCloseEvent?: () => void;
+}) {
   const { view, error, setError, reload, setDay } = useCourse(event);
   const { mark, flash } = useDnf(reload, setError);
 
@@ -72,11 +79,18 @@ export function OnCourse({ event }: { event: OpenEvent }) {
             Lap 1 starts at {view.startTime}. Riders are on course from then.
           </Text>
         ) : out.length === 0 ? (
-          <Text fz={22} fw={700} ta="center" py="lg" c="#1f5f26">
-            {view.riders.length === 0
-              ? 'No riders yet.'
-              : 'Everyone is accounted for. The event can be closed down.'}
-          </Text>
+          <Stack align="center" gap="sm" py="lg">
+            <Text fz={22} fw={700} ta="center" c="#1f5f26">
+              {view.riders.length === 0
+                ? 'No riders yet.'
+                : 'Everyone is accounted for. The event can be closed down.'}
+            </Text>
+            {view.riders.length > 0 && onCloseEvent && (
+              <Button size="md" onClick={onCloseEvent}>
+                Close the event: check and mark results final
+              </Button>
+            )}
+          </Stack>
         ) : (
           <div
             role="region"

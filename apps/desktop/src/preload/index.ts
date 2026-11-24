@@ -28,6 +28,8 @@ const api: TscoreApi = {
   results: call(IPC.results),
   exportResults: call(IPC.exportResults),
   openExport: call(IPC.openExport),
+  markFinal: call(IPC.markFinal),
+  reopenResults: call(IPC.reopenResults),
   labels: call(IPC.labels),
   saveLabels: call(IPC.saveLabels),
   saveLabelTestPage: call(IPC.saveLabelTestPage),

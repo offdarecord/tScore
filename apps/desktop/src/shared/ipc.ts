@@ -44,6 +44,7 @@ export const IPC = {
   chooseBackupPlace: 'backup:choose-place',
   clearBackupPlace: 'backup:clear-place',
   restoreFromBackup: 'backup:restore',
+  preEventCheck: 'check:pre-event',
   labels: 'labels:view',
   saveLabels: 'labels:save',
   saveLabelTestPage: 'labels:save-test-page',
@@ -154,6 +155,25 @@ export interface LabelsView {
 }
 
 export type { LabelLayoutChoice };
+
+/** One line of the pre-event check. */
+export interface CheckItem {
+  readonly id: 'setup' | 'riders' | 'labels' | 'clock' | 'backups';
+  readonly state: 'ok' | 'warning' | 'problem' | 'info';
+  readonly title: string;
+  readonly detail: string;
+  /** The screen that fixes it. */
+  readonly fix?: 'setup' | 'riders' | 'labels' | 'backup';
+  /** For the clock: the laptop's time when checked (ISO). */
+  readonly clock?: string;
+}
+
+export interface PreEventCheck {
+  readonly items: readonly CheckItem[];
+  readonly summary: string;
+  /** Nothing must be fixed first (warnings are allowed). */
+  readonly ready: boolean;
+}
 
 /** Backups of the open event, and the second place they're copied to (this laptop). */
 export interface BackupStatus {
@@ -386,6 +406,8 @@ export interface TscoreApi {
   chooseBackupPlace(): Promise<Outcome<BackupStatus | null>>;
   clearBackupPlace(): Promise<Outcome<BackupStatus>>;
   /** Shows the open dialog, then opens the backup as a new event folder. `null` if cancelled. */
+  /** Check the event is ready for the first card. */
+  preEventCheck(): Promise<Outcome<PreEventCheck>>;
   restoreFromBackup(): Promise<
     Outcome<{ readonly event: OpenEvent; readonly from: string } | null>
   >;

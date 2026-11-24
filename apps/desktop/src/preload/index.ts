@@ -33,6 +33,7 @@ const api: TscoreApi = {
   chooseBackupPlace: call(IPC.chooseBackupPlace),
   clearBackupPlace: call(IPC.clearBackupPlace),
   restoreFromBackup: call(IPC.restoreFromBackup),
+  preEventCheck: call(IPC.preEventCheck),
   labels: call(IPC.labels),
   saveLabels: call(IPC.saveLabels),
   saveLabelTestPage: call(IPC.saveLabelTestPage),

@@ -1,6 +1,7 @@
 import { Button, Stack, Text } from '@mantine/core';
 import type { EntryListFile, OpenEvent } from '../../shared/ipc';
 import { ManualEntry } from './cards/ManualEntry';
+import { PreEventCheck } from './check/PreEventCheck';
 import { OnCourse } from './course/OnCourse';
 import { Progress } from './course/Progress';
 import { CardLabels } from './labels/CardLabels';
@@ -17,6 +18,7 @@ export type EventPage =
   | { readonly name: 'setup' }
   | { readonly name: 'riders'; readonly notice?: string }
   | { readonly name: 'import'; readonly file: EntryListFile }
+  | { readonly name: 'check' }
   | { readonly name: 'labels' }
   | { readonly name: 'manual' }
   | { readonly name: 'progress' }
@@ -31,7 +33,6 @@ interface Props {
 }
 
 /** Screens that aren't built yet, in the order of the agreed mock-ups. */
-const CHECK = 'Pre-event check';
 const SCAN_DESK = 'Scan desk';
 const REVIEW_QUEUE = 'Review queue';
 
@@ -61,7 +62,11 @@ export function EventNav(props: {
       </div>
       <NavHeading>Before the event</NavHeading>
       <NavGroup>
-        <NavLater label={CHECK} />
+        <NavLink
+          label="Pre-event check"
+          current={page.name === 'check'}
+          onClick={() => onNavigate({ name: 'check' })}
+        />
         <NavLink
           label="Event setup"
           current={page.name === 'setup'}
@@ -174,6 +179,16 @@ function NavLater({ label }: { label: string }) {
 export function EventMain({ event, page, onChange, onNavigate }: Props) {
   if (page.name === 'manual') return <ManualEntry event={event} />;
   if (page.name === 'labels') return <CardLabels event={event} />;
+  if (page.name === 'check') {
+    return (
+      <PreEventCheck
+        event={event}
+        onFix={(fix) =>
+          onNavigate({ name: fix === 'backup' ? 'setup' : fix === 'labels' ? 'labels' : fix })
+        }
+      />
+    );
+  }
   if (page.name === 'progress') {
     return <Progress event={event} onStillOnCourse={() => onNavigate({ name: 'course' })} />;
   }

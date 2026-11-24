@@ -8,7 +8,8 @@ import {
   type LabelOffset,
   type LabelRequest,
 } from '../shared/ipc';
-import { closeEvents, eventHandlers, eventsDir } from './events';
+import { startBackups } from './backups';
+import { closeEvents, currentStore, eventHandlers, eventsDir } from './events';
 import { startLogging } from './logging';
 import { checkForUpdatesWhenSafe } from './updates';
 
@@ -94,6 +95,15 @@ function registerIpc(): void {
     eventHandlers.exportResults(kind, juniorInitials, BrowserWindow.fromWebContents(e.sender)),
   );
   handle(IPC.openExport, () => eventHandlers.openExport());
+  handle(IPC.backupStatus, () => eventHandlers.backupStatus());
+  handle(IPC.backupNow, () => eventHandlers.backupNow());
+  handle(IPC.chooseBackupPlace, (e) =>
+    eventHandlers.chooseBackupPlace(BrowserWindow.fromWebContents(e.sender)),
+  );
+  handle(IPC.clearBackupPlace, () => eventHandlers.clearBackupPlace());
+  handle(IPC.restoreFromBackup, (e) =>
+    eventHandlers.restoreFromBackup(BrowserWindow.fromWebContents(e.sender)),
+  );
   handle(IPC.markFinal, () => eventHandlers.markFinal());
   handle(IPC.reopenResults, (_e, reason: string) => eventHandlers.reopenResults(reason));
   handle(IPC.labels, (_e, request: LabelRequest) => eventHandlers.labels(request));
@@ -164,6 +174,7 @@ if (!app.requestSingleInstanceLock()) {
 
   void app.whenReady().then(() => {
     registerIpc();
+    startBackups(currentStore);
     createWindow();
     checkForUpdatesWhenSafe();
   });

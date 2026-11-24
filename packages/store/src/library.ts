@@ -5,10 +5,19 @@
  * Kept free of Electron so it can be tested with plain Node; the app passes in its folders.
  */
 import { randomUUID } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { basename, join, resolve } from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 import { validateEventSetup, type EventSetup } from '@tscore/core';
-import { SetupError, StoreError } from './errors.js';
+import { DamagedFileError, SetupError, StoreError } from './errors.js';
 import { EVENT_FILE, EventStore, type StoreContext } from './event-store.js';
 
 export interface LibraryOptions {
@@ -19,6 +28,8 @@ export interface LibraryOptions {
   readonly appVersion: string;
   /** For tests. */
   readonly now?: () => Date;
+  /** Called just before an open event closes (e.g. to back it up). */
+  readonly beforeClose?: (store: EventStore) => void;
 }
 
 /** An event in the recent list, with enough to show it without opening its file. */
@@ -45,6 +56,7 @@ export class EventLibrary {
   readonly #settingsDir: string;
   readonly #appVersion: string;
   readonly #now: () => Date;
+  readonly #beforeClose: ((store: EventStore) => void) | undefined;
   #current: EventStore | null = null;
   #stationId: string | null = null;
 
@@ -53,6 +65,7 @@ export class EventLibrary {
     this.#settingsDir = options.settingsDir;
     this.#appVersion = options.appVersion;
     this.#now = options.now ?? (() => new Date());
+    this.#beforeClose = options.beforeClose;
   }
 
   /** The open event, if any. */
@@ -136,8 +149,52 @@ export class EventLibrary {
   }
 
   close(): void {
-    this.#current?.close();
-    this.#current = null;
+    if (this.#current) {
+      try {
+        this.#beforeClose?.(this.#current);
+      } finally {
+        this.#current.close();
+        this.#current = null;
+      }
+    }
+  }
+
+  /**
+   * Open a backup as a new event folder, "<date> <code> restored <when>", beside the others.
+   * Nothing existing is touched. The file is checked (integrity, version) as it's opened, and
+   * the new folder is removed again if it can't be.
+   */
+  restore(backupFile: string): EventStore {
+    let setup: EventSetup;
+    try {
+      const db = new DatabaseSync(backupFile, { readOnly: true });
+      try {
+        const row = db.prepare('SELECT setup_json FROM event').get() as
+          { setup_json: string } | undefined;
+        if (!row) throw new Error('no event');
+        setup = JSON.parse(row.setup_json) as EventSetup;
+      } finally {
+        db.close();
+      }
+    } catch {
+      throw new DamagedFileError("this isn't a tScore event backup");
+    }
+    const when = this.#now().toISOString().slice(0, 16).replace('T', ' ').replace(':', '');
+    const date = setup.days[0]?.date ?? this.#now().toISOString().slice(0, 10);
+    const base = join(this.eventsDir, `${date} ${setup.event.code} restored ${when}`);
+    let folder = base;
+    for (let n = 2; existsSync(folder); n++) folder = `${base} (${n})`;
+    mkdirSync(folder, { recursive: true });
+    let store: EventStore;
+    try {
+      copyFileSync(backupFile, join(folder, EVENT_FILE));
+      store = EventStore.open(folder, this.context());
+    } catch (err) {
+      rmSync(folder, { recursive: true, force: true });
+      throw err;
+    }
+    store.noteRestored(basename(backupFile));
+    return this.#use(store);
   }
 
   #use(store: EventStore): EventStore {

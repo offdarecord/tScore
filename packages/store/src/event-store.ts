@@ -911,6 +911,19 @@ export class EventStore {
     };
   }
 
+  /** Goes up with every change to the event (each one is audited), so backups know when to run. */
+  changeMark(): number {
+    const row = this.#db.prepare('SELECT MAX(seq) AS seq FROM audit_event').get() as {
+      seq: number | null;
+    };
+    return row.seq ?? 0;
+  }
+
+  /** Record that this event was restored from a backup file (the file name only). */
+  noteRestored(from: string): void {
+    this.#tx(() => this.#audit('event.restore', this.eventId, { from }));
+  }
+
   /**
    * Save a consistent copy of the event file in `backups/` and return its path. Keeps the
    * newest `keep` automatic backups; named ones (label other than "auto") are never pruned.

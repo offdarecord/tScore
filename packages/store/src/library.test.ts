@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { newEventSetup } from '@tscore/core';
@@ -122,5 +122,69 @@ describe('the event library', () => {
     ).toMatchObject({
       events: [{ code: 'B2' }],
     });
+  });
+});
+
+describe('backups and restore', () => {
+  it('restores a backup as a new event folder, leaving the original untouched', () => {
+    const { lib } = library();
+    const original = lib.create(setup('RS1'));
+    original.addEntry({
+      number: 1,
+      riders: [{ givenName: 'Avery', familyName: 'Stone' }],
+      competitionStatus: 'competitive',
+      status: 'riding',
+      classes: ['Trial 1'],
+    });
+    const backup = original.backup('manual');
+    const folder = original.folder;
+    original.addEntry({
+      number: 2,
+      riders: [{ givenName: 'Blake', familyName: 'River' }],
+      competitionStatus: 'competitive',
+      status: 'riding',
+      classes: ['Trial 1'],
+    });
+
+    const restored = lib.restore(backup);
+    expect(restored.folder).not.toBe(folder);
+    expect(restored.folder).toMatch(/2027-02-06 RS1 restored \d{4}-\d{2}-\d{2} \d{4}$/);
+    expect(restored.entries().map((e) => e.number)).toEqual([1]);
+    expect(restored.auditLog().at(-1)?.kind).toBe('event.restore');
+    expect(lib.current).toBe(restored);
+    expect(lib.recent()[0]?.folder).toBe(restored.folder);
+    // The original still has both riders.
+    expect(
+      lib
+        .open(folder)
+        .entries()
+        .map((e) => e.number),
+    ).toEqual([1, 2]);
+  });
+
+  it("refuses a file that isn't a tScore event, and leaves no folder behind", () => {
+    const { lib, root } = library();
+    const junk = join(root, 'not-an-event.sqlite');
+    writeFileSync(junk, 'this is not a database');
+    expect(() => lib.restore(junk)).toThrow(expect.objectContaining({ code: 'STORE_DAMAGED' }));
+    expect(existsSync(lib.eventsDir) ? readdirSync(lib.eventsDir) : []).toEqual([]);
+  });
+
+  it('calls beforeClose with the open event when it closes', () => {
+    const root = mkdtempSync(join(tmpdir(), 'tscore-lib-'));
+    const closed: string[] = [];
+    const lib = new EventLibrary({
+      settingsDir: join(root, 'settings'),
+      eventsDir: join(root, 'events'),
+      appVersion: '0.0.0-test',
+      beforeClose: (store) => closed.push(store.setup.event.code),
+    });
+    libraries.push(lib);
+    lib.create(setup('BC1'));
+    const mark = lib.current?.changeMark() ?? 0;
+    expect(mark).toBeGreaterThan(0);
+    lib.create(setup('BC2'));
+    lib.close();
+    expect(closed).toEqual(['BC1', 'BC2']);
   });
 });

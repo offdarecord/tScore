@@ -24,11 +24,11 @@ import { useEffect, useMemo, useState } from 'react';
 import type {
   AppError,
   EntryListFile,
+  NewRider,
   OpenEvent,
   RiderChange,
   RiderInfo,
 } from '../../../shared/ipc';
-import { ComingSoonButton } from '../ComingSoonButton';
 
 export const COMPETITION_STATUS_LABEL: Record<CompetitionStatus, string> = {
   competitive: 'Competitive',
@@ -54,19 +54,24 @@ interface Props {
   /** Shown once after an import, e.g. "54 riders imported." */
   readonly notice?: string | undefined;
   readonly onImport: (file: EntryListFile) => void;
+  /** Open Card labels (after a late entry, to print their labels). */
+  readonly onLabels?: () => void;
 }
 
 /**
  * Everyone entered in the event. Find a rider; correct their name, club or machine, or change
  * their class, competition status or riding status.
  */
-export function Riders({ event, notice, onImport }: Props) {
+export function Riders({ event, notice, onImport, onLabels }: Props) {
   const [riders, setRiders] = useState<RiderInfo[] | null>(null);
   const [find, setFind] = useState('');
   const [editing, setEditing] = useState<RiderInfo | null>(null);
   const [error, setError] = useState<AppError | null>(null);
   /** A rider renamed after their labels were printed: remind the desk to reprint them. */
   const [reprint, setReprint] = useState<number | null>(null);
+  const [adding, setAdding] = useState(false);
+  /** The rider just added on the day: their labels still need printing. */
+  const [added, setAdded] = useState<{ number: number; name: string } | null>(null);
 
   useEffect(() => void window.tscore.riders().then(setRiders), [event]);
 
@@ -97,7 +102,9 @@ export function Riders({ event, notice, onImport }: Props) {
           <Button variant={count ? 'default' : 'filled'} onClick={() => void choose()}>
             Import from entry list…
           </Button>
-          <ComingSoonButton variant="default">Late entry</ComingSoonButton>
+          <Button variant="default" onClick={() => setAdding(true)}>
+            Late entry…
+          </Button>
         </Group>
       </Group>
 
@@ -117,6 +124,27 @@ export function Riders({ event, notice, onImport }: Props) {
           <Text span c="dimmed" size="sm">
             ({error.code})
           </Text>
+        </Alert>
+      )}
+      {added && (
+        <Alert
+          color="green"
+          role="status"
+          title={`Rider ${added.number} added: ${added.name}`}
+          withCloseButton
+          closeButtonLabel="Dismiss"
+          onClose={() => setAdded(null)}
+        >
+          <Group justify="space-between" wrap="wrap" gap="sm">
+            <span>
+              Print their card labels: on Card labels, choose “Only labels not printed yet”.
+            </span>
+            {onLabels && (
+              <Button variant="default" size="xs" onClick={onLabels}>
+                Go to Card labels
+              </Button>
+            )}
+          </Group>
         </Alert>
       )}
       {reprint !== null && (
@@ -211,6 +239,19 @@ export function Riders({ event, notice, onImport }: Props) {
         )}
       </Paper>
 
+      {adding && (
+        <LateEntryDialog
+          event={event}
+          riders={riders ?? []}
+          onClose={() => setAdding(false)}
+          onAdded={(number, list) => {
+            setRiders(list);
+            const r = list.find((x) => x.number === number);
+            setAdded({ number, name: r ? riderName(r) : '' });
+            setAdding(false);
+          }}
+        />
+      )}
       {editing && (
         <RiderDialog
           rider={editing}
@@ -280,7 +321,12 @@ function RiderDialog(props: {
   const sidecar = names.length === 2;
 
   return (
-    <Modal opened onClose={props.onClose} title={`Rider ${rider.number}: ${riderName(rider)}`}>
+    <Modal
+      opened
+      onClose={props.onClose}
+      title={`Rider ${rider.number}: ${riderName(rider)}`}
+      closeButtonProps={{ 'aria-label': 'Close' }}
+    >
       <Stack gap="md">
         {names.map((p, i) => (
           <Group key={i} grow align="flex-start" wrap="nowrap">
@@ -366,6 +412,167 @@ function RiderDialog(props: {
           </Button>
           <Button disabled={!changed || nameless} onClick={() => void save()}>
             Save
+          </Button>
+        </Group>
+      </Stack>
+    </Modal>
+  );
+}
+
+const BLANK = { givenName: '', familyName: '' };
+const tidyText = (s: string) => s.replace(/\s+/g, ' ').trim();
+
+/** Add a rider on the day. They get the next free number, so nobody else's number moves. */
+function LateEntryDialog(props: {
+  event: OpenEvent;
+  riders: readonly RiderInfo[];
+  onClose: () => void;
+  onAdded: (number: number, riders: RiderInfo[]) => void;
+}) {
+  const classes = props.event.setup.classes.filter((c) => c.scored !== false).map((c) => c.name);
+  const next =
+    props.riders.length > 0
+      ? Math.max(...props.riders.map((r) => r.number)) + 1
+      : (props.event.setup.event.first_rider_number ?? 1);
+  const [number, setNumber] = useState(String(next));
+  const [names, setNames] = useState([BLANK, BLANK]);
+  const [club, setClub] = useState('');
+  const [machine, setMachine] = useState('');
+  const [className, setClassName] = useState(classes[0] ?? '');
+  const [competitionStatus, setCompetitionStatus] = useState<CompetitionStatus>('competitive');
+  const [error, setError] = useState<AppError | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const sidecar = /sidecar/i.test(className);
+  const people = (sidecar ? names : names.slice(0, 1)).map((p) => ({
+    givenName: tidyText(p.givenName),
+    familyName: tidyText(p.familyName),
+  }));
+  const nameless = people.some((p) => !p.givenName && !p.familyName);
+  const wanted = Number(number.trim());
+  const numberProblem =
+    !/^\d{1,4}$/.test(number.trim()) || wanted < 1
+      ? 'A rider number is a whole number from 1 to 9999.'
+      : props.riders.some((r) => r.number === wanted)
+        ? `Rider number ${wanted} is already taken. The next free number is ${next}.`
+        : null;
+  const first = people[0];
+  const fullName = first ? `${first.givenName} ${first.familyName}`.trim().toLowerCase() : '';
+  const sameName = fullName
+    ? props.riders.find((r) => {
+        const p = r.riders[0];
+        return p && `${p.givenName} ${p.familyName}`.trim().toLowerCase() === fullName;
+      })
+    : undefined;
+
+  function setName(i: number, part: 'givenName' | 'familyName', value: string) {
+    setNames((list) => list.map((p, j) => (j === i ? { ...p, [part]: value } : p)));
+  }
+
+  async function save() {
+    setBusy(true);
+    setError(null);
+    const rider: NewRider = {
+      ...(wanted !== next && { number: wanted }),
+      riders: people,
+      ...(tidyText(club) && { club: tidyText(club) }),
+      ...(tidyText(machine) && { machine: tidyText(machine) }),
+      className,
+      competitionStatus,
+    };
+    const r = await window.tscore.addLateEntry(rider);
+    setBusy(false);
+    if (r.ok) props.onAdded(r.value.number, r.value.riders);
+    else setError(r.error);
+  }
+
+  return (
+    <Modal
+      opened
+      onClose={props.onClose}
+      title="Late entry"
+      closeButtonProps={{ 'aria-label': 'Close' }}
+    >
+      <Stack gap="md">
+        <TextInput
+          label="Rider number"
+          description={`The next free number is ${next}. Numbers already given never change.`}
+          inputMode="numeric"
+          value={number}
+          onChange={(e) => setNumber(e.currentTarget.value)}
+          error={numberProblem}
+          maw={260}
+        />
+        <NativeSelect
+          label="Class"
+          value={className}
+          onChange={(e) => setClassName(e.currentTarget.value)}
+          data={classes}
+        />
+        {(sidecar ? [0, 1] : [0]).map((i) => (
+          <Group key={i} grow align="flex-start" wrap="nowrap">
+            <TextInput
+              label={
+                sidecar ? (i === 0 ? 'Driver first name' : 'Passenger first name') : 'First name'
+              }
+              value={names[i]?.givenName ?? ''}
+              maxLength={NAME_MAX}
+              onChange={(e) => setName(i, 'givenName', e.currentTarget.value)}
+            />
+            <TextInput
+              label={sidecar ? (i === 0 ? 'Driver surname' : 'Passenger surname') : 'Surname'}
+              value={names[i]?.familyName ?? ''}
+              maxLength={NAME_MAX}
+              onChange={(e) => setName(i, 'familyName', e.currentTarget.value)}
+            />
+          </Group>
+        ))}
+        {sameName && (
+          <Text c="orange.9" size="sm" role="status">
+            Rider {sameName.number} already has this name. If it&apos;s the same person riding a
+            second class, use Change on rider {sameName.number} instead.
+          </Text>
+        )}
+        <TextInput
+          label="Club"
+          value={club}
+          maxLength={CLUB_MAX}
+          onChange={(e) => setClub(e.currentTarget.value)}
+        />
+        <TextInput
+          label="Machine"
+          placeholder="e.g. Beta Evo 300"
+          value={machine}
+          maxLength={MACHINE_MAX}
+          onChange={(e) => setMachine(e.currentTarget.value)}
+        />
+        <NativeSelect
+          label="Competition status"
+          value={competitionStatus}
+          onChange={(e) => setCompetitionStatus(e.currentTarget.value as CompetitionStatus)}
+          data={(Object.keys(COMPETITION_STATUS_LABEL) as CompetitionStatus[]).map((t) => ({
+            value: t,
+            label: COMPETITION_STATUS_LABEL[t],
+          }))}
+        />
+        {error && (
+          <Alert color="red" role="alert">
+            {error.message}{' '}
+            <Text span c="dimmed" size="sm">
+              ({error.code})
+            </Text>
+          </Alert>
+        )}
+        <Group justify="flex-end">
+          <Button variant="default" onClick={props.onClose}>
+            Cancel
+          </Button>
+          <Button
+            loading={busy}
+            disabled={nameless || numberProblem !== null || !className}
+            onClick={() => void save()}
+          >
+            Add rider
           </Button>
         </Group>
       </Stack>

@@ -184,6 +184,7 @@ export function EventMain({ event, page, onChange, onNavigate }: Props) {
         event={event}
         notice={page.notice}
         onImport={(file) => onNavigate({ name: 'import', file })}
+        onLabels={() => onNavigate({ name: 'labels' })}
       />
     );
   }

@@ -7,7 +7,10 @@ import { basename, dirname, extname, join } from 'node:path';
 import {
   CARD_PROFILE_ROWS,
   classesFromSetup,
+  CLUB_MAX,
   DEFAULT_CARD_PROFILE,
+  MACHINE_MAX,
+  NAME_MAX,
   ImportError,
   planImport,
   readEntryList,
@@ -34,6 +37,7 @@ import type {
   CourseView,
   ExportKind,
   LabelOffset,
+  NewRider,
   LabelRequest,
   LabelsView,
   NewPenalty,
@@ -318,6 +322,70 @@ export const eventHandlers = {
       }
       log.info('rider changed', { eventId: store.eventId, number, fields: Object.keys(change) });
       return ridersOf(store);
+    });
+  },
+
+  addLateEntry(rider: NewRider): Outcome<{ number: number; riders: RiderInfo[] }> {
+    return attempt('adding a late entry', () => {
+      const store = openStore();
+      const tidy = (v: unknown) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim() : '');
+      const people = Array.isArray(rider?.riders) ? rider.riders : [];
+      const names = people.map((p) => ({
+        givenName: tidy(p?.givenName),
+        familyName: tidy(p?.familyName),
+      }));
+      if (
+        names.length < 1 ||
+        names.length > 2 ||
+        names.some(
+          (n) =>
+            (!n.givenName && !n.familyName) ||
+            n.givenName.length > NAME_MAX ||
+            n.familyName.length > NAME_MAX,
+        )
+      ) {
+        throw new StoreError('APP_BAD_REQUEST', 'Give the rider a first name or a surname.');
+      }
+      const club = tidy(rider.club);
+      const machine = tidy(rider.machine);
+      if (club.length > CLUB_MAX || machine.length > MACHINE_MAX) {
+        throw new StoreError('APP_BAD_REQUEST', 'That club or machine is too long.');
+      }
+      const className = tidy(rider.className);
+      const cls = store.setup.classes.find((c) => c.name === className);
+      if (!cls) throw new StoreError('APP_BAD_REQUEST', 'Choose a class from the event setup.');
+      if (!COMPETITION_STATUSES.includes(rider.competitionStatus)) {
+        throw new StoreError('APP_BAD_REQUEST', 'Choose a competition status.');
+      }
+      const taken = new Set(store.entries().map((e) => e.number));
+      // Numbers never move once issued: a late entry gets the next free number (decision 25).
+      let number: number;
+      if (rider.number === undefined) {
+        number =
+          taken.size > 0 ? Math.max(...taken) + 1 : (store.setup.event.first_rider_number ?? 1);
+      } else {
+        number = rider.number;
+        if (!isWhole(number) || number < 1 || number > 9999) {
+          throw new StoreError(
+            'APP_BAD_REQUEST',
+            'A rider number is a whole number from 1 to 9999.',
+          );
+        }
+        if (taken.has(number)) {
+          throw new StoreError('APP_NUMBER_TAKEN', `Rider number ${number} is already taken.`);
+        }
+      }
+      store.addEntry({
+        number,
+        riders: names,
+        ...(club && { club }),
+        ...(machine && { machine }),
+        competitionStatus: rider.competitionStatus,
+        status: 'riding',
+        classes: [className],
+      });
+      log.info('late entry added', { eventId: store.eventId, number });
+      return { number, riders: ridersOf(store) };
     });
   },
 

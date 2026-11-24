@@ -29,6 +29,7 @@ export const IPC = {
   closeEvent: 'event:close',
   riders: 'event:riders',
   updateRider: 'event:update-rider',
+  addLateEntry: 'event:add-late-entry',
   chooseEntryList: 'import:choose-file',
   importRiders: 'import:riders',
   cardDesk: 'cards:desk',
@@ -228,6 +229,18 @@ export interface RiderChange {
   readonly status?: EntryStatus;
 }
 
+/** A rider entered on the day (late entry). */
+export interface NewRider {
+  /** Leave out for the next free number. */
+  readonly number?: number;
+  /** One rider, or driver then passenger for a sidecar. */
+  readonly riders: readonly { readonly givenName: string; readonly familyName: string }[];
+  readonly club?: string;
+  readonly machine?: string;
+  readonly className: string;
+  readonly competitionStatus: CompetitionStatus;
+}
+
 /**
  * An entry list the desk picked, reduced to the columns its preset reads (no dates of birth,
  * contact or medical details: those never leave the main process).
@@ -328,6 +341,10 @@ export interface TscoreApi {
   closeEvent(): Promise<void>;
   riders(): Promise<RiderInfo[]>;
   updateRider(number: number, change: RiderChange): Promise<Outcome<RiderInfo[]>>;
+  /** Add a rider on the day. Returns the number given and the updated list. */
+  addLateEntry(
+    rider: NewRider,
+  ): Promise<Outcome<{ readonly number: number; readonly riders: RiderInfo[] }>>;
   /** Shows the open dialog and reads the file. `null` if the desk cancels. */
   chooseEntryList(): Promise<Outcome<EntryListFile | null>>;
   /** Import the chosen list's riders, with the desk's choices. */

@@ -72,6 +72,9 @@ function registerIpc(): void {
     (_e, number: number, change: Parameters<typeof eventHandlers.updateRider>[1]) =>
       eventHandlers.updateRider(number, change),
   );
+  handle(IPC.addLateEntry, (_e, rider: Parameters<typeof eventHandlers.addLateEntry>[0]) =>
+    eventHandlers.addLateEntry(rider),
+  );
   handle(IPC.chooseEntryList, (e) =>
     eventHandlers.chooseEntryList(BrowserWindow.fromWebContents(e.sender)),
   );

@@ -77,6 +77,8 @@ test('a late entry gets the next free number, and nobody else moves', async () =
   await dialog.getByRole('button', { name: 'Add rider' }).click();
   const added = window.getByRole('status').filter({ hasText: 'Rider 3 added: Gray Lake' });
   await expect(added).toBeVisible();
+  // The sidebar's rider count includes them.
+  await expect(nav().getByRole('button', { name: /Riders/ })).toHaveText('Riders3');
   const list = window.getByRole('region', { name: 'Rider list' });
   await expect(list.getByRole('row', { name: /^3 Gray Lake/ })).toContainText('Example 250');
   await expect(list.getByRole('row', { name: /^1 Avery Stone/ })).toBeVisible();

@@ -63,6 +63,7 @@ function checkRequest(request: LabelRequest): LabelRequest {
     !LAYOUTS.includes(r.layout as LabelLayoutChoice) ||
     !whole(r.start) ||
     typeof r.qr !== 'boolean' ||
+    typeof r.minders !== 'boolean' ||
     !(r.which === 'all' || r.which === 'unprinted' || (r.which && whole(r.which.rider)))
   ) {
     throw new StoreError('APP_BAD_REQUEST', 'Those label settings are incomplete.');
@@ -77,6 +78,7 @@ function plan(store: EventStore, request: LabelRequest) {
     layout: request.layout,
     start: request.start,
     qr: request.qr,
+    includeNotScored: request.minders,
     ...(request.which === 'unprinted' && {
       exclude: new Set(store.printedLabels().map((l) => labelKey(l.number, l.day, l.lap))),
     }),
@@ -89,7 +91,10 @@ function plan(store: EventStore, request: LabelRequest) {
 export function labelsView(store: EventStore, request: LabelRequest): LabelsView {
   const checked = checkRequest(request);
   const { template, plan: p } = plan(store, checked);
-  const everything = planLabels(store.setup, store.entries(), template, { qr: checked.qr });
+  const everything = planLabels(store.setup, store.entries(), template, {
+    qr: checked.qr,
+    includeNotScored: checked.minders,
+  });
   const printed = new Set(store.printedLabels().map((l) => labelKey(l.number, l.day, l.lap)));
   const notPrinted = everything.slots.filter(
     (s) => s !== null && !printed.has(labelKey(s.number, s.day, s.lap)),

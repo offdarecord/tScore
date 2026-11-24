@@ -209,3 +209,33 @@ it('leaves out labels already printed: late entries and added laps', () => {
       .labels,
   ).toBe(0);
 });
+
+it('leaves minders out unless asked, then prints them for the laps their class has', () => {
+  const withMinderLaps: EventSetup = {
+    ...setup(),
+    classes: setup().classes.map((c) =>
+      c.name === 'Minder' ? { ...c, days: { '1': { sections: 10, laps: 2 } } } : c,
+    ),
+  };
+  const riders = [rider(1, 'Trial 2'), rider(2, 'Minder')];
+  expect(planLabels(withMinderLaps, riders, L7651).skipped.map((s) => s.reason)).toEqual([
+    'not_scored',
+  ]);
+  const both = planLabels(withMinderLaps, riders, L7651, { includeNotScored: true });
+  expect(both.skipped).toEqual([]);
+  expect(labels(both.slots).filter((s) => s.number === 2)).toHaveLength(2);
+  // With no laps set for the Minder class, there's nothing to print, and that's the reason given.
+  expect(
+    planLabels(
+      {
+        ...setup(),
+        classes: setup().classes.map((c) =>
+          c.name === 'Minder' ? { ...c, days: { '1': { sections: 10, laps: 0 } } } : c,
+        ),
+      },
+      riders,
+      L7651,
+      { includeNotScored: true },
+    ).skipped.map((s) => s.reason),
+  ).toEqual(['no_laps']);
+});

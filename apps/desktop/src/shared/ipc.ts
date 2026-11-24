@@ -109,6 +109,8 @@ export interface LabelRequest {
   /** First position on the first sheet, from 1. */
   readonly start: number;
   readonly qr: boolean;
+  /** Print minders' labels too (off by default: minders are left out). */
+  readonly minders: boolean;
   /** Everyone, only labels not printed yet (late entries, added laps), or one rider. */
   readonly which: 'all' | 'unprinted' | { readonly rider: number };
 }

@@ -79,6 +79,14 @@ test('labels follow the event setup, save as a Word document, and remember what 
   await eventWithRiders();
   await expect(window.getByText('12 labels on 1 sheet for 3 riders.')).toBeVisible();
   await expect(window.getByText("Minders don't get labels.")).toBeVisible();
+  // Minders are left out by default. Unticking says why none print: their class has no laps.
+  const leaveOut = window.getByLabel('Leave out minders');
+  await expect(leaveOut).toBeChecked();
+  await leaveOut.uncheck();
+  await window.getByRole('button', { name: 'Show who' }).click();
+  await expect(window.getByText('4 Drew Field: Minder has no laps in the event setup')).toBeVisible();
+  await leaveOut.check();
+  await expect(window.getByText("Minders don't get labels.")).toBeVisible();
   const preview = window.getByRole('region', { name: 'Label preview, scrolls sideways' });
   await expect(preview.getByRole('img', { name: 'Rider 1, lap 4' })).toBeVisible();
   await expect(preview.getByRole('img', { name: 'Rider 2, lap 1' })).toContainText('Trial 3 · NC');

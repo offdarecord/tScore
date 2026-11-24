@@ -56,13 +56,15 @@ interface Props {
   readonly onImport: (file: EntryListFile) => void;
   /** Open Card labels (after a late entry, to print their labels). */
   readonly onLabels?: () => void;
+  /** The open event changed (e.g. its rider count, after a late entry). */
+  readonly onEventChange?: (event: OpenEvent) => void;
 }
 
 /**
  * Everyone entered in the event. Find a rider; correct their name, club or machine, or change
  * their class, competition status or riding status.
  */
-export function Riders({ event, notice, onImport, onLabels }: Props) {
+export function Riders({ event, notice, onImport, onLabels, onEventChange }: Props) {
   const [riders, setRiders] = useState<RiderInfo[] | null>(null);
   const [find, setFind] = useState('');
   const [editing, setEditing] = useState<RiderInfo | null>(null);
@@ -249,6 +251,8 @@ export function Riders({ event, notice, onImport, onLabels }: Props) {
             const r = list.find((x) => x.number === number);
             setAdded({ number, name: r ? riderName(r) : '' });
             setAdding(false);
+            // Refresh the event too, so the sidebar's rider count includes them.
+            void window.tscore.currentEvent().then((e) => e && onEventChange?.(e));
           }}
         />
       )}

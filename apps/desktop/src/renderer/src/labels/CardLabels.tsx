@@ -48,6 +48,9 @@ export function CardLabels({ event }: { readonly event: OpenEvent }) {
   const [layout, setLayout] = useState<LabelLayoutChoice>(event.setup.labels?.layout ?? 'auto');
   const [start, setStart] = useState(1);
   const [qr, setQr] = useState(event.setup.labels?.qr ?? true);
+  // Minders are left out unless the desk says otherwise (scorer review, 25 Nov 2026).
+  const [leaveOutMinders, setLeaveOutMinders] = useState(true);
+  const minders = !leaveOutMinders;
   const [which, setWhich] = useState<Which>('all');
   const [rider, setRider] = useState<number | ''>('');
   const [view, setView] = useState<LabelsView | null>(null);
@@ -58,9 +61,9 @@ export function CardLabels({ event }: { readonly event: OpenEvent }) {
   const request: LabelRequest | null =
     which === 'rider'
       ? typeof rider === 'number'
-        ? { layout, start, qr, which: { rider } }
+        ? { layout, start, qr, minders, which: { rider } }
         : null
-      : { layout, start, qr, which };
+      : { layout, start, qr, minders, which };
 
   const key = JSON.stringify(request);
   useEffect(() => {
@@ -195,6 +198,12 @@ export function CardLabels({ event }: { readonly event: OpenEvent }) {
                 description="The scan desk reads the rider and lap from it"
                 checked={qr}
                 onChange={(e) => setQr(e.currentTarget.checked)}
+              />
+              <Checkbox
+                label="Leave out minders"
+                description="Minders aren't scored. Untick to print their labels too, for the laps their class has in Event setup."
+                checked={leaveOutMinders}
+                onChange={(e) => setLeaveOutMinders(e.currentTarget.checked)}
               />
               {view && <Summary view={view} />}
               <Button

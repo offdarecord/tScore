@@ -27,6 +27,13 @@ export const theme = createTheme({
   },
   defaultRadius: 'md',
   black: '#111418',
+  components: {
+    // Help text goes under the box, never between label and box, on every field: fields side
+    // by side then line up whether or not they have help text (scorer review, 25 Nov 2026).
+    InputWrapper: {
+      defaultProps: { inputWrapperOrder: ['label', 'input', 'description', 'error'] },
+    },
+  },
   other: {
     /** Scan desk: rider number and result are at least 48 px (ADR 0009). */
     scanDeskFontSize: '56px',

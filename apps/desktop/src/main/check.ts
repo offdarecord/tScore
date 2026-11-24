@@ -49,7 +49,13 @@ export function preEventCheck(store: EventStore, now = new Date()): PreEventChec
 
   // 2. Riders, and 3. card labels (the same plan tells us both).
   const entries = store.entries();
-  const labels = labelsView(store, { layout: 'auto', start: 1, qr: true, which: 'all' });
+  const labels = labelsView(store, {
+    layout: 'auto',
+    start: 1,
+    qr: true,
+    minders: false,
+    which: 'all',
+  });
   const unknown = labels.skipped.filter((s) => s.reason === 'unknown_class');
   if (entries.length === 0) {
     items.push({

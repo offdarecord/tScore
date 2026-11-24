@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.6.0](https://github.com/offdarecord/tScore/compare/v0.5.0...v0.6.0) (2026-11-24)
+
+
+### Added
+
+* automatic backups, a second copy on a USB stick, and restore from backup ([#46](https://github.com/offdarecord/tScore/issues/46)) ([7f4caaa](https://github.com/offdarecord/tScore/commit/7f4caaac1f40ff101e5bf1cb14f6b64545102b71))
+* correct a rider's name, club and machine on the Riders screen ([#38](https://github.com/offdarecord/tScore/issues/38)) ([9aff1b4](https://github.com/offdarecord/tScore/commit/9aff1b47df1e95515d91f945260f682597d810d0))
+* late entry on the Riders screen ([#44](https://github.com/offdarecord/tScore/issues/44)) ([622a2af](https://github.com/offdarecord/tScore/commit/622a2af0f1310b6381849ebb0d29ed006a71fc65))
+* mark results final, reopen with a reason, and revise; close the event ([#45](https://github.com/offdarecord/tScore/issues/45)) ([4e2fd9d](https://github.com/offdarecord/tScore/commit/4e2fd9d6fe604cf0f8f9cf9ff039eaea64084544))
+* pre-event check, for arrival at the venue ([#47](https://github.com/offdarecord/tScore/issues/47)) ([ac31685](https://github.com/offdarecord/tScore/commit/ac31685c7f62dd8a645529ab1cc809b35e849ee0))
+* progress and still-on-course screens, with overdue riders and Mark DNF ([#42](https://github.com/offdarecord/tScore/issues/42)) ([4977dcb](https://github.com/offdarecord/tScore/commit/4977dcbfa27dadcf67eb3a4d9db816b685afd636))
+
+
+### Fixed
+
+* help text under every field, rider count after a late entry, and leave out minders ([#50](https://github.com/offdarecord/tScore/issues/50)) ([703180c](https://github.com/offdarecord/tScore/commit/703180c68b171ec8e6f4bf91544851f0bf6ae9dd))
+* make the sidebar's section headings read as structure, not pages ([#41](https://github.com/offdarecord/tScore/issues/41)) ([f5ebeb3](https://github.com/offdarecord/tScore/commit/f5ebeb3a69b615903574e3906bf2a45c251ef16e))
+* no commas in the Manual entry score hint, and line up the time box ([#40](https://github.com/offdarecord/tScore/issues/40)) ([ee0e5c8](https://github.com/offdarecord/tScore/commit/ee0e5c87d0f0360b6c823823c51954cca012476d))
+
 ## [0.5.0](https://github.com/offdarecord/tScore/compare/v0.4.0...v0.5.0) (2026-11-24)
 
 

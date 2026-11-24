@@ -9,6 +9,7 @@ import type {
   EntryStatus,
   EventSetup,
   ImportChoices,
+  Results,
   Tier,
   ValidationIssue,
 } from '@tscore/core';
@@ -31,7 +32,30 @@ export const IPC = {
   saveCard: 'cards:save',
   addPenalty: 'penalties:add',
   removePenalty: 'penalties:remove',
+  results: 'results:view',
+  exportResults: 'results:export',
+  openExport: 'results:open-export',
 } as const;
+
+export type ExportKind = 'pdf' | 'csv';
+
+/** Something stopping results being final (a card not in yet, or a score not decided). */
+export interface ResultsGapInfo {
+  readonly kind: 'missing_card' | 'undecided_score';
+  readonly number: number;
+  readonly className: string;
+  readonly day: number;
+  readonly lap: number;
+  readonly section?: number;
+}
+
+/** Results as the Results screen shows them: full names (this laptop only). */
+export interface ResultsView {
+  readonly results: Results;
+  readonly gaps: readonly ResultsGapInfo[];
+  /** Classes whose surnames become an initial in anything saved to share, if the desk chooses. */
+  readonly juniorClasses: readonly string[];
+}
 
 export interface AppInfo {
   readonly name: string;
@@ -191,4 +215,9 @@ export interface TscoreApi {
   saveCard(card: SaveCard): Promise<Outcome<CardDesk>>;
   addPenalty(penalty: NewPenalty): Promise<Outcome<CardDesk>>;
   removePenalty(id: string): Promise<Outcome<CardDesk>>;
+  results(): Promise<Outcome<ResultsView>>;
+  /** Shows the save dialog, then saves. The saved path, or `null` if the desk cancels. */
+  exportResults(kind: ExportKind, juniorInitials: boolean): Promise<Outcome<string | null>>;
+  /** Open the file just saved. */
+  openExport(): Promise<Outcome<null>>;
 }

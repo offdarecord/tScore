@@ -13,7 +13,13 @@ import {
   Title,
   VisuallyHidden,
 } from '@mantine/core';
-import type { EntryStatus, CompetitionStatus } from '@tscore/core';
+import {
+  CLUB_MAX,
+  MACHINE_MAX,
+  NAME_MAX,
+  type CompetitionStatus,
+  type EntryStatus,
+} from '@tscore/core';
 import { useEffect, useMemo, useState } from 'react';
 import type {
   AppError,
@@ -50,12 +56,17 @@ interface Props {
   readonly onImport: (file: EntryListFile) => void;
 }
 
-/** Everyone entered in the event. Find a rider; change their class, competition status or riding status. */
+/**
+ * Everyone entered in the event. Find a rider; correct their name, club or machine, or change
+ * their class, competition status or riding status.
+ */
 export function Riders({ event, notice, onImport }: Props) {
   const [riders, setRiders] = useState<RiderInfo[] | null>(null);
   const [find, setFind] = useState('');
   const [editing, setEditing] = useState<RiderInfo | null>(null);
   const [error, setError] = useState<AppError | null>(null);
+  /** A rider renamed after their labels were printed: remind the desk to reprint them. */
+  const [reprint, setReprint] = useState<number | null>(null);
 
   useEffect(() => void window.tscore.riders().then(setRiders), [event]);
 
@@ -78,8 +89,8 @@ export function Riders({ event, notice, onImport }: Props) {
         <div>
           <Title order={2}>Riders</Title>
           <Text c="dimmed">
-            {count === 1 ? '1 rider.' : `${count} riders.`} Change a class or competitionStatus, or
-            mark DNS or DNF. Every change is logged.
+            {count === 1 ? '1 rider.' : `${count} riders.`} Change a name, machine, class or
+            competition status, or mark DNS or DNF. Every change is logged.
           </Text>
         </div>
         <Group gap="sm">
@@ -108,6 +119,19 @@ export function Riders({ event, notice, onImport }: Props) {
           </Text>
         </Alert>
       )}
+      {reprint !== null && (
+        <Alert
+          color="yellow"
+          role="status"
+          title={`Reprint rider ${reprint}'s labels`}
+          withCloseButton
+          closeButtonLabel="Dismiss"
+          onClose={() => setReprint(null)}
+        >
+          Their card labels were printed with the old name. On Card labels, choose “One rider
+          (reprint)” and rider {reprint}.
+        </Alert>
+      )}
 
       <Paper withBorder radius="md" p="lg" component="section" aria-label="Rider list">
         {riders === null ? null : count === 0 ? (
@@ -132,6 +156,7 @@ export function Riders({ event, notice, onImport }: Props) {
                     <Table.Th>Name</Table.Th>
                     <Table.Th>Class</Table.Th>
                     <Table.Th>Club</Table.Th>
+                    <Table.Th>Machine</Table.Th>
                     <Table.Th>Status</Table.Th>
                     <Table.Th>
                       <VisuallyHidden>Actions</VisuallyHidden>
@@ -164,6 +189,7 @@ export function Riders({ event, notice, onImport }: Props) {
                         )}
                       </Table.Td>
                       <Table.Td>{r.club ?? ''}</Table.Td>
+                      <Table.Td>{r.machine ?? ''}</Table.Td>
                       <Table.Td>{r.status === 'riding' ? '' : STATUS_LABEL[r.status]}</Table.Td>
                       <Table.Td ta="right">
                         <Button
@@ -190,8 +216,9 @@ export function Riders({ event, notice, onImport }: Props) {
           rider={editing}
           classes={event.setup.classes.map((c) => c.name)}
           onClose={() => setEditing(null)}
-          onSaved={(list) => {
+          onSaved={(list, renamed) => {
             setRiders(list);
+            if (renamed && editing.labelsPrinted) setReprint(editing.number);
             setEditing(null);
           }}
         />
@@ -204,9 +231,13 @@ function RiderDialog(props: {
   rider: RiderInfo;
   classes: readonly string[];
   onClose: () => void;
-  onSaved: (riders: RiderInfo[]) => void;
+  /** `renamed`: a name was corrected, so printed labels may need reprinting. */
+  onSaved: (riders: RiderInfo[], renamed: boolean) => void;
 }) {
   const { rider } = props;
+  const [names, setNames] = useState(rider.riders.map((p) => ({ ...p })));
+  const [club, setClub] = useState(rider.club ?? '');
+  const [machine, setMachine] = useState(rider.machine ?? '');
   const [first, setFirst] = useState(rider.classes[0] ?? '');
   const [second, setSecond] = useState(rider.classes[1] ?? '');
   const [competitionStatus, setCompetitionStatus] = useState<CompetitionStatus>(
@@ -215,23 +246,78 @@ function RiderDialog(props: {
   const [status, setStatus] = useState<EntryStatus>(rider.status);
   const [error, setError] = useState<AppError | null>(null);
 
+  const tidy = (s: string) => s.replace(/\s+/g, ' ').trim();
+  const tidyNames = names.map((p) => ({
+    givenName: tidy(p.givenName),
+    familyName: tidy(p.familyName),
+  }));
+  const renamed = tidyNames.some(
+    (p, i) =>
+      p.givenName !== rider.riders[i]?.givenName || p.familyName !== rider.riders[i]?.familyName,
+  );
+  const nameless = tidyNames.some((p) => !p.givenName && !p.familyName);
   const classes = second ? [first, second] : [first];
   const change: RiderChange = {
+    ...(renamed ? { riders: tidyNames } : {}),
+    ...(tidy(club) !== (rider.club ?? '') ? { club: tidy(club) || null } : {}),
+    ...(tidy(machine) !== (rider.machine ?? '') ? { machine: tidy(machine) || null } : {}),
     ...(classes.join('\n') !== rider.classes.join('\n') ? { classes } : {}),
     ...(competitionStatus !== rider.competitionStatus ? { competitionStatus } : {}),
     ...(status !== rider.status ? { status } : {}),
   };
   const changed = Object.keys(change).length > 0;
 
+  function setName(i: number, part: 'givenName' | 'familyName', value: string) {
+    setNames((list) => list.map((p, j) => (j === i ? { ...p, [part]: value } : p)));
+  }
+
   async function save() {
     const r = await window.tscore.updateRider(rider.number, change);
-    if (r.ok) props.onSaved(r.value);
+    if (r.ok) props.onSaved(r.value, renamed);
     else setError(r.error);
   }
+
+  const sidecar = names.length === 2;
 
   return (
     <Modal opened onClose={props.onClose} title={`Rider ${rider.number}: ${riderName(rider)}`}>
       <Stack gap="md">
+        {names.map((p, i) => (
+          <Group key={i} grow align="flex-start" wrap="nowrap">
+            <TextInput
+              label={
+                sidecar ? (i === 0 ? 'Driver first name' : 'Passenger first name') : 'First name'
+              }
+              value={p.givenName}
+              maxLength={NAME_MAX}
+              onChange={(e) => setName(i, 'givenName', e.currentTarget.value)}
+            />
+            <TextInput
+              label={sidecar ? (i === 0 ? 'Driver surname' : 'Passenger surname') : 'Surname'}
+              value={p.familyName}
+              maxLength={NAME_MAX}
+              onChange={(e) => setName(i, 'familyName', e.currentTarget.value)}
+            />
+          </Group>
+        ))}
+        {nameless && (
+          <Text c="red.8" size="sm" role="alert">
+            A rider needs a first name or a surname.
+          </Text>
+        )}
+        <TextInput
+          label="Club"
+          value={club}
+          maxLength={CLUB_MAX}
+          onChange={(e) => setClub(e.currentTarget.value)}
+        />
+        <TextInput
+          label="Machine"
+          placeholder="e.g. Beta Evo 300"
+          value={machine}
+          maxLength={MACHINE_MAX}
+          onChange={(e) => setMachine(e.currentTarget.value)}
+        />
         <NativeSelect
           label="Class"
           value={first}
@@ -278,7 +364,7 @@ function RiderDialog(props: {
           <Button variant="default" onClick={props.onClose}>
             Cancel
           </Button>
-          <Button disabled={!changed} onClick={() => void save()}>
+          <Button disabled={!changed || nameless} onClick={() => void save()}>
             Save
           </Button>
         </Group>

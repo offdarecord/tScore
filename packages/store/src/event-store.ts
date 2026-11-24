@@ -13,6 +13,9 @@ import { existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import type { DatabaseSync } from 'node:sqlite';
 import {
+  CLUB_MAX,
+  MACHINE_MAX,
+  NAME_MAX,
   classesFromSetup,
   scoringFromSetup,
   validateEventSetup,
@@ -140,6 +143,7 @@ interface EntryRow {
   number: number;
   riders_json: string;
   club: string | null;
+  machine: string | null;
   competition_status: CompetitionStatus;
   status: EntryStatus;
   classes_json: string;
@@ -302,14 +306,16 @@ export class EventStore {
       try {
         this.#db
           .prepare(
-            `INSERT INTO entry (id, number, riders_json, club, competition_status, status, classes_json,
-               ride_off_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO entry (id, number, riders_json, club, machine, competition_status, status,
+               classes_json, ride_off_json, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           )
           .run(
             newId(this.#ctx),
             entry.number,
             JSON.stringify(entry.riders),
             entry.club ?? null,
+            entry.machine ?? null,
             entry.competitionStatus,
             entry.status,
             JSON.stringify(entry.classes),
@@ -356,6 +362,59 @@ export class EventStore {
       competitionStatus,
       (e) => e.competitionStatus,
     );
+  }
+
+  /**
+   * Correct the names on an entry (a rider who mistyped their own name, or a sidecar passenger
+   * change): one name per rider already on the entry, in the same order. Licence numbers stay.
+   * The rider number never changes, so cards already scanned still belong to this entry.
+   */
+  renameRiders(
+    number: number,
+    names: readonly { readonly givenName: string; readonly familyName: string }[],
+  ): void {
+    const current = this.entry(number).riders;
+    if (names.length !== current.length) {
+      throw new StoreError(
+        'STORE_BAD_NAME',
+        current.length === 2 ? 'Give the driver and the passenger a name.' : 'Give one name.',
+      );
+    }
+    const riders = current.map((p, i) => {
+      const givenName = tidyText(names[i]?.givenName ?? '');
+      const familyName = tidyText(names[i]?.familyName ?? '');
+      if (!givenName && !familyName) {
+        throw new StoreError('STORE_BAD_NAME', 'A rider needs a first name or a surname.');
+      }
+      if (givenName.length > NAME_MAX || familyName.length > NAME_MAX) {
+        throw new StoreError('STORE_BAD_NAME', `Names can be up to ${NAME_MAX} characters.`);
+      }
+      return { ...p, givenName, familyName };
+    });
+    this.#updateEntry(number, 'entry.names', 'riders_json', JSON.stringify(riders), (e) =>
+      e.riders.map((p) => ({ givenName: p.givenName, familyName: p.familyName })),
+    );
+  }
+
+  /** Change or clear the rider's club. */
+  setClub(number: number, club: string | null): void {
+    const value = tidyText(club ?? '');
+    if (value.length > CLUB_MAX) {
+      throw new StoreError('STORE_BAD_CLUB', `A club can be up to ${CLUB_MAX} characters.`);
+    }
+    this.#updateEntry(number, 'entry.club', 'club', value || null, (e) => e.club ?? null);
+  }
+
+  /** Change or clear the rider's machine, e.g. after a bike change on the day. */
+  setMachine(number: number, machine: string | null): void {
+    const value = tidyText(machine ?? '');
+    if (value.length > MACHINE_MAX) {
+      throw new StoreError(
+        'STORE_BAD_MACHINE',
+        `A machine can be up to ${MACHINE_MAX} characters.`,
+      );
+    }
+    this.#updateEntry(number, 'entry.machine', 'machine', value || null, (e) => e.machine ?? null);
   }
 
   // ---- Cards and scores ----
@@ -798,8 +857,8 @@ export class EventStore {
   #updateEntry(
     number: number,
     kind: string,
-    column: 'classes_json' | 'status' | 'competition_status',
-    value: string,
+    column: 'classes_json' | 'status' | 'competition_status' | 'riders_json' | 'club' | 'machine',
+    value: string | null,
     read: (e: EntryInput) => unknown,
   ): void {
     const before = read(this.entry(number));
@@ -931,11 +990,17 @@ export class EventStore {
   }
 }
 
+/** Typed text as stored: spaces trimmed and runs of spaces made one. */
+function tidyText(s: string): string {
+  return s.replace(/\s+/g, ' ').trim();
+}
+
 function toEntry(r: EntryRow, penalties: PenaltyInput[] | undefined): EntryInput {
   return {
     number: r.number,
     riders: JSON.parse(r.riders_json) as EntryInput['riders'],
     ...(r.club !== null && { club: r.club }),
+    ...(r.machine !== null && { machine: r.machine }),
     competitionStatus: r.competition_status,
     status: r.status,
     classes: JSON.parse(r.classes_json) as string[],

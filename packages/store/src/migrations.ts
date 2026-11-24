@@ -131,6 +131,10 @@ export const MIGRATIONS: readonly string[] = [
   `
   ALTER TABLE entry RENAME COLUMN tier TO competition_status;
   `,
+  // 5: the rider's machine (make and model), from the entry list or typed by the desk.
+  `
+  ALTER TABLE entry ADD COLUMN machine TEXT;
+  `,
 ];
 
 /** The schema version a fresh event file gets, and the newest this build can open. */

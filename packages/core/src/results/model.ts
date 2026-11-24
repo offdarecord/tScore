@@ -43,6 +43,11 @@ export interface ClassInput {
   readonly days: readonly ClassDayInput[];
 }
 
+/** The longest name (each of given and family name), club and machine the desk can type. */
+export const NAME_MAX = 60;
+export const CLUB_MAX = 80;
+export const MACHINE_MAX = 60;
+
 export interface PersonInput {
   readonly givenName: string;
   readonly familyName: string;
@@ -63,6 +68,8 @@ export interface EntryInput {
   /** One rider, or driver then passenger for a sidecar. */
   readonly riders: readonly PersonInput[];
   readonly club?: string;
+  /** Make and model, e.g. "Beta Evo 300". For the desk only: never in published results. */
+  readonly machine?: string;
   readonly competitionStatus: CompetitionStatus;
   readonly status: EntryStatus;
   /** One class, or two for a rider whose scores count in a second class. */

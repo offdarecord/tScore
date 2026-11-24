@@ -21,15 +21,15 @@ test.afterEach(async () => {
 });
 
 const RIDERNET = [
-  ['registrationDate', 'First_Name', 'Last_Name', 'RidernetID', 'DOB', 'Phone', 'Emergency_Contact_Name', 'Event_Role', 'Event_Class_Name', 'Class_Reg_Status', 'Licence_Type', 'Club', 'Riding_Number'],
-  ["{ts '2027-01-02 10:00:00'}", 'Avery', 'Stone', '900001', '01/01/1990', '0400 000 001', 'Contact One', 'Rider', 'Trial 4', 'Active', 'SRN', 'Example Trials Club', '1234'],
-  ["{ts '2027-01-02 10:01:00'}", 'Blake', 'River', '900002', '02/02/2012', '0400 000 002', 'Contact Two', 'Rider', 'Trial 4', 'Active', 'JRN', 'Example Trials Club', 'Blake'],
-  ["{ts '2027-01-02 10:02:00'}", 'Casey', 'Hill', '900003', '03/03/1985', '0400 000 003', 'Contact Three', 'Rider', 'Trial 4 Plus', 'Active', 'SRN', 'Example Trials Club', ''],
-  ["{ts '2027-01-02 10:03:00'}", 'Casey', 'Hill', '900003', '03/03/1985', '0400 000 003', 'Contact Three', 'Rider', 'Trial 4', 'Active', 'SRN', 'Example Trials Club', ''],
-  ["{ts '2027-01-02 10:04:00'}", 'Drew', 'Field', '900004', '04/04/1975', '0400 000 004', 'Contact Four', 'Rider', 'TMTC Minder', 'Active', 'SRN', 'Example Trials Club', '0'],
-  ["{ts '2027-01-02 10:05:00'}", 'Emery', 'Lake', '900005', '05/05/1970', '0400 000 005', 'Contact Five', 'Crew', 'Trial 2', '', 'SRN', 'Example Trials Club', ''],
-  ["{ts '2027-01-02 10:06:00'}", 'Gray', 'Moss', '900007', '07/07/1995', '0400 000 007', 'Contact Seven', 'Rider', 'Trial 5', 'Active', 'OREC', '', ''],
-  ["{ts '2027-01-02 10:07:00'}", 'Harper', 'Vale', '900008', '08/08/1965', '0400 000 008', 'Contact Eight', 'Rider', 'Twinshock', 'Active', 'SNA', 'Example Trials Club', ''],
+  ['registrationDate', 'First_Name', 'Last_Name', 'RidernetID', 'DOB', 'Phone', 'Emergency_Contact_Name', 'Event_Role', 'Event_Class_Name', 'Class_Reg_Status', 'Licence_Type', 'Club', 'Riding_Number', 'Bike_Make', 'Bike_Model', 'Bike_VIN'],
+  ["{ts '2027-01-02 10:00:00'}", 'Avery', 'Stone', '900001', '01/01/1990', '0400 000 001', 'Contact One', 'Rider', 'Trial 4', 'Active', 'SRN', 'Example Trials Club', '1234', 'Beta', 'Evo 300', 'VIN0000000001'],
+  ["{ts '2027-01-02 10:01:00'}", 'Blake', 'River', '900002', '02/02/2012', '0400 000 002', 'Contact Two', 'Rider', 'Trial 4', 'Active', 'JRN', 'Example Trials Club', 'Blake', 'GasGas', 'GasGas TXT 125', 'VIN0000000001'],
+  ["{ts '2027-01-02 10:02:00'}", 'Casey', 'Hill', '900003', '03/03/1985', '0400 000 003', 'Contact Three', 'Rider', 'Trial 4 Plus', 'Active', 'SRN', 'Example Trials Club', '', 'Montesa', '4Ride', 'VIN0000000001'],
+  ["{ts '2027-01-02 10:03:00'}", 'Casey', 'Hill', '900003', '03/03/1985', '0400 000 003', 'Contact Three', 'Rider', 'Trial 4', 'Active', 'SRN', 'Example Trials Club', '', 'Montesa', '4Ride', 'VIN0000000001'],
+  ["{ts '2027-01-02 10:04:00'}", 'Drew', 'Field', '900004', '04/04/1975', '0400 000 004', 'Contact Four', 'Rider', 'TMTC Minder', 'Active', 'SRN', 'Example Trials Club', '0', '', '', ''],
+  ["{ts '2027-01-02 10:05:00'}", 'Emery', 'Lake', '900005', '05/05/1970', '0400 000 005', 'Contact Five', 'Crew', 'Trial 2', '', 'SRN', 'Example Trials Club', '', '', '', ''],
+  ["{ts '2027-01-02 10:06:00'}", 'Gray', 'Moss', '900007', '07/07/1995', '0400 000 007', 'Contact Seven', 'Rider', 'Trial 5', 'Active', 'OREC', '', '', '', '', ''],
+  ["{ts '2027-01-02 10:07:00'}", 'Harper', 'Vale', '900008', '08/08/1965', '0400 000 008', 'Contact Eight', 'Rider', 'Twinshock', 'Active', 'SNA', 'Example Trials Club', '', '', '', ''],
 ]; // prettier-ignore
 
 function writeRidernet(): string {
@@ -97,6 +97,9 @@ test('a Ridernet export is checked, matched and imported, without personal detai
   await expect(list.getByRole('row').nth(1)).toContainText('1Casey Hill');
   await expect(list.getByRole('row', { name: /Gray Moss/ })).toContainText('NC');
   await expect(list).not.toContainText('0400');
+  await expect(list.getByRole('row', { name: /Avery Stone/ })).toContainText('Beta Evo 300');
+  await expect(list.getByRole('row', { name: /Blake River/ })).toContainText('GasGas TXT 125');
+  await expect(list).not.toContainText('VIN0000000001');
 
   // The class match was saved as an alias in the event's setup.
   await window.getByRole('navigation', { name: 'Event' }).getByRole('button', { name: 'Event setup' }).click();
@@ -133,6 +136,40 @@ test('the desk can change a rider’s competition status and class, and it is ke
   const row = window.getByRole('row', { name: /^2 / });
   await expect(row).toContainText('NA');
   await expect(row).toContainText('Trial 3');
+}); // prettier-ignore
+
+test('the desk corrects a rider’s name, club and machine, and it is kept', async () => {
+  await newEventAtRiders();
+  await importRidernet();
+  await window.getByLabel('Event class for Twinshock').selectOption('Trial 4');
+  await window.getByRole('radio', { name: 'Only Trial 4', exact: true }).check();
+  await window.getByRole('button', { name: 'Import 5 riders' }).click();
+
+  const before = window.getByRole('row', { name: /Avery Stone/ });
+  const number = (await before.getByRole('cell').first().innerText()).trim();
+  await before.getByRole('button', { name: /Change rider/ }).click();
+  const dialog = window.getByRole('dialog');
+  await expect(dialog.getByLabel('Machine')).toHaveValue('Beta Evo 300');
+  await dialog.getByLabel('First name').fill('');
+  await dialog.getByLabel('Surname').fill('');
+  await expect(dialog.getByRole('alert')).toContainText('needs a first name or a surname');
+  await expect(dialog.getByRole('button', { name: 'Save' })).toBeDisabled();
+  await dialog.getByLabel('First name').fill('Averie');
+  await dialog.getByLabel('Surname').fill('Stone-Hill');
+  await dialog.getByLabel('Club').fill('Another Trials Club');
+  await dialog.getByLabel('Machine').fill('Montesa 4Ride');
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await expect(dialog).toBeHidden();
+
+  await run.app.close();
+  run = await launchApp(run);
+  ({ window } = run);
+  await window.getByRole('button', { name: 'Open Example Club Trial' }).click();
+  await window.getByRole('navigation', { name: 'Event' }).getByRole('button', { name: /Riders/ }).click();
+  const row = window.getByRole('row', { name: new RegExp(`^${number} `) });
+  await expect(row).toContainText('Averie Stone-Hill');
+  await expect(row).toContainText('Another Trials Club');
+  await expect(row).toContainText('Montesa 4Ride');
 }); // prettier-ignore
 
 test('a file tScore does not recognise is refused in plain words', async () => {

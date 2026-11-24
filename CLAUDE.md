@@ -62,7 +62,7 @@ is used by non-technical volunteers, and is maintained by part-time volunteers. 
 - **Never copy** code, formulas, VBA, sheet layouts or printed designs from any commercial
   scoring workbook. Implement public trials rules from our own design.
 - Fixtures must be anonymised (synthetic names, re-shot cards with synthetic labels).
-- Importers read only scoring fields (name, class, club, number, competitive, licence no.).
+- Importers read only name, class, club, machine (make and model), number, competitive and licence no. Never VIN or engine no.
 
 ## Domain quick reference
 

@@ -17,7 +17,9 @@
     "licence": ["RidernetID"],
     "role": ["Event_Role"],
     "status": ["Class_Reg_Status"],
-    "licence_type": ["Licence_Type"]
+    "licence_type": ["Licence_Type"],
+    "machine_make": ["Bike_Make"],
+    "machine_model": ["Bike_Model"]
   },
   "skip_rows": [
     { "field": "role", "not_in": ["Rider"], "reason": "crew" },

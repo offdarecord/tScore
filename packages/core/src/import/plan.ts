@@ -7,7 +7,12 @@
  */
 import type { EventSetup } from '../generated/event-setup.js';
 import { classesFromSetup } from '../results/from-setup.js';
-import type { EntryInput, PersonInput, CompetitionStatus } from '../results/model.js';
+import {
+  MACHINE_MAX,
+  type CompetitionStatus,
+  type EntryInput,
+  type PersonInput,
+} from '../results/model.js';
 import type { EntryList, SourceRow } from './extract.js';
 import { IMPORT_PRESETS, matcher, norm, type ImportMapping } from './presets.js';
 
@@ -74,6 +79,7 @@ interface Person {
   given: string;
   family: string;
   club?: string;
+  machine?: string;
   licence?: string;
   competitionStatus: CompetitionStatus;
   classes: string[];
@@ -154,6 +160,7 @@ export function planImport(
         given,
         family,
         ...(row.club ? { club: row.club } : {}),
+        ...machineOf(row),
         ...(licence ? { licence } : {}),
         competitionStatus:
           competitionStatusRules.find((t) => t.m.test(row[t.m.field] ?? ''))?.competitionStatus ??
@@ -252,6 +259,7 @@ export function planImport(
       number,
       riders: [rider],
       ...(p.club ? { club: p.club } : {}),
+      ...(p.machine ? { machine: p.machine } : {}),
       competitionStatus: p.competitionStatus,
       status: 'riding',
       classes: p.classes,
@@ -315,6 +323,27 @@ export function tidyClass(raw: string): string {
 }
 
 /** Spaces tidied; a name typed all in capitals or all in lower case gets capitals. */
+/**
+ * The rider's machine from an entry-list row: the machine column, or make and model joined
+ * ("Beta" + "Evo 300"), without repeating the make when the model already starts with it.
+ */
+export function machineOf(row: Pick<SourceRow, 'machine' | 'machine_make' | 'machine_model'>): {
+  machine?: string;
+} {
+  const tidy = (s: string | undefined) => (s ?? '').replace(/\s+/g, ' ').trim();
+  let machine = tidy(row.machine);
+  if (!machine) {
+    const make = tidy(row.machine_make);
+    const model = tidy(row.machine_model);
+    machine =
+      make && model.toLowerCase().startsWith(make.toLowerCase())
+        ? model
+        : `${make} ${model}`.trim();
+  }
+  machine = machine.slice(0, MACHINE_MAX).trim();
+  return machine ? { machine } : {};
+}
+
 export function tidyName(raw: string): string {
   const s = raw.trim().replace(/\s+/g, ' ');
   if (!/[a-z]/i.test(s) || (s !== s.toUpperCase() && s !== s.toLowerCase())) return s;

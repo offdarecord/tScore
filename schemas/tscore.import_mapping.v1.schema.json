@@ -98,6 +98,18 @@
         "competition_status": {
           "$ref": "#/$defs/Headers"
         },
+        "machine": {
+          "description": "The rider's machine, make and model in one column (e.g. Beta Evo 300). Never VIN, engine number or registration.",
+          "$ref": "#/$defs/Headers"
+        },
+        "machine_make": {
+          "description": "The machine's make, when the export keeps make and model apart. Joined with machine_model.",
+          "$ref": "#/$defs/Headers"
+        },
+        "machine_model": {
+          "description": "The machine's model, when the export keeps make and model apart.",
+          "$ref": "#/$defs/Headers"
+        },
         "group": {
           "$ref": "#/$defs/Headers"
         },
@@ -165,6 +177,9 @@
         "licence",
         "number",
         "competition_status",
+        "machine",
+        "machine_make",
+        "machine_model",
         "group",
         "role",
         "status",

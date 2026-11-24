@@ -12,7 +12,6 @@ import {
 } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import type { AppError, AppInfo, OpenEvent, Outcome, RecentEventInfo } from '../../shared/ipc';
-import { ComingSoonButton } from './ComingSoonButton';
 import { formatDate } from './format';
 
 interface Props {
@@ -37,6 +36,15 @@ export function Home({ info, onNew, onOpened }: Props) {
     } else if (r.value) onOpened(r.value);
   }
 
+  /** A backup opens as a new event folder; nothing existing is touched. */
+  async function restore() {
+    const r = await window.tscore.restoreFromBackup();
+    if (!r.ok) {
+      setError(r.error);
+      refresh();
+    } else if (r.value) onOpened(r.value.event);
+  }
+
   return (
     <Stack gap="xl" maw={1040} mx="auto" py="lg">
       <Group justify="space-between" wrap="wrap">
@@ -46,7 +54,9 @@ export function Home({ info, onNew, onOpened }: Props) {
           <Button variant="default" onClick={() => void opened(window.tscore.openEventFile())}>
             Open event file…
           </Button>
-          <ComingSoonButton variant="default">Restore from backup</ComingSoonButton>
+          <Button variant="default" onClick={() => void restore()}>
+            Restore from backup…
+          </Button>
         </Group>
       </Group>
 

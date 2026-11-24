@@ -35,8 +35,20 @@ test('About shows the installed version', async () => {
   await expect(dialog).toBeHidden();
 });
 
-test('"Restore from backup" is marked as coming later and explains why', async () => {
-  const button = window.getByRole('button', { name: 'Restore from backup' });
+/** A new event, at its Event setup screen, for the screens that need one. */
+async function newEvent() {
+  await window.getByRole('button', { name: 'New event' }).click();
+  await window.getByLabel('Event name').fill('Example Club Trial');
+  await window.getByLabel('Date', { exact: true }).fill('2027-02-06');
+  await window.getByRole('button', { name: 'Create event' }).click();
+  await expect(window.getByRole('heading', { name: 'Event setup', level: 1 })).toBeVisible();
+}
+
+test('"Scan desk" is marked as coming later and explains why', async () => {
+  await newEvent();
+  const button = window
+    .getByRole('navigation', { name: 'Event' })
+    .getByRole('button', { name: 'Scan desk' });
   await expect(button).toHaveAttribute('aria-disabled', 'true');
 
   await button.hover();
@@ -45,12 +57,17 @@ test('"Restore from backup" is marked as coming later and explains why', async (
   // Clicking does nothing: still on the same screen, no dialog opened. `force` because
   // Playwright won't click an aria-disabled button by default; a volunteer still can.
   await button.click({ force: true });
-  await expect(window.getByRole('heading', { name: 'No event open' })).toBeVisible();
+  await expect(window.getByRole('heading', { name: 'Event setup', level: 1 })).toBeVisible();
   await expect(window.getByRole('dialog')).toHaveCount(0);
 });
 
 test('keyboard users get the same explanation', async () => {
-  await window.getByRole('button', { name: 'Restore from backup' }).focus();
+  await newEvent();
+  const nav = window.getByRole('navigation', { name: 'Event' });
+  // Tab to it, as a keyboard user would: back one step from Manual entry.
+  await nav.getByRole('button', { name: 'Manual entry' }).focus();
+  await window.keyboard.press('Shift+Tab');
+  await expect(nav.getByRole('button', { name: 'Scan desk' })).toBeFocused();
   await expect(window.getByRole('tooltip')).toHaveText('Coming in a later version of tScore');
 });
 

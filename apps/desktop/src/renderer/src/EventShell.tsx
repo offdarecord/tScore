@@ -9,6 +9,7 @@ import { Results } from './results/Results';
 import { formatDate } from './format';
 import { ImportRiders } from './riders/ImportRiders';
 import { Riders } from './riders/Riders';
+import { BackupCard } from './setup/BackupCard';
 import { SetupForm } from './setup/SetupForm';
 
 /** The event screens that exist so far. */
@@ -205,16 +206,19 @@ export function EventMain({ event, page, onChange, onNavigate }: Props) {
     );
   }
   return (
-    <SetupForm
-      key={event.folder}
-      mode="edit"
-      setup={event.setup}
-      ridersByClass={event.ridersByClass}
-      onSave={async (setup) => {
-        const r = await window.tscore.updateSetup(setup);
-        if (r.ok) onChange(r.value);
-        return r;
-      }}
-    />
+    <Stack gap="lg">
+      <SetupForm
+        key={event.folder}
+        mode="edit"
+        setup={event.setup}
+        ridersByClass={event.ridersByClass}
+        onSave={async (setup) => {
+          const r = await window.tscore.updateSetup(setup);
+          if (r.ok) onChange(r.value);
+          return r;
+        }}
+      />
+      <BackupCard event={event} />
+    </Stack>
   );
 }

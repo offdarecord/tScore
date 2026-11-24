@@ -34,6 +34,7 @@ import type {
   CardDesk,
   DeskRider,
   EntryListFile,
+  BackupStatus,
   CourseView,
   ExportKind,
   LabelOffset,
@@ -50,6 +51,7 @@ import type {
   RiderInfo,
   SaveCard,
 } from '../shared/ipc';
+import { backUp, backupStatus, beforeClose, setSecondPlace } from './backups';
 import { courseView } from './course';
 import { labelsView, saveLabels, saveLabelTestPage, setLabelOffset } from './labels';
 import { exportResults, openLastExport, resultsView } from './results';
@@ -139,8 +141,14 @@ export function events(): EventLibrary {
     settingsDir: app.getPath('userData'),
     eventsDir: eventsDir(),
     appVersion: app.getVersion(),
+    beforeClose,
   });
   return library;
+}
+
+/** The open event, if any (for the backup timer). */
+export function currentStore(): EventStore | null {
+  return library?.current ?? null;
 }
 
 /** Updates wait while an event is open (ADR 0011). */
@@ -252,6 +260,64 @@ export const eventHandlers = {
       const store = events().open(folder);
       log.info('event opened', { eventId: store.eventId, folder: store.folder });
       return describe(store);
+    });
+  },
+
+  backupStatus(): Outcome<BackupStatus> {
+    return attempt('checking backups', () => backupStatus(openStore()));
+  },
+
+  backupNow(): Outcome<BackupStatus> {
+    return attempt('making a backup', () => {
+      const store = openStore();
+      backUp(store, 'manual');
+      return backupStatus(store);
+    });
+  },
+
+  async chooseBackupPlace(win: BrowserWindow | null): Promise<Outcome<BackupStatus | null>> {
+    const options: Electron.OpenDialogOptions = {
+      title: 'Choose where to keep a second copy of every backup',
+      properties: ['openDirectory', 'createDirectory'],
+    };
+    const picked = win
+      ? await dialog.showOpenDialog(win, options)
+      : await dialog.showOpenDialog(options);
+    const folder = picked.filePaths[0];
+    if (picked.canceled || !folder) return { ok: true, value: null };
+    return attempt('setting the backup place', () => {
+      const store = openStore();
+      setSecondPlace(folder);
+      backUp(store, 'manual');
+      return backupStatus(store);
+    });
+  },
+
+  clearBackupPlace(): Outcome<BackupStatus> {
+    return attempt('clearing the backup place', () => {
+      setSecondPlace(null);
+      return backupStatus(openStore());
+    });
+  },
+
+  async restoreFromBackup(
+    win: BrowserWindow | null,
+  ): Promise<Outcome<{ event: OpenEvent; from: string } | null>> {
+    const options: Electron.OpenDialogOptions = {
+      title: 'Restore an event from a backup',
+      defaultPath: library?.current ? join(library.current.folder, 'backups') : eventsDir(),
+      properties: ['openFile'],
+      filters: [{ name: 'tScore backup', extensions: ['sqlite'] }],
+    };
+    const picked = win
+      ? await dialog.showOpenDialog(win, options)
+      : await dialog.showOpenDialog(options);
+    const file = picked.filePaths[0];
+    if (picked.canceled || !file) return { ok: true, value: null };
+    return attempt('restoring from a backup', () => {
+      const store = events().restore(file);
+      log.info('event restored from a backup', { eventId: store.eventId, folder: store.folder });
+      return { event: describe(store), from: basename(file) };
     });
   },
 

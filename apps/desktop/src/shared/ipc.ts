@@ -39,6 +39,11 @@ export const IPC = {
   results: 'results:view',
   exportResults: 'results:export',
   openExport: 'results:open-export',
+  backupStatus: 'backup:status',
+  backupNow: 'backup:now',
+  chooseBackupPlace: 'backup:choose-place',
+  clearBackupPlace: 'backup:clear-place',
+  restoreFromBackup: 'backup:restore',
   labels: 'labels:view',
   saveLabels: 'labels:save',
   saveLabelTestPage: 'labels:save-test-page',
@@ -149,6 +154,21 @@ export interface LabelsView {
 }
 
 export type { LabelLayoutChoice };
+
+/** Backups of the open event, and the second place they're copied to (this laptop). */
+export interface BackupStatus {
+  /** Where the event is saved. */
+  readonly folder: string;
+  /** Backups in the event's backups folder. */
+  readonly backups: number;
+  /** The last backup this session made. */
+  readonly lastAt?: string;
+  /** A USB stick or another drive each backup is also copied to. */
+  readonly secondPlace?: string;
+  readonly secondPlaceAvailable?: boolean;
+  /** The last backup couldn't be copied there. */
+  readonly problem?: string;
+}
 
 export type ExportKind = 'pdf' | 'csv';
 
@@ -359,6 +379,16 @@ export interface TscoreApi {
   exportResults(kind: ExportKind, juniorInitials: boolean): Promise<Outcome<string | null>>;
   /** Open the file just saved. */
   openExport(): Promise<Outcome<null>>;
+  backupStatus(): Promise<Outcome<BackupStatus>>;
+  /** Make a backup now (kept, never pruned). */
+  backupNow(): Promise<Outcome<BackupStatus>>;
+  /** Shows a folder dialog for the second place. `null` if the desk cancels. */
+  chooseBackupPlace(): Promise<Outcome<BackupStatus | null>>;
+  clearBackupPlace(): Promise<Outcome<BackupStatus>>;
+  /** Shows the open dialog, then opens the backup as a new event folder. `null` if cancelled. */
+  restoreFromBackup(): Promise<
+    Outcome<{ readonly event: OpenEvent; readonly from: string } | null>
+  >;
   labels(request: LabelRequest): Promise<Outcome<LabelsView>>;
   /** Shows the save dialog, then saves the Word document. `null` if the desk cancels. */
   saveLabels(

@@ -126,6 +126,10 @@ test('who is overdue and still on course follows the cards in, with Mark DNF and
   await typeCards([[2, 2, '00:25']]);
   await nav().getByRole('button', { name: 'Still on course' }).click();
   await expect(window.getByText('Everyone is accounted for.', { exact: false })).toBeVisible();
+  await window
+    .getByRole('button', { name: 'Close the event: check and mark results final' })
+    .click();
+  await expect(window.getByRole('heading', { name: 'Results', level: 2 })).toBeVisible();
 });
 
 test('the Progress and Still on course screens meet WCAG 2.2 AA (automated check)', async () => {

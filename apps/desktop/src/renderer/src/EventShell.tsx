@@ -177,7 +177,9 @@ export function EventMain({ event, page, onChange, onNavigate }: Props) {
   if (page.name === 'progress') {
     return <Progress event={event} onStillOnCourse={() => onNavigate({ name: 'course' })} />;
   }
-  if (page.name === 'course') return <OnCourse event={event} />;
+  if (page.name === 'course') {
+    return <OnCourse event={event} onCloseEvent={() => onNavigate({ name: 'results' })} />;
+  }
   if (page.name === 'results') return <Results event={event} />;
   if (page.name === 'riders') {
     return (

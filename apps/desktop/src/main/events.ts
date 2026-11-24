@@ -54,7 +54,7 @@ import type {
 import { backUp, backupStatus, beforeClose, setSecondPlace } from './backups';
 import { courseView } from './course';
 import { labelsView, saveLabels, saveLabelTestPage, setLabelOffset } from './labels';
-import { exportResults, openLastExport, resultsView } from './results';
+import { exportResults, markFinal, openLastExport, resultsView } from './results';
 
 const PENALTY_REASONS: readonly PenaltyReason[] = [
   'time',
@@ -622,6 +622,33 @@ export const eventHandlers = {
       const saved = setLabelOffset(offset);
       log.info('label printer offset set', saved);
       return saved;
+    });
+  },
+
+  markFinal(): Outcome<ResultsView> {
+    return attempt('marking results final', () => {
+      const store = openStore();
+      markFinal(store);
+      log.info('results marked final', {
+        eventId: store.eventId,
+        revision: store.finalState()?.revision,
+      });
+      return resultsView(store);
+    });
+  },
+
+  reopenResults(reason: string): Outcome<ResultsView> {
+    return attempt('reopening results', () => {
+      const store = openStore();
+      if (typeof reason !== 'string') {
+        throw new StoreError('APP_BAD_REQUEST', 'Say why the results are being reopened.');
+      }
+      store.reopenResults(reason);
+      log.info('results reopened', {
+        eventId: store.eventId,
+        revision: store.finalState()?.revision,
+      });
+      return resultsView(store);
     });
   },
 

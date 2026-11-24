@@ -161,6 +161,41 @@ export function resultsCsv(results: Results): string {
   return `${BOM}${rows.map((r) => r.map(csvField).join(',')).join('\r\n')}\r\n`;
 }
 
+// ---- Changes between revisions ----
+
+/**
+ * What changed for each rider between two sets of results, in plain words, e.g.
+ * "Trial 3: rider 12, 4th → 3rd". Riders added or removed are listed too. By number only, so
+ * nothing here can undo the junior-surname rule or show more than the results themselves.
+ */
+export function placeChanges(before: Results, after: Results): string[] {
+  const out: string[] = [];
+  for (const cls of after.classes) {
+    const prev = before.classes.find((c) => c.name === cls.name);
+    const placesNow = placeLabels(cls.entries);
+    const placesThen = prev ? placeLabels(prev.entries) : [];
+    const then = new Map((prev?.entries ?? []).map((e, i) => [e.number, placesThen[i] ?? '']));
+    cls.entries.forEach((e, i) => {
+      const was = then.get(e.number);
+      const now = placesNow[i] ?? '';
+      const who = `rider ${e.number}`;
+      if (was === undefined) out.push(`${cls.name}: ${who} added, ${now || 'no place'}`);
+      else if (was !== now)
+        out.push(`${cls.name}: ${who}, ${was || 'no place'} → ${now || 'no place'}`);
+    });
+    const nowNumbers = new Set(cls.entries.map((e) => e.number));
+    for (const e of prev?.entries ?? []) {
+      if (!nowNumbers.has(e.number)) out.push(`${cls.name}: rider ${e.number} removed`);
+    }
+  }
+  for (const prev of before.classes) {
+    if (!after.classes.some((c) => c.name === prev.name) && prev.entries.length > 0) {
+      out.push(`${prev.name}: class removed`);
+    }
+  }
+  return out;
+}
+
 // ---- Printable HTML (becomes the PDF) ----
 
 const esc = (s: string | number | null | undefined) =>
@@ -169,9 +204,20 @@ const esc = (s: string | number | null | undefined) =>
     (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] ?? c,
   );
 
+/** For a revised final: what it replaces, why, and which places changed. */
+export interface RevisionNote {
+  readonly replaces: number;
+  /** When the replaced revision was marked final, in words, e.g. "Sat 6 Feb 2027 17:05". */
+  readonly replacedAt: string;
+  readonly reason: string;
+  readonly changes: readonly string[];
+}
+
 export interface PrintOptions {
   /** Cards missing or scores undecided: printed as PROVISIONAL with the reason. */
   readonly gaps: readonly ResultsGap[];
+  /** A revised final: printed under the FINAL banner. */
+  readonly revisionNote?: RevisionNote;
   /** e.g. "Sat 6 Feb 2027". */
   readonly dates: string;
   /** e.g. "tScore 0.5.0, 24 Nov 2026 3:15 pm". */
@@ -182,7 +228,10 @@ export interface PrintOptions {
 export function resultsHtml(results: Results, opts: PrintOptions): string {
   const values = results.event.scoring.score_values;
   const ev = results.event;
+  // Missing cards always win: results are never printed FINAL while any are missing.
   const provisional = opts.gaps.length > 0;
+  const final = results.status === 'final' && !provisional;
+  const note = opts.revisionNote;
   const sub = [ev.club, ev.venue, opts.dates].filter(Boolean).map(esc).join(' · ');
 
   const classes = results.classes
@@ -233,6 +282,9 @@ export function resultsHtml(results: Results, opts: PrintOptions): string {
   h1 { font-size: 17pt; margin: 0; }
   .sub { color: #444; margin: 2px 0 8px; }
   .provisional { border: 2px solid #b35c00; color: #6b2e00; padding: 6px 10px; margin: 6px 0 10px; font-weight: 700; }
+  .final { border: 2px solid #1f5f26; color: #123b17; padding: 6px 10px; margin: 6px 0 10px; }
+  .final strong { font-size: 11pt; }
+  .final ul { margin: 4px 0 0 18px; padding: 0; }
   section { break-inside: avoid; margin-top: 12px; }
   h2 { font-size: 12pt; margin: 0 0 4px; }
   h2 span { font-size: 9pt; font-weight: 400; color: #444; }
@@ -250,6 +302,7 @@ export function resultsHtml(results: Results, opts: PrintOptions): string {
 <h1>${esc(ev.name)}</h1>
 <div class="sub">${sub}</div>
 ${provisional ? `<div class="provisional">PROVISIONAL: ${esc(gapWords(opts.gaps))} Positions may change.</div>` : ''}
+${final ? `<div class="final"><strong>FINAL RESULTS${results.revision > 1 ? ` · REVISION ${results.revision}` : ''}</strong>${note ? `<div>Replaces revision ${note.replaces} of ${esc(note.replacedAt)}. Reason: ${esc(note.reason)}</div>${note.changes.length ? `<ul>${note.changes.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : '<div>No places changed.</div>'}` : ''}</div>` : ''}
 ${classes}
 <footer>${esc(tieBreakWords(results))} NA = No award (scored, not placed). NC = Non-competitive (counts only; scores are not published). DNF = did not finish. DNS = did not start.<br>${esc(opts.footer)}</footer>
 </body></html>`;

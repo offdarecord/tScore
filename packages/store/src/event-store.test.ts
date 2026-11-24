@@ -397,7 +397,7 @@ describe('cards and scores', () => {
     first.close();
     const db = new DatabaseSync(join(folder, EVENT_FILE));
     db.exec(
-      'ALTER TABLE entry DROP COLUMN machine; ALTER TABLE entry RENAME COLUMN competition_status TO tier; DROP TABLE label_print; ALTER TABLE card DROP COLUMN received_at; PRAGMA user_version = 1',
+      'DROP TABLE results_final; ALTER TABLE entry DROP COLUMN machine; ALTER TABLE entry RENAME COLUMN competition_status TO tier; DROP TABLE label_print; ALTER TABLE card DROP COLUMN received_at; PRAGMA user_version = 1',
     );
     db.close();
     const store = track(EventStore.open(folder, testContext()));
@@ -530,5 +530,68 @@ describe('card labels', () => {
       { what: 'all', labels: 3, riders: 2 },
       { what: 'rider 1', labels: 1, riders: 1 },
     ]);
+  });
+});
+
+describe('results marked final', () => {
+  const finalEvent = () => {
+    const store = newEvent();
+    store.addEntry(rider(1));
+    store.recordCard({ number: 1, day: 1, lap: 1, scores: [0, 0, 0, 0], source: 'scan' });
+    return store;
+  };
+
+  it('keeps each revision as declared, and refuses changes until reopened with a reason', () => {
+    const store = finalEvent();
+    expect(store.finalState()).toBeNull();
+    expect(store.nextRevision()).toBe(1);
+    store.markFinal(1, { status: 'final', revision: 1, marker: 'first' });
+    expect(store.finalState()).toMatchObject({ revision: 1, reopened: false });
+
+    // Nothing that affects results can change while they're final.
+    expect(
+      code(() =>
+        store.recordCard({ number: 1, day: 1, lap: 2, scores: [0, 0, 0, 0], source: 'scan' }),
+      ),
+    ).toBe('STORE_RESULTS_FINAL');
+    expect(code(() => store.addPenalty(1, { points: 5, reason: 'time' }))).toBe(
+      'STORE_RESULTS_FINAL',
+    );
+    expect(code(() => store.setStatus(1, 'dnf'))).toBe('STORE_RESULTS_FINAL');
+    expect(code(() => store.addEntry(rider(2)))).toBe('STORE_RESULTS_FINAL');
+    expect(code(() => store.markFinal(2, {}))).toBe('STORE_RESULTS_FINAL');
+    // The machine and card labels don't affect results.
+    store.setMachine(1, 'Example 250');
+    store.recordLabelsPrinted([{ number: 1, day: 1, lap: 1 }], 'rider 1');
+
+    expect(code(() => store.reopenResults('  '))).toBe('STORE_NEED_REASON');
+    store.reopenResults('Rider 1, section 2 lap 1 misread');
+    expect(store.finalState()).toMatchObject({
+      revision: 1,
+      reopened: true,
+      reopenReason: 'Rider 1, section 2 lap 1 misread',
+    });
+    store.setStatus(1, 'dnf');
+    expect(code(() => store.markFinal(3, {}))).toBe('STORE_REVISION_CHANGED');
+    store.markFinal(2, { status: 'final', revision: 2 });
+    expect(store.finalHistory().map((f) => [f.revision, f.reopened])).toEqual([
+      [1, true],
+      [2, false],
+    ]);
+    expect(store.finalResults(1)).toEqual({ status: 'final', revision: 1, marker: 'first' });
+    expect(store.auditLog().map((a) => a.kind)).toEqual(
+      expect.arrayContaining(['results.final', 'results.reopen']),
+    );
+  });
+
+  it('keeps final results across closing and reopening the event file', () => {
+    const store = finalEvent();
+    store.markFinal(1, { revision: 1 });
+    const folder = store.folder;
+    store.close();
+    open.splice(open.indexOf(store), 1);
+    const again = track(EventStore.open(folder, testContext()));
+    expect(again.finalState()?.revision).toBe(1);
+    expect(code(() => again.setStatus(1, 'dns'))).toBe('STORE_RESULTS_FINAL');
   });
 });

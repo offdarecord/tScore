@@ -6,6 +6,7 @@ export {
   type AuditEvent,
   type CardSummary,
   type CorrectScore,
+  type FinalState,
   type LabelKey,
   type PenaltyRecord,
   type RecordCard,

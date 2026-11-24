@@ -5,15 +5,22 @@
  * On this laptop results show full names. Anything saved to share (PDF, CSV) applies the
  * publish rules: non-competitive riders' scores are already left out of the payload, and junior
  * surnames become an initial when the desk ticks that option.
+ *
+ * Marking results final freezes them as a numbered revision. While final, nothing that affects
+ * them can change (the store refuses), so a saved file recomputed from the event is exactly the
+ * revision declared. Reopening needs a reason; marking final again makes the next revision.
  */
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   computeResults,
   juniorClassesFromSetup,
+  placeChanges,
   resultsCsv,
   resultsHtml,
+  type Results,
   type ResultsGap,
+  type RevisionNote,
 } from '@tscore/core';
 import { StoreError, type EventStore } from '@tscore/store';
 import { app, BrowserWindow, dialog, shell } from 'electron';
@@ -22,26 +29,96 @@ import type { ExportKind, ResultsView } from '../shared/ipc';
 /** The last file saved, the only one "Open" may open. */
 let lastExport: string | null = null;
 
+/** Final and not reopened: the revision in force. */
+function inForce(store: EventStore) {
+  const state = store.finalState();
+  return state && !state.reopened ? state : null;
+}
+
 function report(store: EventStore, juniorInitials: boolean) {
   const setup = store.setup;
+  const final = inForce(store);
   return computeResults(store.resultsInput(), {
     generator: { name: 'tScore', version: app.getVersion() },
-    generatedAt: new Date().toISOString(),
-    status: 'provisional',
-    revision: 1,
+    generatedAt: final ? final.markedAt : new Date().toISOString(),
+    status: final ? 'final' : 'provisional',
+    revision: final ? final.revision : store.nextRevision(),
     ...(juniorInitials && {
       privacy: { juniorSurnameInitialClasses: juniorClassesFromSetup(setup) },
     }),
   });
 }
 
+const timeWords = (iso: string) =>
+  new Date(iso).toLocaleString('en-AU', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  });
+
+/** For a revision after the first: what it replaces, why, and which places changed. */
+function revisionNote(store: EventStore, revision: number): RevisionNote | undefined {
+  if (revision < 2) return undefined;
+  const replaced = store.finalHistory().find((f) => f.revision === revision - 1);
+  if (!replaced) return undefined;
+  const before = store.finalResults(revision - 1) as Results;
+  const after =
+    inForce(store)?.revision === revision
+      ? (store.finalResults(revision) as Results)
+      : report(store, false).results;
+  return {
+    replaces: replaced.revision,
+    replacedAt: timeWords(replaced.markedAt),
+    reason: replaced.reopenReason ?? '',
+    changes: placeChanges(before, after),
+  };
+}
+
 export function resultsView(store: EventStore): ResultsView {
   const { results, gaps } = report(store, false);
+  const state = store.finalState();
+  const next = store.nextRevision();
+  const note = state?.reopened ? revisionNote(store, next) : undefined;
   return {
     results,
     gaps: gaps.map((g: ResultsGap) => ({ ...g })),
     juniorClasses: juniorClassesFromSetup(store.setup),
+    ...(state && {
+      final: {
+        revision: state.revision,
+        markedAt: state.markedAt,
+        reopened: state.reopened,
+        ...(state.reopenReason !== undefined && { reopenReason: state.reopenReason }),
+      },
+    }),
+    nextRevision: next,
+    ...(note && { changes: note.changes }),
   };
+}
+
+/** Freeze the results as the next revision. Every expected card must be in. */
+export function markFinal(store: EventStore): void {
+  const revision = store.nextRevision();
+  const { results, gaps } = computeResults(store.resultsInput(), {
+    generator: { name: 'tScore', version: app.getVersion() },
+    generatedAt: new Date().toISOString(),
+    status: 'final',
+    revision,
+  });
+  if (gaps.length > 0) {
+    throw new StoreError(
+      'APP_RESULTS_INCOMPLETE',
+      'Results can be marked final once every expected card is in and every score decided.',
+    );
+  }
+  if (results.classes.every((c) => c.entries.length === 0)) {
+    throw new StoreError('APP_RESULTS_INCOMPLETE', 'There are no results to mark final yet.');
+  }
+  store.markFinal(revision, results);
 }
 
 const dateWords = (iso: string) =>
@@ -55,10 +132,12 @@ const dateWords = (iso: string) =>
     .format(Date.parse(`${iso}T00:00:00Z`))
     .replace(/,/g, '');
 
-/** A safe file name: "DEMO1 results 2027-02-06.pdf". */
+/** A safe file name: "DEMO1 results 2027-02-06.pdf", or "DEMO1 results FINAL rev 2 …". */
 function fileName(store: EventStore, kind: ExportKind): string {
   const date = store.setup.days[0]?.date ?? '';
-  const base = `${store.setup.event.code} results${date ? ` ${date}` : ''}`;
+  const final = inForce(store);
+  const status = final ? ` FINAL${final.revision > 1 ? ` rev ${final.revision}` : ''}` : '';
+  const base = `${store.setup.event.code} results${status}${date ? ` ${date}` : ''}`;
   return `${base.replace(/[<>:"/\\|?*]/g, '')}.${kind}`;
 }
 
@@ -112,13 +191,16 @@ export async function exportResults(
   if (kind === 'csv') {
     writeFileSync(picked.filePath, resultsCsv(results), 'utf8');
   } else {
+    const final = inForce(store);
+    const note = final ? revisionNote(store, final.revision) : undefined;
     const html = resultsHtml(results, {
       gaps,
       dates: store.setup.days.flatMap((d) => (d.date ? [dateWords(d.date)] : [])).join(' – '),
       footer: `Produced by tScore ${app.getVersion()} on ${new Date().toLocaleString('en-AU', {
         dateStyle: 'medium',
         timeStyle: 'short',
-      })}.`,
+      })}.${final ? ` Marked final ${timeWords(final.markedAt)}.` : ''}`,
+      ...(note && { revisionNote: note }),
     });
     writeFileSync(picked.filePath, await pdfOf(html));
   }

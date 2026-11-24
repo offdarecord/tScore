@@ -91,6 +91,31 @@ export interface CardSummary {
   readonly edited: boolean;
 }
 
+/** A revision of the results marked final. */
+export interface FinalState {
+  readonly revision: number;
+  readonly markedAt: string;
+  /** Reopened to correct something: the next "mark final" makes the next revision. */
+  readonly reopened: boolean;
+  readonly reopenedAt?: string;
+  readonly reopenReason?: string;
+}
+
+interface FinalRow {
+  revision: number;
+  marked_at: string;
+  reopened_at: string | null;
+  reopen_reason: string | null;
+}
+
+const toFinalState = (r: FinalRow): FinalState => ({
+  revision: r.revision,
+  markedAt: r.marked_at,
+  reopened: r.reopened_at !== null,
+  ...(r.reopened_at !== null && { reopenedAt: r.reopened_at }),
+  ...(r.reopen_reason !== null && { reopenReason: r.reopen_reason }),
+});
+
 /** One card label: a rider's card for one lap of one day. */
 export interface LabelKey {
   readonly number: number;
@@ -228,6 +253,7 @@ export class EventStore {
    * class that has riders, or a day, lap or section that already has scores.
    */
   updateSetup(setup: unknown): void {
+    this.#assertOpen();
     const valid = checkSetup(setup);
     this.#checkSetupChange(valid);
     const stored: EventSetup = { ...valid, event: { ...valid.event, id: this.eventId } };
@@ -259,6 +285,7 @@ export class EventStore {
 
   /** Add a rider. Penalties on the input are ignored: use `addPenalty`. */
   addEntry(entry: EntryInput): void {
+    this.#assertOpen();
     this.#checkClasses(entry.number, entry.classes);
     this.#tx(() => this.#insertEntry(entry));
   }
@@ -272,6 +299,7 @@ export class EventStore {
     aliases: readonly { readonly className: string; readonly alias: string }[] = [],
     source = 'entry list',
   ): void {
+    this.#assertOpen();
     let setup = this.#setup;
     if (aliases.length > 0) {
       setup = {
@@ -339,6 +367,7 @@ export class EventStore {
 
   /** Move a rider to another class (or classes), e.g. from Trial 4 Plus to Trial 4 on the day. */
   changeClasses(number: number, classes: readonly string[]): void {
+    this.#assertOpen();
     this.#checkClasses(number, classes);
     this.#updateEntry(
       number,
@@ -351,10 +380,12 @@ export class EventStore {
 
   /** Mark a rider DNF or DNS, or back to riding. */
   setStatus(number: number, status: EntryStatus): void {
+    this.#assertOpen();
     this.#updateEntry(number, 'entry.status', 'status', status, (e) => e.status);
   }
 
   setCompetitionStatus(number: number, competitionStatus: CompetitionStatus): void {
+    this.#assertOpen();
     this.#updateEntry(
       number,
       'entry.competition_status',
@@ -373,6 +404,7 @@ export class EventStore {
     number: number,
     names: readonly { readonly givenName: string; readonly familyName: string }[],
   ): void {
+    this.#assertOpen();
     const current = this.entry(number).riders;
     if (names.length !== current.length) {
       throw new StoreError(
@@ -398,6 +430,7 @@ export class EventStore {
 
   /** Change or clear the rider's club. */
   setClub(number: number, club: string | null): void {
+    this.#assertOpen();
     const value = tidyText(club ?? '');
     if (value.length > CLUB_MAX) {
       throw new StoreError('STORE_BAD_CLUB', `A club can be up to ${CLUB_MAX} characters.`);
@@ -425,6 +458,7 @@ export class EventStore {
    * `correctScore` to change one).
    */
   recordCard(card: RecordCard): string {
+    this.#assertOpen();
     const sections = this.#sectionsFor(card.number, card.day, card.lap);
     if (card.scores.length !== sections) {
       throw new StoreError(
@@ -491,6 +525,7 @@ export class EventStore {
 
   /** Change one section's score. The old score is kept as history, never overwritten. */
   correctScore(change: CorrectScore): void {
+    this.#assertOpen();
     const card = this.#cardId(change.number, change.day, change.lap);
     this.#checkScore(change.value, change, change.section);
     const current = this.#db
@@ -523,6 +558,7 @@ export class EventStore {
    * many sections changed.
    */
   amendCard(change: AmendCard): number {
+    this.#assertOpen();
     const card = this.#cardId(change.number, change.day, change.lap);
     const sections = this.#sectionsFor(change.number, change.day, change.lap);
     if (change.scores.length !== sections) {
@@ -663,6 +699,7 @@ export class EventStore {
   // ---- Penalties ----
 
   addPenalty(number: number, penalty: PenaltyInput): string {
+    this.#assertOpen();
     this.entry(number);
     const id = newId(this.#ctx);
     this.#tx(() => {
@@ -718,6 +755,7 @@ export class EventStore {
   }
 
   removePenalty(id: string): void {
+    this.#assertOpen();
     this.#tx(() => {
       const r = this.#db
         .prepare('UPDATE penalty SET removed_at = ? WHERE id = ? AND removed_at IS NULL')
@@ -749,6 +787,82 @@ export class EventStore {
     return this.#db
       .prepare('SELECT DISTINCT number, day, lap FROM label_print ORDER BY number, day, lap')
       .all() as unknown as LabelKey[];
+  }
+
+  // ---- Results marked final ----
+
+  /** The latest revision marked final, if any, and whether it has been reopened. */
+  finalState(): FinalState | null {
+    const row = this.#db
+      .prepare('SELECT * FROM results_final ORDER BY revision DESC LIMIT 1')
+      .get() as FinalRow | undefined;
+    return row ? toFinalState(row) : null;
+  }
+
+  /** Every revision marked final, oldest first. */
+  finalHistory(): FinalState[] {
+    const rows = this.#db
+      .prepare('SELECT * FROM results_final ORDER BY revision')
+      .all() as unknown as FinalRow[];
+    return rows.map(toFinalState);
+  }
+
+  /** The results exactly as declared in a revision. */
+  finalResults(revision: number): unknown {
+    const row = this.#db
+      .prepare('SELECT results_json FROM results_final WHERE revision = ?')
+      .get(revision) as { results_json: string } | undefined;
+    if (!row) throw new StoreError('STORE_NO_REVISION', `There's no revision ${revision}.`);
+    return JSON.parse(row.results_json) as unknown;
+  }
+
+  /** The revision the next "mark final" will be. */
+  nextRevision(): number {
+    return (this.finalState()?.revision ?? 0) + 1;
+  }
+
+  /**
+   * Mark the results final as revision `nextRevision()`, keeping them exactly as given. Until
+   * they're reopened, nothing that affects results can change.
+   */
+  markFinal(revision: number, results: unknown): void {
+    this.#assertOpen();
+    if (revision !== this.nextRevision()) {
+      throw new StoreError('STORE_REVISION_CHANGED', 'The results changed. Try again.');
+    }
+    this.#tx(() => {
+      this.#db
+        .prepare(
+          `INSERT INTO results_final (revision, marked_at, station_id, operator, results_json)
+             VALUES (?, ?, ?, ?, ?)`,
+        )
+        .run(
+          revision,
+          stamp(this.#ctx),
+          this.#ctx.stationId,
+          this.#ctx.operator ?? null,
+          JSON.stringify(results),
+        );
+      this.#audit('results.final', this.eventId, { revision });
+    });
+  }
+
+  /** Reopen final results to correct something. The reason is kept with the revision. */
+  reopenResults(reason: string): void {
+    const state = this.finalState();
+    if (!state || state.reopened) {
+      throw new StoreError('STORE_NOT_FINAL', "The results aren't final.");
+    }
+    const why = tidyText(reason);
+    if (!why || why.length > 300) {
+      throw new StoreError('STORE_NEED_REASON', 'Say why the results are being reopened.');
+    }
+    this.#tx(() => {
+      this.#db
+        .prepare('UPDATE results_final SET reopened_at = ?, reopen_reason = ? WHERE revision = ?')
+        .run(stamp(this.#ctx), why, state.revision);
+      this.#audit('results.reopen', this.eventId, { revision: state.revision, reason: why });
+    });
   }
 
   // ---- Audit, results, backups ----
@@ -828,6 +942,17 @@ export class EventStore {
   }
 
   // ---- Internals ----
+
+  /** Refuse changes that would alter results marked final. */
+  #assertOpen(): void {
+    const state = this.finalState();
+    if (state && !state.reopened) {
+      throw new StoreError(
+        'STORE_RESULTS_FINAL',
+        `Results are final (revision ${state.revision}). Reopen them on the Results screen to change anything that affects them.`,
+      );
+    }
+  }
 
   #tx<T>(fn: () => T): T {
     return transaction(this.#db, fn);

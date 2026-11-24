@@ -397,7 +397,9 @@ describe('results', () => {
     const direct = computeResults({ ...ev, scoring: DEFAULT_SCORING }, options);
     const viaStore = computeResults(store.resultsInput(), options);
     expect(viaStore).toEqual(direct);
-  });
+    // Every card is saved in its own transaction, as at the desk, so a slow CI disk can take
+    // several seconds (6.9 s seen on 24 Nov 2026, against the 5 s default).
+  }, 30_000);
 
   it('asks for the date of each day before working out results', () => {
     const store = track(

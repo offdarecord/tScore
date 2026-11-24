@@ -55,47 +55,75 @@ export function EventNav(props: {
         </Text>
       </div>
       <NavHeading>Before the event</NavHeading>
-      <NavLater label={CHECK} />
-      <NavLink
-        label="Event setup"
-        current={page.name === 'setup'}
-        onClick={() => onNavigate({ name: 'setup' })}
-      />
-      <NavLink
-        label="Riders"
-        count={event.riders}
-        current={page.name === 'riders' || page.name === 'import'}
-        onClick={() => onNavigate({ name: 'riders' })}
-      />
-      <NavLink
-        label="Card labels"
-        current={page.name === 'labels'}
-        onClick={() => onNavigate({ name: 'labels' })}
-      />
+      <NavGroup>
+        <NavLater label={CHECK} />
+        <NavLink
+          label="Event setup"
+          current={page.name === 'setup'}
+          onClick={() => onNavigate({ name: 'setup' })}
+        />
+        <NavLink
+          label="Riders"
+          count={event.riders}
+          current={page.name === 'riders' || page.name === 'import'}
+          onClick={() => onNavigate({ name: 'riders' })}
+        />
+        <NavLink
+          label="Card labels"
+          current={page.name === 'labels'}
+          onClick={() => onNavigate({ name: 'labels' })}
+        />
+      </NavGroup>
       <NavHeading>On the day</NavHeading>
-      <NavLater label={SCAN_DESK} />
-      <NavLink
-        label="Manual entry"
-        current={page.name === 'manual'}
-        onClick={() => onNavigate({ name: 'manual' })}
-      />
-      {LATER_ON_THE_DAY.map((l) => (
-        <NavLater key={l} label={l} />
-      ))}
-      <NavLink
-        label="Results"
-        current={page.name === 'results'}
-        onClick={() => onNavigate({ name: 'results' })}
-      />
+      <NavGroup>
+        <NavLater label={SCAN_DESK} />
+        <NavLink
+          label="Manual entry"
+          current={page.name === 'manual'}
+          onClick={() => onNavigate({ name: 'manual' })}
+        />
+        {LATER_ON_THE_DAY.map((l) => (
+          <NavLater key={l} label={l} />
+        ))}
+        <NavLink
+          label="Results"
+          current={page.name === 'results'}
+          onClick={() => onNavigate({ name: 'results' })}
+        />
+      </NavGroup>
     </Stack>
   );
 }
 
+/**
+ * A section heading: structure, not a page. It sits further left than its pages, with wider
+ * letter spacing and a divider above, so it doesn't read as one more menu item.
+ */
 function NavHeading({ children }: { children: string }) {
   return (
-    <Text size="xs" fw={700} c="dimmed" tt="uppercase" mt="md" mb={4} px={12}>
+    <Text
+      size="xs"
+      fw={700}
+      c="dimmed"
+      tt="uppercase"
+      lts="0.08em"
+      mt="md"
+      mb={4}
+      px={4}
+      pt="sm"
+      style={{ borderTop: '1px solid var(--mantine-color-gray-3)' }}
+    >
       {children}
     </Text>
+  );
+}
+
+/** A section's pages, set in from its heading. */
+function NavGroup({ children }: { children: React.ReactNode }) {
+  return (
+    <Stack gap={2} pl={10}>
+      {children}
+    </Stack>
   );
 }
 

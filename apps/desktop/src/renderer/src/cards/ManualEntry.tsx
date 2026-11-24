@@ -335,6 +335,8 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
                 disabled={editing !== null}
                 onChange={(e) => setInAt(e.currentTarget.value || nowHHMM())}
                 description="Laptop time. Change for an earlier card."
+                // Under the box, so it lines up with the Rider, Day and Lap boxes beside it.
+                inputWrapperOrder={['label', 'input', 'description', 'error']}
               />
             </Group>
 
@@ -381,8 +383,8 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
               label="Scores, section 1 onwards"
               description={
                 singleDigitScores(scoreValues)
-                  ? `One digit per section: ${scoreValues.join(', ')}. Spaces are ignored.`
-                  : `Separate the scores with spaces: ${scoreValues.join(', ')}.`
+                  ? `One digit per section (${scoreValues.join(' ')}). Spaces are ignored.`
+                  : `Separate the scores with spaces (${scoreValues.join(' ')}).`
               }
               inputMode="numeric"
               autoComplete="off"

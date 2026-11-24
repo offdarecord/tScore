@@ -284,15 +284,17 @@ function ClassTable(props: {
           </Table.Thead>
           <Table.Tbody>
             {cls.entries.map((e, i) => {
-              const muted = e.tier !== 'competitive' || e.status !== 'finished';
+              const muted = e.competition_status !== 'competitive' || e.status !== 'finished';
               const pen = penaltyPoints(e);
               const notes = [
                 e.also_in?.length ? `Also in ${e.also_in.join(', ')}` : '',
                 waiting.get(e.number)?.length
                   ? `Waiting for lap ${waiting.get(e.number)?.join(', ')}`
                   : '',
-                e.tier === 'non_competitive' ? 'Non-competitive: scores not shown' : '',
-                e.tier === 'no_award' ? 'No award' : '',
+                e.competition_status === 'non_competitive'
+                  ? 'Non-competitive: scores not shown'
+                  : '',
+                e.competition_status === 'no_award' ? 'No award' : '',
               ].filter(Boolean);
               return (
                 <Table.Tr key={e.number} {...(muted && { bg: '#f8f9fa' })}>

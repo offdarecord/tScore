@@ -314,7 +314,7 @@
             "familyName": "1"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 1"]
       },
@@ -326,7 +326,7 @@
             "familyName": "2"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 1"]
       },
@@ -338,7 +338,7 @@
             "familyName": "3"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 1"]
       },
@@ -350,7 +350,7 @@
             "familyName": "4"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 1"]
       },
@@ -362,7 +362,7 @@
             "familyName": "5"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 1"]
       },
@@ -374,7 +374,7 @@
             "familyName": "6"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 1"]
       },
@@ -386,7 +386,7 @@
             "familyName": "7"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 1"]
       },
@@ -398,7 +398,7 @@
             "familyName": "8"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 1"]
       },
@@ -410,7 +410,7 @@
             "familyName": "9"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 1"]
       },
@@ -422,7 +422,7 @@
             "familyName": "10"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 2"]
       },
@@ -434,7 +434,7 @@
             "familyName": "11"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 2"]
       },
@@ -446,7 +446,7 @@
             "familyName": "12"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 2"]
       },
@@ -458,7 +458,7 @@
             "familyName": "13"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 2"]
       },
@@ -470,7 +470,7 @@
             "familyName": "14"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 2"]
       },
@@ -482,7 +482,7 @@
             "familyName": "15"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 2"]
       },
@@ -494,7 +494,7 @@
             "familyName": "16"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 2"]
       },
@@ -506,7 +506,7 @@
             "familyName": "17"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 2"]
       },
@@ -518,7 +518,7 @@
             "familyName": "18"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 2"]
       },
@@ -530,7 +530,7 @@
             "familyName": "19"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 2"]
       },
@@ -542,7 +542,7 @@
             "familyName": "20"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 3"]
       },
@@ -554,7 +554,7 @@
             "familyName": "21"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 3"]
       },
@@ -566,7 +566,7 @@
             "familyName": "22"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 3"]
       },
@@ -578,7 +578,7 @@
             "familyName": "23"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 3"]
       },
@@ -590,7 +590,7 @@
             "familyName": "24"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 3"]
       },
@@ -602,7 +602,7 @@
             "familyName": "25"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 3"]
       },
@@ -614,7 +614,7 @@
             "familyName": "26"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 3"]
       },
@@ -626,7 +626,7 @@
             "familyName": "27"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 4"]
       },
@@ -638,7 +638,7 @@
             "familyName": "28"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 4"]
       },
@@ -650,7 +650,7 @@
             "familyName": "29"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 4"]
       },
@@ -662,7 +662,7 @@
             "familyName": "30"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 4"]
       },
@@ -674,7 +674,7 @@
             "familyName": "31"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 4"]
       },
@@ -686,7 +686,7 @@
             "familyName": "32"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 4"]
       },
@@ -698,7 +698,7 @@
             "familyName": "33"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Trial 4"]
       },
@@ -710,7 +710,7 @@
             "familyName": "34"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "dnf",
         "classes": ["Trial 4"]
       },
@@ -722,7 +722,7 @@
             "familyName": "35"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "dnf",
         "classes": ["Trial 4"]
       },
@@ -734,7 +734,7 @@
             "familyName": "36"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 40 to 55"]
       },
@@ -746,7 +746,7 @@
             "familyName": "37"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 40 to 55"]
       },
@@ -758,7 +758,7 @@
             "familyName": "38"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 40 to 55"]
       },
@@ -770,7 +770,7 @@
             "familyName": "39"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 40 to 55"]
       },
@@ -782,7 +782,7 @@
             "familyName": "40"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 40 to 55"]
       },
@@ -794,7 +794,7 @@
             "familyName": "41"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 40 to 55"]
       },
@@ -806,7 +806,7 @@
             "familyName": "42"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 40 to 55"]
       },
@@ -818,7 +818,7 @@
             "familyName": "43"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "dnf",
         "classes": ["Veterans 40 to 55"]
       },
@@ -830,7 +830,7 @@
             "familyName": "44"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "dnf",
         "classes": ["Veterans 40 to 55"]
       },
@@ -842,7 +842,7 @@
             "familyName": "45"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "dns",
         "classes": ["Veterans 40 to 55"]
       },
@@ -854,7 +854,7 @@
             "familyName": "46"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 55 Plus"]
       },
@@ -866,7 +866,7 @@
             "familyName": "47"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 55 Plus"]
       },
@@ -878,7 +878,7 @@
             "familyName": "48"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 55 Plus"]
       },
@@ -890,7 +890,7 @@
             "familyName": "49"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 55 Plus"]
       },
@@ -902,7 +902,7 @@
             "familyName": "50"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 55 Plus"]
       },
@@ -914,7 +914,7 @@
             "familyName": "51"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 55 Plus"]
       },
@@ -926,7 +926,7 @@
             "familyName": "52"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 55 Plus"]
       },
@@ -938,7 +938,7 @@
             "familyName": "53"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 55 Plus"]
       },
@@ -950,7 +950,7 @@
             "familyName": "54"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 55 Plus"]
       },
@@ -962,7 +962,7 @@
             "familyName": "55"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 55 Plus"]
       },
@@ -974,7 +974,7 @@
             "familyName": "56"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 55 Plus"]
       },
@@ -986,7 +986,7 @@
             "familyName": "57"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 55 Plus"]
       },
@@ -998,7 +998,7 @@
             "familyName": "58"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 55 Plus"]
       },
@@ -1010,7 +1010,7 @@
             "familyName": "59"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Veterans 55 Plus"]
       },
@@ -1022,7 +1022,7 @@
             "familyName": "60"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "dns",
         "classes": ["Veterans 55 Plus"]
       },
@@ -1034,7 +1034,7 @@
             "familyName": "61"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior 12 to under 16"]
       },
@@ -1046,7 +1046,7 @@
             "familyName": "62"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior 12 to under 16"]
       },
@@ -1058,7 +1058,7 @@
             "familyName": "63"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior 12 to under 16"]
       },
@@ -1070,7 +1070,7 @@
             "familyName": "64"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior 12 to under 16"]
       },
@@ -1082,7 +1082,7 @@
             "familyName": "65"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior 12 to under 16"]
       },
@@ -1094,7 +1094,7 @@
             "familyName": "66"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior 12 to under 16"]
       },
@@ -1106,7 +1106,7 @@
             "familyName": "67"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior 12 to under 16"]
       },
@@ -1118,7 +1118,7 @@
             "familyName": "68"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior Women 12 to under 16"]
       },
@@ -1130,7 +1130,7 @@
             "familyName": "69"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior 9 to under 13"]
       },
@@ -1142,7 +1142,7 @@
             "familyName": "70"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior 9 to under 13"]
       },
@@ -1154,7 +1154,7 @@
             "familyName": "71"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior 9 to under 13"]
       },
@@ -1166,7 +1166,7 @@
             "familyName": "72"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior 9 to under 13"]
       },
@@ -1178,7 +1178,7 @@
             "familyName": "73"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "dnf",
         "classes": ["Junior 9 to under 13"]
       },
@@ -1190,7 +1190,7 @@
             "familyName": "74"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior Women 9 to under 13"]
       },
@@ -1202,7 +1202,7 @@
             "familyName": "75"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior Women 9 to under 13"]
       },
@@ -1214,7 +1214,7 @@
             "familyName": "76"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior Women 9 to under 13"]
       },
@@ -1226,7 +1226,7 @@
             "familyName": "77"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior Women 9 to under 13"]
       },
@@ -1238,7 +1238,7 @@
             "familyName": "78"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "dnf",
         "classes": ["Junior Women 9 to under 13"]
       },
@@ -1250,7 +1250,7 @@
             "familyName": "79"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior 7 to under 11"]
       },
@@ -1262,7 +1262,7 @@
             "familyName": "80"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior 7 to under 11"]
       },
@@ -1274,7 +1274,7 @@
             "familyName": "81"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior 7 to under 11"]
       },
@@ -1286,7 +1286,7 @@
             "familyName": "82"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior 7 to under 11"]
       },
@@ -1298,7 +1298,7 @@
             "familyName": "83"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior 7 to under 11"]
       },
@@ -1310,7 +1310,7 @@
             "familyName": "84"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior Women 7 to under 11"]
       },
@@ -1322,7 +1322,7 @@
             "familyName": "85"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior Women 7 to under 11"]
       },
@@ -1334,7 +1334,7 @@
             "familyName": "86"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Junior Women 7 to under 11"]
       },
@@ -1346,7 +1346,7 @@
             "familyName": "87"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Women"]
       },
@@ -1358,7 +1358,7 @@
             "familyName": "88"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Women"]
       },
@@ -1370,7 +1370,7 @@
             "familyName": "89"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Women"]
       },
@@ -1382,7 +1382,7 @@
             "familyName": "90"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Women"]
       },
@@ -1394,7 +1394,7 @@
             "familyName": "91"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Women"]
       },
@@ -1406,7 +1406,7 @@
             "familyName": "92"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Women"]
       },
@@ -1418,7 +1418,7 @@
             "familyName": "93"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Women"]
       },
@@ -1430,7 +1430,7 @@
             "familyName": "94"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Women 2"]
       },
@@ -1442,7 +1442,7 @@
             "familyName": "95"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Sidecar"]
       },
@@ -1454,7 +1454,7 @@
             "familyName": "96"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Sidecar"]
       },
@@ -1466,7 +1466,7 @@
             "familyName": "97"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Sidecar"]
       },
@@ -1478,7 +1478,7 @@
             "familyName": "98"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Sidecar"]
       },
@@ -1490,7 +1490,7 @@
             "familyName": "99"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Classic"]
       },
@@ -1502,7 +1502,7 @@
             "familyName": "100"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Classic"]
       },
@@ -1514,7 +1514,7 @@
             "familyName": "101"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Classic"]
       },
@@ -1526,7 +1526,7 @@
             "familyName": "102"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "dnf",
         "classes": ["Classic"]
       },
@@ -1538,7 +1538,7 @@
             "familyName": "103"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "dnf",
         "classes": ["Classic"]
       },
@@ -1550,7 +1550,7 @@
             "familyName": "104"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Twinshock"]
       },
@@ -1562,7 +1562,7 @@
             "familyName": "105"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Twinshock"]
       },
@@ -1574,7 +1574,7 @@
             "familyName": "106"
           }
         ],
-        "tier": "competitive",
+        "competitionStatus": "competitive",
         "status": "riding",
         "classes": ["Twinshock"]
       }

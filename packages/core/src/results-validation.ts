@@ -46,17 +46,20 @@ function checkResultsRules(results: Results): ValidationIssue[] {
 }
 
 function checkPlacing(entry: Entry, path: string, add: (p: string, m: string) => void): void {
-  const placed = entry.tier === 'competitive' && entry.status === 'finished';
+  const placed = entry.competition_status === 'competitive' && entry.status === 'finished';
   if (placed && entry.position === null)
     add(`${path}.position`, 'a competitive finisher needs a position');
   if (!placed && entry.position !== null) {
     add(`${path}.position`, 'only competitive finishers have a position (use null)');
   }
-  const ranked = entry.tier !== 'competitive' && entry.status === 'finished';
-  if (!ranked && entry.rank_in_tier != null) {
-    add(`${path}.rank_in_tier`, 'only No Award and non-competitive finishers have rank_in_tier');
+  const ranked = entry.competition_status !== 'competitive' && entry.status === 'finished';
+  if (!ranked && entry.rank_in_competition_status != null) {
+    add(
+      `${path}.rank_in_competition_status`,
+      'only No Award and non-competitive finishers have rank_in_competition_status',
+    );
   }
-  if (entry.tier === 'non_competitive' || entry.tier === 'no_award') {
+  if (entry.competition_status === 'non_competitive' || entry.competition_status === 'no_award') {
     if (entry.ride_off !== undefined)
       add(`${path}.ride_off`, 'ride-offs only decide competitive placings');
   }
@@ -76,7 +79,7 @@ function checkScores(
   }
   // Governing-body rule: a non-competitive rider's scores are never published, only their
   // 0/1/2/3/5 counts. They're left out of the file, not hidden.
-  if (entry.tier === 'non_competitive') {
+  if (entry.competition_status === 'non_competitive') {
     if (entry.total !== null)
       add(`${path}.total`, 'a non-competitive entry has no total (use null)');
     if (entry.days?.length) add(`${path}.days`, 'a non-competitive entry has no published scores');

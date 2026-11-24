@@ -15,7 +15,7 @@ import type {
   EventInput,
   PersonInput,
   ResultsOptions,
-  Tier,
+  CompetitionStatus,
 } from './model.js';
 import { makeComparator, rank, type RankKey } from './ranking.js';
 
@@ -119,12 +119,12 @@ export function computeResults(input: EventInput, options: ResultsOptions): Resu
     const scored = members.filter((e) => e.status !== 'dns').map((e) => scoreEntry(e, cls, days));
 
     const byNumber = (a: Scored, b: Scored) => a.entry.number - b.entry.number;
-    const tiers = ['competitive', 'no_award', 'non_competitive'] as const;
-    const inTier = (tier: Tier, f: (s: Scored) => boolean) =>
-      scored.filter((s) => s.entry.tier === tier && f(s));
+    const competitionStatuses = ['competitive', 'no_award', 'non_competitive'] as const;
+    const inCompetitionStatus = (competitionStatus: CompetitionStatus, f: (s: Scored) => boolean) =>
+      scored.filter((s) => s.entry.competitionStatus === competitionStatus && f(s));
 
     // Display order, matching club results (checked against past events' scoring workbooks and
-    // published results). For each tier in turn (competitive, No award, Non-competitive):
+    // published results). For each competition status in turn (competitive, No award, Non-competitive):
     //   1. riders still in with every card in, ranked by the full tie-breaks;
     //   2. riders still in with a card missing or a score undecided (provisional results only),
     //      ranked the same way on what's in so far;
@@ -132,29 +132,34 @@ export function computeResults(input: EventInput, options: ResultsOptions): Resu
     //      they didn't ride every lap;
     //   4. DNS riders, by number.
     const out: Entry[] = [];
-    for (const tier of tiers) {
+    for (const competitionStatus of competitionStatuses) {
       let placed = 0;
       for (const complete of [true, false]) {
-        const group = inTier(tier, (s) => s.entry.status === 'riding' && s.complete === complete);
+        const group = inCompetitionStatus(
+          competitionStatus,
+          (s) => s.entry.status === 'riding' && s.complete === complete,
+        );
         const ranked = rank(group, (s) => s.key, compare, byNumber);
         for (const p of ranked) {
           const place = placed + p.place;
           out.push(
             entryOut(p.item, cls, {
-              position: tier === 'competitive' ? place : null,
-              rankInTier: tier === 'competitive' ? null : place,
+              position: competitionStatus === 'competitive' ? place : null,
+              rankInCompetitionStatus: competitionStatus === 'competitive' ? null : place,
               tied: p.tiedWithPrevious,
             }),
           );
         }
         placed += ranked.length;
       }
-      const dnf = inTier(tier, (s) => s.entry.status === 'dnf');
+      const dnf = inCompetitionStatus(competitionStatus, (s) => s.entry.status === 'dnf');
       for (const p of rank(dnf, (s) => s.key, compareDnf, byNumber)) {
-        out.push(entryOut(p.item, cls, { position: null, rankInTier: null, tied: false }));
+        out.push(
+          entryOut(p.item, cls, { position: null, rankInCompetitionStatus: null, tied: false }),
+        );
       }
       members
-        .filter((e) => e.tier === tier && e.status === 'dns')
+        .filter((e) => e.competitionStatus === competitionStatus && e.status === 'dns')
         .sort((a, b) => a.number - b.number)
         .forEach((e) => out.push(dnsOut(e, cls)));
     }
@@ -248,31 +253,31 @@ export function computeResults(input: EventInput, options: ResultsOptions): Resu
   function base(
     e: EntryInput,
     cls: ClassInput,
-  ): Pick<Entry, 'number' | 'riders' | 'club' | 'tier'> {
+  ): Pick<Entry, 'number' | 'riders' | 'club' | 'competition_status'> {
     return {
       number: e.number,
       riders: e.riders.map((p) => person(p, juniors.has(cls.name))),
       ...(e.club !== undefined && { club: e.club }),
-      tier: e.tier,
+      competition_status: e.competitionStatus,
     };
   }
 
   function entryOut(
     s: Scored,
     cls: ClassInput,
-    place: { position: number | null; rankInTier: number | null; tied: boolean },
+    place: { position: number | null; rankInCompetitionStatus: number | null; tied: boolean },
   ): Entry {
     const e = s.entry;
     const rideOff = e.rideOff?.[cls.name];
     const others = e.classes.filter((c) => c !== cls.name);
     // Governing-body rule: a non-competitive rider's scores are never published, only their
     // counts. Leave them out of the payload entirely (not hidden) so no output can leak them.
-    const scoresPublic = e.tier !== 'non_competitive';
+    const scoresPublic = e.competitionStatus !== 'non_competitive';
     return {
       ...base(e, cls),
       status: e.status === 'dnf' ? 'dnf' : 'finished',
       position: place.position,
-      rank_in_tier: place.rankInTier,
+      rank_in_competition_status: place.rankInCompetitionStatus,
       ...(place.tied && { tied_with_previous: true }),
       total: scoresPublic ? s.total : null,
       counts: Object.fromEntries(
@@ -285,7 +290,13 @@ export function computeResults(input: EventInput, options: ResultsOptions): Resu
   }
 
   function dnsOut(e: EntryInput, cls: ClassInput): Entry {
-    return { ...base(e, cls), status: 'dns', position: null, rank_in_tier: null, total: null };
+    return {
+      ...base(e, cls),
+      status: 'dns',
+      position: null,
+      rank_in_competition_status: null,
+      total: null,
+    };
   }
 }
 

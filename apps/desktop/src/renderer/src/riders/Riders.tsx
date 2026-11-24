@@ -13,7 +13,7 @@ import {
   Title,
   VisuallyHidden,
 } from '@mantine/core';
-import type { EntryStatus, Tier } from '@tscore/core';
+import type { EntryStatus, CompetitionStatus } from '@tscore/core';
 import { useEffect, useMemo, useState } from 'react';
 import type {
   AppError,
@@ -24,12 +24,16 @@ import type {
 } from '../../../shared/ipc';
 import { ComingSoonButton } from '../ComingSoonButton';
 
-export const TIER_LABEL: Record<Tier, string> = {
+export const COMPETITION_STATUS_LABEL: Record<CompetitionStatus, string> = {
   competitive: 'Competitive',
   no_award: 'No award',
   non_competitive: 'Non-competitive (NC)',
 };
-const TIER_SHORT: Record<Tier, string> = { competitive: '', no_award: 'NA', non_competitive: 'NC' };
+const COMPETITION_STATUS_SHORT: Record<CompetitionStatus, string> = {
+  competitive: '',
+  no_award: 'NA',
+  non_competitive: 'NC',
+};
 const STATUS_LABEL: Record<EntryStatus, string> = {
   riding: 'Riding',
   dns: 'Did not start',
@@ -46,7 +50,7 @@ interface Props {
   readonly onImport: (file: EntryListFile) => void;
 }
 
-/** Everyone entered in the event. Find a rider; change their class, tier or riding status. */
+/** Everyone entered in the event. Find a rider; change their class, competition status or riding status. */
 export function Riders({ event, notice, onImport }: Props) {
   const [riders, setRiders] = useState<RiderInfo[] | null>(null);
   const [find, setFind] = useState('');
@@ -74,8 +78,8 @@ export function Riders({ event, notice, onImport }: Props) {
         <div>
           <Title order={2}>Riders</Title>
           <Text c="dimmed">
-            {count === 1 ? '1 rider.' : `${count} riders.`} Change a class or tier, or mark DNS or
-            DNF. Every change is logged.
+            {count === 1 ? '1 rider.' : `${count} riders.`} Change a class or competitionStatus, or
+            mark DNS or DNF. Every change is logged.
           </Text>
         </div>
         <Group gap="sm">
@@ -140,9 +144,13 @@ export function Riders({ event, notice, onImport }: Props) {
                       <Table.Td fw={700}>{r.number}</Table.Td>
                       <Table.Td>
                         {riderName(r)}{' '}
-                        {TIER_SHORT[r.tier] && (
-                          <Badge variant="light" color="gray" title={TIER_LABEL[r.tier]}>
-                            {TIER_SHORT[r.tier]}
+                        {COMPETITION_STATUS_SHORT[r.competitionStatus] && (
+                          <Badge
+                            variant="light"
+                            color="gray"
+                            title={COMPETITION_STATUS_LABEL[r.competitionStatus]}
+                          >
+                            {COMPETITION_STATUS_SHORT[r.competitionStatus]}
                           </Badge>
                         )}
                       </Table.Td>
@@ -201,14 +209,16 @@ function RiderDialog(props: {
   const { rider } = props;
   const [first, setFirst] = useState(rider.classes[0] ?? '');
   const [second, setSecond] = useState(rider.classes[1] ?? '');
-  const [tier, setTier] = useState<Tier>(rider.tier);
+  const [competitionStatus, setCompetitionStatus] = useState<CompetitionStatus>(
+    rider.competitionStatus,
+  );
   const [status, setStatus] = useState<EntryStatus>(rider.status);
   const [error, setError] = useState<AppError | null>(null);
 
   const classes = second ? [first, second] : [first];
   const change: RiderChange = {
     ...(classes.join('\n') !== rider.classes.join('\n') ? { classes } : {}),
-    ...(tier !== rider.tier ? { tier } : {}),
+    ...(competitionStatus !== rider.competitionStatus ? { competitionStatus } : {}),
     ...(status !== rider.status ? { status } : {}),
   };
   const changed = Object.keys(change).length > 0;
@@ -239,12 +249,12 @@ function RiderDialog(props: {
           ]}
         />
         <NativeSelect
-          label="Tier"
-          value={tier}
-          onChange={(e) => setTier(e.currentTarget.value as Tier)}
-          data={(Object.keys(TIER_LABEL) as Tier[]).map((t) => ({
+          label="Competition status"
+          value={competitionStatus}
+          onChange={(e) => setCompetitionStatus(e.currentTarget.value as CompetitionStatus)}
+          data={(Object.keys(COMPETITION_STATUS_LABEL) as CompetitionStatus[]).map((t) => ({
             value: t,
-            label: TIER_LABEL[t],
+            label: COMPETITION_STATUS_LABEL[t],
           }))}
         />
         <NativeSelect

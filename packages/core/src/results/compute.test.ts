@@ -16,7 +16,7 @@ const provisional = { ...DEMO_OPTIONS, status: 'provisional' as const };
 const rider = (number: number, extra: Partial<EntryInput> = {}): EntryInput => ({
   number,
   riders: [{ givenName: 'Rider', familyName: String(number) }],
-  tier: 'competitive',
+  competitionStatus: 'competitive',
   status: 'riding',
   classes: ['Open'],
   ...extra,
@@ -149,19 +149,23 @@ describe('computeResults', () => {
 
     it('orders competitive, then No award, then Non-competitive, each with its DNF then DNS riders, whatever the scores', () => {
       const entries = [
-        rider(1, { tier: 'non_competitive' }),
-        rider(2, { tier: 'no_award' }),
+        rider(1, { competitionStatus: 'non_competitive' }),
+        rider(2, { competitionStatus: 'no_award' }),
         rider(3),
         rider(4, { status: 'dnf' }),
         rider(5, { status: 'dns' }),
-        rider(6, { tier: 'no_award', status: 'dns' }),
+        rider(6, { competitionStatus: 'no_award', status: 'dns' }),
       ];
       const { results } = computeResults(
         small({ 1: [0, 0, 0], 2: [0, 0, 0], 3: [5, 5, 5], 4: [0, 0, 0] }, entries),
         provisional,
       );
       expect(
-        results.classes[0]!.entries.map((e) => [e.number, e.position, e.rank_in_tier ?? null]),
+        results.classes[0]!.entries.map((e) => [
+          e.number,
+          e.position,
+          e.rank_in_competition_status ?? null,
+        ]),
       ).toEqual([
         [3, 1, null],
         [4, null, null],
@@ -174,7 +178,10 @@ describe('computeResults', () => {
 
     it("leaves a non-competitive rider's scores out of the results, keeping only counts", () => {
       const entries = [
-        rider(1, { tier: 'non_competitive', penalties: [{ points: 5, reason: 'other' }] }),
+        rider(1, {
+          competitionStatus: 'non_competitive',
+          penalties: [{ points: 5, reason: 'other' }],
+        }),
       ];
       const { results } = computeResults(small({ 1: [1, 0, 5] }, entries), provisional);
       const e = results.classes[0]!.entries[0]!;

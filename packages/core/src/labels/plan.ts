@@ -5,7 +5,7 @@
  */
 import type { EventSetup } from '../generated/event-setup.js';
 import type { LabelTemplate } from '../generated/label-template.js';
-import type { EntryInput, Tier } from '../results/model.js';
+import type { EntryInput, CompetitionStatus } from '../results/model.js';
 import { cutToFit, fitName, textWidthMm, type FittedText } from './text.js';
 
 export type LabelLayout = 'row-per-rider' | 'packed' | 'by-lap';
@@ -80,7 +80,11 @@ export interface LabelPlan {
   readonly skipped: readonly LabelSkip[];
 }
 
-const TIER_MARK: Record<Tier, string> = { competitive: '', no_award: 'NA', non_competitive: 'NC' };
+const COMPETITION_STATUS_MARK: Record<CompetitionStatus, string> = {
+  competitive: '',
+  no_award: 'NA',
+  non_competitive: 'NC',
+};
 
 export function qrPayload(code: string, number: number, day: number, lap: number): string {
   return `TS1;E=${code};R=${number};D=${day};L=${lap}`;
@@ -155,7 +159,7 @@ export function planLabels(
   const label = (r: Rider, day: number, lap: number): CardLabel => {
     const { entry } = r;
     const person = entry.riders[0];
-    const mark = TIER_MARK[entry.tier];
+    const mark = COMPETITION_STATUS_MARK[entry.competitionStatus];
     const lapText = dayCount > 1 ? `D${day}·LAP ${lap}` : `LAP ${lap}`;
     const classLine = mark ? `${r.className} · ${mark}` : r.className;
     return {

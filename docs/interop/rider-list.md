@@ -25,7 +25,7 @@ withdrawn entries (Ridernet). Numbers riders type into Ridernet's `Riding_Number
 tScore numbers riders itself, in class order, then by surname, from the event's first rider
 number.
 
-## Tiers
+## Competition statuses
 
 - **Entryplace:** `Competitive = N` → non-competitive (NC).
 - **Ridernet:** a one-event recreational licence (`Licence_Type = OREC`) → NC. Every class is
@@ -44,18 +44,18 @@ be kept in the event's setup for next time.
 For entry systems tScore doesn't know, save the list as **CSV UTF-8** with these headings
 (any order; the first three are required):
 
-| Heading       | Example      | Notes                                                   |
-| ------------- | ------------ | ------------------------------------------------------- |
-| `Given name`  | Avery        |                                                         |
-| `Family name` | Stone        |                                                         |
-| `Class`       | Trial 4 Plus | The event's class name                                  |
-| `Club`        | Example MCC  | Optional                                                |
-| `Licence`     | 123456       | Optional. Spots a rider entered twice, and on re-import |
-| `Number`      | 42           | Optional. Kept when every rider has a different number  |
-| `Tier`        | NC           | Optional. `NC` = non-competitive, `NA` = No award       |
+| Heading              | Example      | Notes                                                   |
+| -------------------- | ------------ | ------------------------------------------------------- |
+| `Given name`         | Avery        |                                                         |
+| `Family name`        | Stone        |                                                         |
+| `Class`              | Trial 4 Plus | The event's class name                                  |
+| `Club`               | Example MCC  | Optional                                                |
+| `Licence`            | 123456       | Optional. Spots a rider entered twice, and on re-import |
+| `Number`             | 42           | Optional. Kept when every rider has a different number  |
+| `Competition status` | NC           | Optional. `NC` = non-competitive, `NA` = No award       |
 
 ```csv
-Number,Given name,Family name,Class,Club,Licence,Tier
+Number,Given name,Family name,Class,Club,Licence,Competition status
 1,Avery,Stone,Trial 1,Example MCC,123456,
 2,Blake,River,Trial 4 Plus,Example MCC,234567,NC
 ```
@@ -64,4 +64,4 @@ Number,Given name,Family name,Class,Club,Licence,Tier
 
 Importing a later copy of the entry list adds only the people who aren't in the event yet
 (matched by licence number, or by name). Riders already entered keep their number, class and
-tier.
+competition status.

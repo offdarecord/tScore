@@ -47,7 +47,7 @@ describe('a crash while saving cards', () => {
         setup.addEntry({
           number: n,
           riders: [{ givenName: 'Rider', familyName: String(n) }],
-          tier: 'competitive',
+          competitionStatus: 'competitive',
           status: 'riding',
           classes: ['Trial 4'],
         });

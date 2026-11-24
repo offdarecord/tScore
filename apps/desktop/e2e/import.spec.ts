@@ -111,7 +111,7 @@ test('a Ridernet export is checked, matched and imported, without personal detai
   await expect(window.getByRole('button', { name: 'Import', exact: true })).toBeDisabled();
 }); // prettier-ignore
 
-test('the desk can change a rider’s tier and class, and it is kept', async () => {
+test('the desk can change a rider’s competition status and class, and it is kept', async () => {
   await newEventAtRiders();
   await importRidernet();
   await window.getByLabel('Event class for Twinshock').selectOption('Trial 4');
@@ -120,7 +120,7 @@ test('the desk can change a rider’s tier and class, and it is kept', async () 
 
   await window.getByRole('button', { name: 'Change rider 2' }).click();
   const dialog = window.getByRole('dialog');
-  await dialog.getByLabel('Tier').selectOption('No award');
+  await dialog.getByLabel('Competition status').selectOption('No award');
   await dialog.getByLabel('Class', { exact: true }).selectOption('Trial 3');
   await dialog.getByRole('button', { name: 'Save' }).click();
   await expect(dialog).toBeHidden();

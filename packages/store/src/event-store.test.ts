@@ -18,7 +18,7 @@ const newEvent = () => track(EventStore.create(tempFolder(), SETUP, testContext(
 const rider = (number: number, extra: Partial<EntryInput> = {}): EntryInput => ({
   number,
   riders: [{ givenName: 'Rider', familyName: String(number) }],
-  tier: 'competitive',
+  competitionStatus: 'competitive',
   status: 'riding',
   classes: ['Trial 4'],
   ...extra,
@@ -151,8 +151,8 @@ describe('riders', () => {
   it('adds riders, and refuses a duplicate number or an unknown class', () => {
     const store = newEvent();
     store.addEntry(rider(1));
-    store.addEntry(rider(2, { club: 'Example MCC', tier: 'no_award' }));
-    expect(store.entries().map((e) => [e.number, e.tier, e.club ?? null])).toEqual([
+    store.addEntry(rider(2, { club: 'Example MCC', competitionStatus: 'no_award' }));
+    expect(store.entries().map((e) => [e.number, e.competitionStatus, e.club ?? null])).toEqual([
       [1, 'competitive', null],
       [2, 'no_award', 'Example MCC'],
     ]);
@@ -323,11 +323,12 @@ describe('cards and scores', () => {
     first.close();
     const db = new DatabaseSync(join(folder, EVENT_FILE));
     db.exec(
-      'DROP TABLE label_print; ALTER TABLE card DROP COLUMN received_at; PRAGMA user_version = 1',
+      'ALTER TABLE entry RENAME COLUMN competition_status TO tier; DROP TABLE label_print; ALTER TABLE card DROP COLUMN received_at; PRAGMA user_version = 1',
     );
     db.close();
     const store = track(EventStore.open(folder, testContext()));
     expect(store.cardLog()[0]!.receivedAt).toBe(saved);
+    expect(store.entries()[0]!.competitionStatus).toBe('competitive');
     expect(
       readdirSync(join(folder, 'backups')).some((f) => f.includes('before-upgrade-from-v1')),
     ).toBe(true);

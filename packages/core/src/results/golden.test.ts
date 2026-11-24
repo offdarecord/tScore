@@ -30,11 +30,15 @@ interface GoldenFixture {
 }
 
 /** What a results sheet prints in the place column for an entry. */
-function placeLabel(e: { tier: string; status: string; position: number | null }): string {
-  if (e.tier === 'non_competitive') return 'NC';
+function placeLabel(e: {
+  competition_status: string;
+  status: string;
+  position: number | null;
+}): string {
+  if (e.competition_status === 'non_competitive') return 'NC';
   if (e.status === 'dnf') return 'DNF';
   if (e.status === 'dns') return 'DNS';
-  if (e.tier === 'no_award') return 'NA';
+  if (e.competition_status === 'no_award') return 'NA';
   return String(e.position);
 }
 
@@ -89,7 +93,7 @@ describe.each(files)('golden event %s', (file) => {
   it("holds only non-competitive riders' counts, not their real scores", () => {
     // Governing-body rule: NC scores are never published. The fixture keeps each NC rider's
     // scores as their counts only, sorted lowest first across their cards.
-    const nc = golden.event.entries.filter((e) => e.tier === 'non_competitive');
+    const nc = golden.event.entries.filter((e) => e.competitionStatus === 'non_competitive');
     for (const e of nc) {
       const scores = golden.event.cards
         .filter((c) => c.number === e.number)
@@ -111,7 +115,7 @@ describe.each(files)('golden event %s', (file) => {
             ? 'DNS'
             : incomplete.has(e.number)
               ? 'INCOMPLETE'
-              : e.tier === 'non_competitive'
+              : e.competition_status === 'non_competitive'
                 ? 'NC'
                 : e.total,
     }));

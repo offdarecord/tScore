@@ -127,6 +127,10 @@ export const MIGRATIONS: readonly string[] = [
   ) STRICT;
   CREATE INDEX label_print_label ON label_print (number, day, lap);
   `,
+  // 4: "tier" is called "competition status" everywhere, including the event file.
+  `
+  ALTER TABLE entry RENAME COLUMN tier TO competition_status;
+  `,
 ];
 
 /** The schema version a fresh event file gets, and the newest this build can open. */

@@ -250,7 +250,7 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
                         <Table.Th>No.</Table.Th>
                         <Table.Th>Name</Table.Th>
                         <Table.Th>Class</Table.Th>
-                        <Table.Th>Tier</Table.Th>
+                        <Table.Th>Competition status</Table.Th>
                       </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
@@ -260,9 +260,9 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
                           <Table.Td>{riderName(e)}</Table.Td>
                           <Table.Td>{e.classes.join(' + ')}</Table.Td>
                           <Table.Td>
-                            {e.tier === 'non_competitive'
+                            {e.competitionStatus === 'non_competitive'
                               ? 'NC'
-                              : e.tier === 'no_award'
+                              : e.competitionStatus === 'no_award'
                                 ? 'NA'
                                 : ''}
                           </Table.Td>
@@ -339,7 +339,7 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
             <Text>
               Dates of birth, addresses, phone numbers, medical and emergency details stay in the
               entry system. tScore keeps only what scoring needs: name, class, club, licence number
-              and tier.
+              and competitionStatus.
             </Text>
           </Paper>
         </Stack>

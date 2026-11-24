@@ -154,11 +154,11 @@ describe('planning the import (Ridernet)', () => {
 
   it('every class is competitive; only an OREC licence makes a rider NC', () => {
     const plan = planImport(list, setup(), [], { duplicates: { 'L:900003': ['Trial 4'] } });
-    const tier = (family: string) => plan.entries.find((e) => e.riders[0]?.familyName === family)?.tier;
-    expect(tier('Moss')).toBe('non_competitive');
-    expect(tier('Brook')).toBe('competitive');
-    expect(tier('River')).toBe('competitive');
-    expect(tier('Vale')).toBe('competitive');
+    const competitionStatus = (family: string) => plan.entries.find((e) => e.riders[0]?.familyName === family)?.competitionStatus;
+    expect(competitionStatus('Moss')).toBe('non_competitive');
+    expect(competitionStatus('Brook')).toBe('competitive');
+    expect(competitionStatus('River')).toBe('competitive');
+    expect(competitionStatus('Vale')).toBe('competitive');
   }); // prettier-ignore
 
   it('asks about someone entered in two classes, and waits for the answer', () => {
@@ -226,7 +226,7 @@ describe('planning the import (Entryplace)', () => {
 
   it('reads Competitive = N as NC', () => {
     const plan = planImport(list, setup(), [], { classes: { 'Clubman (Open)': 'Trial 5' } });
-    expect(plan.entries.find((e) => e.riders[0]?.familyName === 'Hill')?.tier).toBe(
+    expect(plan.entries.find((e) => e.riders[0]?.familyName === 'Hill')?.competitionStatus).toBe(
       'non_competitive',
     );
   });
@@ -274,14 +274,14 @@ describe('planning the import (Entryplace)', () => {
       {
         number: 12,
         riders: [{ givenName: 'Someone', familyName: 'Different', licence: '900101' }],
-        tier: 'competitive' as const,
+        competitionStatus: 'competitive' as const,
         status: 'riding' as const,
         classes: ['Trial 4 Plus'],
       },
       {
         number: 3,
         riders: [{ givenName: 'Casey', familyName: 'Hill' }],
-        tier: 'competitive' as const,
+        competitionStatus: 'competitive' as const,
         status: 'riding' as const,
         classes: ['Juniors'],
       },
@@ -296,17 +296,42 @@ describe('planning the import (Entryplace)', () => {
 });
 
 describe("tScore's rider list", () => {
-  const headers = ['Number', 'Given name', 'Family name', 'Class', 'Tier'];
+  const headers = ['Number', 'Given name', 'Family name', 'Class', 'Competition status'];
   it('keeps its own numbers when they are usable', () => {
     const t = table(headers, [
-      { Number: '40', 'Given name': 'Avery', 'Family name': 'Stone', Class: 'Trial 1', Tier: 'NA' },
+      {
+        Number: '40',
+        'Given name': 'Avery',
+        'Family name': 'Stone',
+        Class: 'Trial 1',
+        'Competition status': 'NA',
+      },
       { Number: '7', 'Given name': 'Blake', 'Family name': 'River', Class: 'Trial 2' },
     ]);
     const plan = planImport(readEntryList([t]), setup(), []);
     expect(plan.numbering).toBe('from_file');
-    expect(plan.entries.map((e) => [e.number, e.tier])).toEqual([
+    expect(plan.entries.map((e) => [e.number, e.competitionStatus])).toEqual([
       [7, 'competitive'],
       [40, 'no_award'],
+    ]);
+  });
+
+  it('still reads the older Tier column', () => {
+    const t = table(
+      ['Number', 'Given name', 'Family name', 'Class', 'Tier'],
+      [
+        {
+          Number: '40',
+          'Given name': 'Avery',
+          'Family name': 'Stone',
+          Class: 'Trial 1',
+          Tier: 'NC',
+        },
+      ],
+    );
+    const plan = planImport(readEntryList([t]), setup(), []);
+    expect(plan.entries.map((e) => [e.number, e.competitionStatus])).toEqual([
+      [40, 'non_competitive'],
     ]);
   });
 

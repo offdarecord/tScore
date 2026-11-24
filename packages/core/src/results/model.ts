@@ -7,7 +7,7 @@
  */
 import type { Penalty } from '../generated/results.js';
 
-export type Tier = 'competitive' | 'no_award' | 'non_competitive';
+export type CompetitionStatus = 'competitive' | 'no_award' | 'non_competitive';
 export type Direction = 'low_wins' | 'high_wins';
 
 /** Tie-break keys, applied in order: `total`, `most_N`, `fewest_N`, `ride_off`. */
@@ -63,7 +63,7 @@ export interface EntryInput {
   /** One rider, or driver then passenger for a sidecar. */
   readonly riders: readonly PersonInput[];
   readonly club?: string;
-  readonly tier: Tier;
+  readonly competitionStatus: CompetitionStatus;
   readonly status: EntryStatus;
   /** One class, or two for a rider whose scores count in a second class. */
   readonly classes: readonly string[];

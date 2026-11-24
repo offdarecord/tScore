@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/offdarecord/tScore/main/schemas/tscore.import_mapping.v1.schema.json",
   "title": "ImportMapping",
-  "description": "tscore.import_mapping/1: how to read one entry system's export into tScore riders. Which columns to read (nothing else is read), which rows to skip, how to set each rider's tier, and the entry system's class names. Presets live in presets/import-mappings/ and contain no personal data.",
+  "description": "tscore.import_mapping/1: how to read one entry system's export into tScore riders. Which columns to read (nothing else is read), which rows to skip, how to set each rider's competition status, and the entry system's class names. Presets live in presets/import-mappings/ and contain no personal data.",
   "type": "object",
   "required": ["schema", "id", "name", "detect", "columns"],
   "additionalProperties": false,
@@ -72,7 +72,7 @@
           "description": "Rider number, only read when keep_numbers is true.",
           "$ref": "#/$defs/Headers"
         },
-        "tier": {
+        "competition_status": {
           "$ref": "#/$defs/Headers"
         },
         "group": {
@@ -96,11 +96,11 @@
         "$ref": "#/$defs/SkipRule"
       }
     },
-    "tier_rules": {
-      "description": "The first matching rule sets the rider's tier; otherwise competitive.",
+    "competition_status_rules": {
+      "description": "The first matching rule sets the rider's competition status; otherwise competitive.",
       "type": "array",
       "items": {
-        "$ref": "#/$defs/TierRule"
+        "$ref": "#/$defs/CompetitionStatusRule"
       }
     },
     "class_aliases": {
@@ -141,7 +141,7 @@
         "club",
         "licence",
         "number",
-        "tier",
+        "competition_status",
         "group",
         "role",
         "status",
@@ -186,9 +186,9 @@
         }
       }
     },
-    "TierRule": {
+    "CompetitionStatusRule": {
       "type": "object",
-      "required": ["field", "tier"],
+      "required": ["field", "competition_status"],
       "additionalProperties": false,
       "properties": {
         "field": {
@@ -216,7 +216,7 @@
           "minLength": 1,
           "maxLength": 200
         },
-        "tier": {
+        "competition_status": {
           "type": "string",
           "enum": ["competitive", "no_award", "non_competitive"]
         }

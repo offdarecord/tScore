@@ -5,7 +5,12 @@
 import entryplace from '../../../../presets/import-mappings/entryplace.json';
 import ridernet from '../../../../presets/import-mappings/ridernet.json';
 import riderList from '../../../../presets/import-mappings/tscore-rider-list.json';
-import type { Field, ImportMapping, SkipRule, TierRule } from '../generated/import-mapping.js';
+import type {
+  Field,
+  ImportMapping,
+  SkipRule,
+  CompetitionStatusRule,
+} from '../generated/import-mapping.js';
 import { validateImportMappingSchema } from '../generated/validators.js';
 import { checkSchema } from '../validation.js';
 
@@ -30,7 +35,7 @@ export function checkPreset(data: unknown): ImportMapping {
       `Import preset is not valid: ${r.issues.map((i) => `${i.path} ${i.message}`).join('; ')}`,
     );
   }
-  for (const rule of [...(r.value.skip_rows ?? []), ...(r.value.tier_rules ?? [])]) {
+  for (const rule of [...(r.value.skip_rows ?? []), ...(r.value.competition_status_rules ?? [])]) {
     matcher(rule); // throws if the rule is malformed
     if (!r.value.columns[rule.field]) {
       throw new Error(
@@ -41,8 +46,8 @@ export function checkPreset(data: unknown): ImportMapping {
   return r.value;
 }
 
-/** Compile one skip or tier rule. Exactly one of in, not_in and pattern. */
-export function matcher(rule: SkipRule | TierRule): Matcher {
+/** Compile one skip or competition status rule. Exactly one of in, not_in and pattern. */
+export function matcher(rule: SkipRule | CompetitionStatusRule): Matcher {
   const kinds = [rule.in, rule.not_in, rule.pattern].filter((k) => k !== undefined);
   if (kinds.length !== 1) {
     throw new Error(`An import rule on "${rule.field}" needs exactly one of in, not_in, pattern.`);

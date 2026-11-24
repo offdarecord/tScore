@@ -9,6 +9,9 @@ import type {
   EntryStatus,
   EventSetup,
   ImportChoices,
+  LabelLayout,
+  LabelLayoutChoice,
+  LabelSkip,
   Results,
   Tier,
   ValidationIssue,
@@ -35,7 +38,66 @@ export const IPC = {
   results: 'results:view',
   exportResults: 'results:export',
   openExport: 'results:open-export',
+  labels: 'labels:view',
+  saveLabels: 'labels:save',
+  saveLabelTestPage: 'labels:save-test-page',
+  setLabelOffset: 'labels:set-offset',
 } as const;
+
+/** Which card labels to print. */
+export interface LabelRequest {
+  readonly layout: LabelLayoutChoice;
+  /** First position on the first sheet, from 1. */
+  readonly start: number;
+  readonly qr: boolean;
+  /** Everyone, only labels not printed yet (late entries, added laps), or one rider. */
+  readonly which: 'all' | 'unprinted' | { readonly rider: number };
+}
+
+/** Printer alignment for this laptop, in mm: + moves right / down. */
+export interface LabelOffset {
+  readonly x: number;
+  readonly y: number;
+}
+
+/** One label as the preview draws it. */
+export interface LabelPreview {
+  readonly number: number;
+  readonly day: number;
+  readonly lap: number;
+  readonly lapText: string;
+  readonly name: string;
+  /** The name had to go down a size to fit. */
+  readonly small: boolean;
+  readonly classText: string;
+  /** QR modules, a string of 0s and 1s per row (empty without QR codes). */
+  readonly qr: readonly string[];
+}
+
+export interface LabelsView {
+  readonly template: {
+    readonly id: string;
+    readonly name: string;
+    readonly columns: number;
+    readonly perSheet: number;
+  };
+  /** The layout used (auto resolved). */
+  readonly layout: LabelLayout;
+  readonly labels: number;
+  readonly riders: number;
+  readonly sheets: number;
+  /** The first sheet's positions; null is left blank. */
+  readonly firstSheet: readonly (LabelPreview | null)[];
+  /** Riders who get no labels, and why. */
+  readonly skipped: readonly (LabelSkip & { readonly name: string })[];
+  /** Labels printed at least once, and labels the event needs that haven't been. */
+  readonly printed: number;
+  readonly notPrinted: number;
+  readonly days: number;
+  readonly offset: LabelOffset;
+}
+
+export type { LabelLayoutChoice };
 
 export type ExportKind = 'pdf' | 'csv';
 
@@ -220,4 +282,12 @@ export interface TscoreApi {
   exportResults(kind: ExportKind, juniorInitials: boolean): Promise<Outcome<string | null>>;
   /** Open the file just saved. */
   openExport(): Promise<Outcome<null>>;
+  labels(request: LabelRequest): Promise<Outcome<LabelsView>>;
+  /** Shows the save dialog, then saves the Word document. `null` if the desk cancels. */
+  saveLabels(
+    request: LabelRequest,
+  ): Promise<Outcome<{ readonly path: string; readonly labels: number } | null>>;
+  /** Shows the save dialog, then saves the plain-paper alignment test page. */
+  saveLabelTestPage(): Promise<Outcome<string | null>>;
+  setLabelOffset(offset: LabelOffset): Promise<Outcome<LabelOffset>>;
 }

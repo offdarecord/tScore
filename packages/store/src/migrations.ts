@@ -115,6 +115,18 @@ export const MIGRATIONS: readonly string[] = [
   `
   ALTER TABLE card ADD COLUMN received_at TEXT;
   `,
+  // 3: which card labels have been saved for printing (architecture §8.1), so late entries
+  // and added laps can be printed on their own. One row per label each time it's printed.
+  `
+  CREATE TABLE label_print (
+    number      INTEGER NOT NULL,
+    day         INTEGER NOT NULL,
+    lap         INTEGER NOT NULL,
+    printed_at  TEXT NOT NULL,
+    station_id  TEXT NOT NULL
+  ) STRICT;
+  CREATE INDEX label_print_label ON label_print (number, day, lap);
+  `,
 ];
 
 /** The schema version a fresh event file gets, and the newest this build can open. */

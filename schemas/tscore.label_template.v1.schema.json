@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/offdarecord/tScore/main/schemas/tscore.label_template.v1.schema.json",
+  "title": "LabelTemplate",
+  "description": "tscore.label_template/1: the geometry of one sheet of sticky labels, for printing card labels. All sizes in millimetres, measured from the top-left corner of the page. Presets live in presets/label-templates/.",
+  "type": "object",
+  "required": ["schema", "id", "name", "page", "columns", "rows", "label", "margin", "pitch"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "description": "Format identifier and major version.",
+      "const": "tscore.label_template/1"
+    },
+    "id": {
+      "description": "Template id, stored in the event setup's labels.template, e.g. L7651.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,31}$"
+    },
+    "name": {
+      "description": "What the desk sees, naming the products this fits.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "page": {
+      "type": "object",
+      "required": ["width_mm", "height_mm"],
+      "additionalProperties": false,
+      "properties": {
+        "width_mm": { "type": "number", "exclusiveMinimum": 0, "maximum": 500 },
+        "height_mm": { "type": "number", "exclusiveMinimum": 0, "maximum": 500 }
+      }
+    },
+    "columns": {
+      "description": "Labels across the sheet.",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "rows": {
+      "description": "Labels down the sheet.",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 30
+    },
+    "label": {
+      "description": "Size of one label.",
+      "type": "object",
+      "required": ["width_mm", "height_mm"],
+      "additionalProperties": false,
+      "properties": {
+        "width_mm": { "type": "number", "exclusiveMinimum": 0, "maximum": 300 },
+        "height_mm": { "type": "number", "exclusiveMinimum": 0, "maximum": 300 }
+      }
+    },
+    "margin": {
+      "description": "From the page edges to the first label's edges.",
+      "type": "object",
+      "required": ["top_mm", "left_mm"],
+      "additionalProperties": false,
+      "properties": {
+        "top_mm": { "type": "number", "minimum": 0, "maximum": 100 },
+        "left_mm": { "type": "number", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "pitch": {
+      "description": "From one label's edge to the next label's same edge.",
+      "type": "object",
+      "required": ["across_mm", "down_mm"],
+      "additionalProperties": false,
+      "properties": {
+        "across_mm": { "type": "number", "exclusiveMinimum": 0, "maximum": 300 },
+        "down_mm": { "type": "number", "exclusiveMinimum": 0, "maximum": 300 }
+      }
+    }
+  }
+}

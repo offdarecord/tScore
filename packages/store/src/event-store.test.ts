@@ -322,7 +322,9 @@ describe('cards and scores', () => {
     const folder = first.folder;
     first.close();
     const db = new DatabaseSync(join(folder, EVENT_FILE));
-    db.exec('ALTER TABLE card DROP COLUMN received_at; PRAGMA user_version = 1');
+    db.exec(
+      'DROP TABLE label_print; ALTER TABLE card DROP COLUMN received_at; PRAGMA user_version = 1',
+    );
     db.close();
     const store = track(EventStore.open(folder, testContext()));
     expect(store.cardLog()[0]!.receivedAt).toBe(saved);
@@ -424,5 +426,32 @@ describe('backups', () => {
     const files = readdirSync(join(store.folder, 'backups'));
     expect(files.filter((f) => f.endsWith('-auto.sqlite'))).toHaveLength(3);
     expect(files.filter((f) => f.endsWith('-named.sqlite'))).toHaveLength(1);
+  });
+});
+
+describe('card labels', () => {
+  it('remembers which labels were printed, and logs each print', () => {
+    const store = newEvent();
+    expect(store.printedLabels()).toEqual([]);
+    store.recordLabelsPrinted(
+      [
+        { number: 2, day: 1, lap: 1 },
+        { number: 1, day: 1, lap: 2 },
+        { number: 1, day: 1, lap: 1 },
+      ],
+      'all',
+    );
+    store.recordLabelsPrinted([{ number: 1, day: 1, lap: 1 }], 'rider 1');
+    store.recordLabelsPrinted([], 'nothing');
+    expect(store.printedLabels()).toEqual([
+      { number: 1, day: 1, lap: 1 },
+      { number: 1, day: 1, lap: 2 },
+      { number: 2, day: 1, lap: 1 },
+    ]);
+    const prints = store.auditLog().filter((a) => a.kind === 'labels.print');
+    expect(prints.map((a) => a.detail)).toEqual([
+      { what: 'all', labels: 3, riders: 2 },
+      { what: 'rider 1', labels: 1, riders: 1 },
+    ]);
   });
 });

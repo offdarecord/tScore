@@ -89,6 +89,13 @@ export interface CardSummary {
 }
 
 /** A penalty in force, with its id (to remove it). */
+/** One card label: a rider's card for one lap of one day. */
+export interface LabelKey {
+  readonly number: number;
+  readonly day: number;
+  readonly lap: number;
+}
+
 export interface PenaltyRecord extends PenaltyInput {
   readonly id: string;
   readonly number: number;
@@ -654,6 +661,29 @@ export class EventStore {
         throw new StoreError('STORE_NO_PENALTY', 'That penalty is not in force.');
       this.#audit('penalty.remove', id, {});
     });
+  }
+
+  // ---- Card labels ----
+
+  /** Record that these labels were saved for printing (`what` says which: all, a rider, …). */
+  recordLabelsPrinted(labels: readonly LabelKey[], what: string): void {
+    if (labels.length === 0) return;
+    this.#tx(() => {
+      const at = stamp(this.#ctx);
+      const insert = this.#db.prepare(
+        'INSERT INTO label_print (number, day, lap, printed_at, station_id) VALUES (?, ?, ?, ?, ?)',
+      );
+      for (const l of labels) insert.run(l.number, l.day, l.lap, at, this.#ctx.stationId);
+      const riders = new Set(labels.map((l) => l.number)).size;
+      this.#audit('labels.print', this.eventId, { what, labels: labels.length, riders });
+    });
+  }
+
+  /** Every label printed at least once. */
+  printedLabels(): LabelKey[] {
+    return this.#db
+      .prepare('SELECT DISTINCT number, day, lap FROM label_print ORDER BY number, day, lap')
+      .all() as unknown as LabelKey[];
   }
 
   // ---- Audit, results, backups ----

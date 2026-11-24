@@ -1,4 +1,4 @@
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
@@ -144,6 +144,32 @@ test('a file tScore does not recognise is refused in plain words', async () => {
   const alert = window.getByRole('alert').filter({ hasText: "The entry list wasn't read" });
   await expect(alert).toContainText("tScore doesn't recognise this file");
   await expect(alert).toContainText('IMPORT_UNKNOWN_FORMAT');
+});
+
+test("Ridernet's questions export is named, and the log records what kind of file it was", async () => {
+  await newEventAtRiders();
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(
+    book,
+    XLSX.utils.aoa_to_sheet([
+      ['Event_Id', 'Event_Name', 'Participant_Name', 'RidernetID', 'DOB', 'Question', 'Answer'],
+      ['1', 'Example Trial', 'Avery Stone', '900001', '01/01/1990', 'Machine', 'Example 250'],
+    ]),
+    'Sheet1',
+  );
+  const path = join(run.userData, 'eventRiderQuestions-1-2027-01-03.xls');
+  writeFileSync(path, XLSX.write(book, { type: 'buffer', bookType: 'biff8' }) as Buffer);
+  await pick(path);
+  await window.getByRole('button', { name: 'Import from entry list…' }).click();
+  const alert = window.getByRole('alert').filter({ hasText: "The entry list wasn't read" });
+  await expect(alert).toContainText("Ridernet's entry questions export");
+  await expect(alert).toContainText('IMPORT_OTHER_EXPORT');
+
+  const logged = readFileSync(join(run.userData, 'logs', 'main.log'), 'utf8');
+  expect(logged).toContain('entry list not read');
+  expect(logged).toContain("type: '.xls'");
+  expect(logged).toContain('IMPORT_OTHER_EXPORT');
+  expect(logged).not.toMatch(/Avery|900001|1990|Example 250|1-2027-01-03/);
 });
 
 test('the import and riders screens meet WCAG 2.2 AA (automated check)', async () => {

@@ -9,6 +9,7 @@ import {
   type LabelRequest,
 } from '../shared/ipc';
 import { closeEvents, eventHandlers, eventsDir } from './events';
+import { startLogging } from './logging';
 import { checkForUpdatesWhenSafe } from './updates';
 
 // Automated tests run the app with its own data folder, so they never touch (or get blocked by)
@@ -16,8 +17,11 @@ import { checkForUpdatesWhenSafe } from './updates';
 const testUserData = process.env['TSCORE_TEST_USER_DATA'];
 if (testUserData && !app.isPackaged) app.setPath('userData', testUserData);
 
-log.initialize();
+const logging = startLogging();
 log.info('tScore starting', { version: app.getVersion() });
+if (logging.problem) {
+  log.warn('the usual log file could not be written, so this session logs here', logging);
+}
 
 process.on('uncaughtException', (err) => log.error('uncaughtException', err));
 process.on('unhandledRejection', (reason) => log.error('unhandledRejection', reason));

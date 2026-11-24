@@ -3,6 +3,12 @@
   "id": "ridernet",
   "name": "Ridernet export",
   "detect": { "headers": ["RidernetID", "Event_Class_Name", "Event_Role"] },
+  "other_exports": [
+    {
+      "headers": ["RidernetID", "Question", "Answer"],
+      "message": "This is Ridernet's entry questions export (its file name starts eventRiderQuestions). Choose the riders export instead: the file whose name starts eventRiders."
+    }
+  ],
   "columns": {
     "given_name": ["First_Name"],
     "family_name": ["Last_Name"],

@@ -361,3 +361,48 @@ describe('tidying', () => {
     ['  mary   jane ', 'Mary Jane'],
   ])('name %s → %s', (raw, tidy) => expect(tidyName(raw)).toBe(tidy));
 });
+
+describe('files that are not an entry list', () => {
+  const caught = (tables: SourceTable[]) => {
+    try {
+      readEntryList(tables);
+    } catch (err) {
+      return err as ImportError;
+    }
+    throw new Error('expected an ImportError');
+  };
+
+  it("says when it's Ridernet's questions export, and which file to choose", () => {
+    // Synthetic: the questions export's real column names, invented answers.
+    const err = caught([
+      {
+        sheet: 'Sheet1',
+        rows: [
+          ['Event_Id', 'Event_Name', 'Participant_Name', 'RidernetID', 'DOB', 'Question', 'Answer'],
+          ['1', 'Example Trial', 'Avery Stone', '900001', '01/01/1990', 'Machine', 'Example 250'],
+        ],
+      },
+    ]);
+    expect(err.code).toBe('IMPORT_OTHER_EXPORT');
+    expect(err.message).toContain('eventRiders');
+  });
+
+  it('records what it saw for the log, without any cell contents', () => {
+    const err = caught([
+      {
+        rows: [
+          ['Name', 'RidernetID', 'Grade'],
+          ['Avery Stone', '900001', 'Trial 1'],
+        ],
+      },
+    ]);
+    expect(err.code).toBe('IMPORT_UNKNOWN_FORMAT');
+    expect(err.diagnostics?.sheets).toEqual([{ rows: 2, columns: 3 }]);
+    expect(err.diagnostics?.presets.find((p) => p.id === 'ridernet')).toEqual({
+      id: 'ridernet',
+      found: ['RidernetID'],
+      missing: ['Event_Class_Name', 'Event_Role'],
+    });
+    expect(JSON.stringify(err.diagnostics)).not.toMatch(/Avery|Stone|900001|Trial 1|Grade/);
+  });
+});

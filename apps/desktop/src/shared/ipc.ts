@@ -42,7 +42,57 @@ export const IPC = {
   saveLabels: 'labels:save',
   saveLabelTestPage: 'labels:save-test-page',
   setLabelOffset: 'labels:set-offset',
+  course: 'course:view',
 } as const;
+
+/** One lap on the Progress grid. */
+export type CourseLap =
+  | { readonly kind: 'in'; readonly total: number | null }
+  | { readonly kind: 'due' | 'overdue' | 'dnf' | 'dns' | 'not_ridden' };
+
+/** Progress and Still on course for one day, at the laptop's time. */
+export interface CourseView {
+  readonly day: number;
+  readonly days: readonly number[];
+  /** The day's lap 1 start (HH:MM), if set. */
+  readonly startTime?: string;
+  /** The start has passed (or there's no start time). */
+  readonly started: boolean;
+  /** When this was worked out (ISO). */
+  readonly now: string;
+  readonly marginMinutes: number;
+  readonly mostLaps: number;
+  readonly counts: {
+    readonly cardsIn: number;
+    readonly cardsExpected: number;
+    readonly out: number;
+    readonly waiting: number;
+    readonly in: number;
+    readonly overdue: number;
+    readonly dnf: number;
+    readonly dns: number;
+  };
+  /** Average lap per class, in minutes. */
+  readonly averageLap: Readonly<Record<string, number>>;
+  readonly riders: readonly {
+    readonly number: number;
+    readonly name: string;
+    readonly className: string;
+    readonly state: 'waiting' | 'out' | 'in' | 'dnf' | 'dns' | 'not_riding';
+    readonly laps: number;
+    readonly total: number;
+    readonly lapStates: readonly CourseLap[];
+    readonly lastCard?: { readonly lap: number; readonly at: string };
+    readonly minutesOut?: number;
+    readonly overdue?: {
+      readonly lap: number;
+      readonly minutes: number;
+      readonly averageLap: number;
+    };
+    /** Cards the last hand-in brought, when more than one. */
+    readonly carrying?: number;
+  }[];
+}
 
 /** Which card labels to print. */
 export interface LabelRequest {
@@ -300,4 +350,6 @@ export interface TscoreApi {
   /** Shows the save dialog, then saves the plain-paper alignment test page. */
   saveLabelTestPage(): Promise<Outcome<string | null>>;
   setLabelOffset(offset: LabelOffset): Promise<Outcome<LabelOffset>>;
+  /** Progress and Still on course for a day (default: today's day, else day 1). */
+  course(day?: number): Promise<Outcome<CourseView>>;
 }

@@ -1,6 +1,8 @@
 import { Button, Stack, Text } from '@mantine/core';
 import type { EntryListFile, OpenEvent } from '../../shared/ipc';
 import { ManualEntry } from './cards/ManualEntry';
+import { OnCourse } from './course/OnCourse';
+import { Progress } from './course/Progress';
 import { CardLabels } from './labels/CardLabels';
 import { ComingSoonButton } from './ComingSoonButton';
 import { Results } from './results/Results';
@@ -16,6 +18,8 @@ export type EventPage =
   | { readonly name: 'import'; readonly file: EntryListFile }
   | { readonly name: 'labels' }
   | { readonly name: 'manual' }
+  | { readonly name: 'progress' }
+  | { readonly name: 'course' }
   | { readonly name: 'results' };
 
 interface Props {
@@ -28,7 +32,7 @@ interface Props {
 /** Screens that aren't built yet, in the order of the agreed mock-ups. */
 const CHECK = 'Pre-event check';
 const SCAN_DESK = 'Scan desk';
-const LATER_ON_THE_DAY = ['Review queue', 'Progress', 'Still on course'];
+const REVIEW_QUEUE = 'Review queue';
 
 /** The event's side navigation, for the AppShell navbar. */
 export function EventNav(props: {
@@ -82,9 +86,17 @@ export function EventNav(props: {
           current={page.name === 'manual'}
           onClick={() => onNavigate({ name: 'manual' })}
         />
-        {LATER_ON_THE_DAY.map((l) => (
-          <NavLater key={l} label={l} />
-        ))}
+        <NavLater label={REVIEW_QUEUE} />
+        <NavLink
+          label="Progress"
+          current={page.name === 'progress'}
+          onClick={() => onNavigate({ name: 'progress' })}
+        />
+        <NavLink
+          label="Still on course"
+          current={page.name === 'course'}
+          onClick={() => onNavigate({ name: 'course' })}
+        />
         <NavLink
           label="Results"
           current={page.name === 'results'}
@@ -161,6 +173,10 @@ function NavLater({ label }: { label: string }) {
 export function EventMain({ event, page, onChange, onNavigate }: Props) {
   if (page.name === 'manual') return <ManualEntry event={event} />;
   if (page.name === 'labels') return <CardLabels event={event} />;
+  if (page.name === 'progress') {
+    return <Progress event={event} onStillOnCourse={() => onNavigate({ name: 'course' })} />;
+  }
+  if (page.name === 'course') return <OnCourse event={event} />;
   if (page.name === 'results') return <Results event={event} />;
   if (page.name === 'riders') {
     return (

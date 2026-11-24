@@ -91,7 +91,6 @@ export interface CardSummary {
   readonly edited: boolean;
 }
 
-/** A penalty in force, with its id (to remove it). */
 /** One card label: a rider's card for one lap of one day. */
 export interface LabelKey {
   readonly number: number;
@@ -99,6 +98,7 @@ export interface LabelKey {
   readonly lap: number;
 }
 
+/** A penalty in force, with its id (to remove it). */
 export interface PenaltyRecord extends PenaltyInput {
   readonly id: string;
   readonly number: number;

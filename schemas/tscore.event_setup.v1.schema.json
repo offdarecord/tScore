@@ -30,7 +30,14 @@
       "type": "array",
       "items": { "$ref": "#/$defs/SkippedSection" }
     },
-    "labels": { "$ref": "#/$defs/Labels" }
+    "labels": { "$ref": "#/$defs/Labels" },
+    "overdue_margin_minutes": {
+      "description": "On the day, a rider is overdue when it has been longer than their class's average lap plus this many minutes since their last card. Overdue never marks anyone DNF.",
+      "type": "integer",
+      "minimum": 5,
+      "maximum": 240,
+      "default": 30
+    }
   },
   "$defs": {
     "Event": {

@@ -239,6 +239,18 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
           onChange={(e) => update({ direction: e.currentTarget.value as Draft['direction'] })}
           maw={520}
         />
+        <TextInput
+          label="Overdue after (minutes)"
+          description="A rider is overdue this long past their class's average lap. Overdue never marks anyone DNF."
+          inputWrapperOrder={BELOW}
+          inputMode="numeric"
+          data-field="overdue_margin_minutes"
+          value={draft.overdueMargin}
+          onChange={(e) => update({ overdueMargin: e.currentTarget.value })}
+          onBlur={touch('overdue_margin_minutes')}
+          error={errorFor('overdue_margin_minutes')}
+          maw={520}
+        />
       </Card>
 
       <Card

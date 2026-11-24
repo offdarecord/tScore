@@ -31,6 +31,7 @@ const api: TscoreApi = {
   saveLabels: call(IPC.saveLabels),
   saveLabelTestPage: call(IPC.saveLabelTestPage),
   setLabelOffset: call(IPC.setLabelOffset),
+  course: call(IPC.course),
 };
 
 contextBridge.exposeInMainWorld('tscore', api);

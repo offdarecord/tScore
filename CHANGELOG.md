@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.5.0](https://github.com/offdarecord/tScore/compare/v0.4.0...v0.5.0) (2026-11-24)
+
+
+### Added
+
+* card labels, saved as a Word document with QR codes ([#33](https://github.com/offdarecord/tScore/issues/33)) ([826509b](https://github.com/offdarecord/tScore/commit/826509bd6f09e3cac274a41626a6ecad26be3ea3))
+* results screen, with PDF and CSV ([#30](https://github.com/offdarecord/tScore/issues/30)) ([557bb1f](https://github.com/offdarecord/tScore/commit/557bb1f30e15a6879f3dc3124e85da31f4808e12))
+* type cards in by hand on Manual entry, with edits and penalties ([#28](https://github.com/offdarecord/tScore/issues/28)) ([07fcfd2](https://github.com/offdarecord/tScore/commit/07fcfd2d6da8d0aef2b020aa2857a82ba9e85b1e))
+
+
+### Fixed
+
+* keep the diagnostic log working, and name the wrong entry file ([#36](https://github.com/offdarecord/tScore/issues/36)) ([d1c6270](https://github.com/offdarecord/tScore/commit/d1c62700faf67563d52af52a28f11910025abcc7))
+* line up the event setup boxes when a field has help text ([#34](https://github.com/offdarecord/tScore/issues/34)) ([43c09e6](https://github.com/offdarecord/tScore/commit/43c09e68dccb67e98f87feaad215c10f01406d92))
+* say "competition status" instead of "tier" everywhere ([#35](https://github.com/offdarecord/tScore/issues/35)) ([b310173](https://github.com/offdarecord/tScore/commit/b310173fc9f48c2481d9d00c9cc7d17305b49f40))
+
 ## [0.4.0](https://github.com/offdarecord/tScore/compare/v0.3.0...v0.4.0) (2026-11-23)
 
 

@@ -23,13 +23,69 @@ export interface EntryList {
   readonly rows: readonly SourceRow[];
 }
 
+/**
+ * What tScore saw in a file it couldn't read, for the diagnostic log. Holds no cell contents:
+ * only counts, and which of each preset's own header names were found.
+ */
+export interface FileDiagnostics {
+  readonly sheets: readonly { readonly rows: number; readonly columns: number }[];
+  readonly presets: readonly {
+    readonly id: string;
+    readonly found: readonly string[];
+    readonly missing: readonly string[];
+  }[];
+}
+
 export class ImportError extends Error {
   readonly code: string;
-  constructor(code: string, message: string) {
+  readonly diagnostics?: FileDiagnostics;
+  constructor(code: string, message: string, diagnostics?: FileDiagnostics) {
     super(message);
     this.name = 'ImportError';
     this.code = code;
+    if (diagnostics) this.diagnostics = diagnostics;
   }
+}
+
+/** The first row with anything in it: where the column names are. */
+function headerOf(table: SourceTable): readonly string[] {
+  return table.rows.find((r) => r.some((c) => c.trim() !== '')) ?? [];
+}
+
+function diagnose(
+  tables: readonly SourceTable[],
+  presets: readonly ImportMapping[],
+): FileDiagnostics {
+  const headers = tables.map((t) => new Set(headerOf(t).map(norm)));
+  return {
+    sheets: tables.map((t) => ({
+      rows: t.rows.length,
+      columns: Math.max(0, ...t.rows.map((r) => r.length)),
+    })),
+    presets: presets.map((p) => {
+      // The sheet closest to this preset.
+      const best = headers
+        .map((h) => p.detect.headers.filter((name) => h.has(norm(name))))
+        .reduce<string[]>((a, b) => (b.length > a.length ? b : a), []);
+      return {
+        id: p.id,
+        found: best,
+        missing: p.detect.headers.filter((name) => !best.includes(name)),
+      };
+    }),
+  };
+}
+
+/** Another export from a known entry system (one people pick by mistake), if this is one. */
+function otherExport(tables: readonly SourceTable[], presets: readonly ImportMapping[]) {
+  for (const t of tables) {
+    const have = new Set(headerOf(t).map(norm));
+    for (const p of presets) {
+      const hit = p.other_exports?.find((o) => o.headers.every((h) => have.has(norm(h))));
+      if (hit) return hit;
+    }
+  }
+  return undefined;
 }
 
 const REQUIRED: readonly Field[] = ['given_name', 'family_name', 'class'];
@@ -41,10 +97,14 @@ export function readEntryList(
 ): EntryList {
   const found = findSheet(tables, presets);
   if (!found) {
+    const diagnostics = diagnose(tables, presets);
+    const other = otherExport(tables, presets);
+    if (other) throw new ImportError('IMPORT_OTHER_EXPORT', other.message, diagnostics);
     throw new ImportError(
       'IMPORT_UNKNOWN_FORMAT',
       "tScore doesn't recognise this file. It reads Entryplace and Ridernet exports as they " +
         'come, and any other list saved in the tScore rider-list format.',
+      diagnostics,
     );
   }
   const { preset, table, headerAt } = found;

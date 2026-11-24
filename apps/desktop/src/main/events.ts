@@ -2,7 +2,8 @@
  * Events in the main process: the one EventLibrary, and the IPC handlers the event screens use.
  * The renderer never touches files; it asks for these and shows the outcome.
  */
-import { basename, dirname, join } from 'node:path';
+import { statSync } from 'node:fs';
+import { basename, dirname, extname, join } from 'node:path';
 import {
   CARD_PROFILE_ROWS,
   classesFromSetup,
@@ -147,6 +148,15 @@ function describe(store: EventStore): OpenEvent {
     riders: entries.length,
     cards: store.cards().length,
   };
+}
+
+/** A file's size in bytes, or null if it can't be read. */
+function fileSize(path: string): number | null {
+  try {
+    return statSync(path).size;
+  } catch {
+    return null;
+  }
 }
 
 /** Errors the desk can act on come back as an Outcome; anything else is logged and summarised. */
@@ -296,7 +306,19 @@ export const eventHandlers = {
     return attempt('reading the entry list', () => {
       const store = openStore();
       // Only the preset's columns survive this line; the rest of the file is dropped here.
-      const list = readEntryList(readEntryFile(file));
+      let list: EntryList;
+      try {
+        list = readEntryList(readEntryFile(file));
+      } catch (err) {
+        // What kind of file it was, so a support log can say why (never its contents or name).
+        log.warn('entry list not read', {
+          type: extname(file).toLowerCase(),
+          bytes: fileSize(file),
+          code: (err as { code?: string }).code,
+          ...(err instanceof ImportError && err.diagnostics),
+        });
+        throw err;
+      }
       pending = { eventId: store.eventId, list };
       log.info('entry list read', { source: list.presetId, rows: list.rows.length });
       return { fileName: basename(file), list };

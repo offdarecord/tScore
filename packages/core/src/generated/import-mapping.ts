@@ -62,6 +62,19 @@ export interface ImportMapping {
     headers: string[];
   };
   /**
+   * Other files the same entry system exports that people pick by mistake, recognised the same way, with what to tell the desk.
+   */
+  other_exports?: {
+    /**
+     * @minItems 1
+     */
+    headers: string[];
+    /**
+     * Says which file this is and which file to choose instead.
+     */
+    message: string;
+  }[];
+  /**
    * For a workbook, the sheet to read when present; otherwise the first sheet.
    */
   sheet?: string;

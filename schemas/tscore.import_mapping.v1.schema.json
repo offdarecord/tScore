@@ -40,6 +40,29 @@
         }
       }
     },
+    "other_exports": {
+      "description": "Other files the same entry system exports that people pick by mistake, recognised the same way, with what to tell the desk.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["headers", "message"],
+        "additionalProperties": false,
+        "properties": {
+          "headers": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1, "maxLength": 80 },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "message": {
+            "description": "Says which file this is and which file to choose instead.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          }
+        }
+      }
+    },
     "sheet": {
       "description": "For a workbook, the sheet to read when present; otherwise the first sheet.",
       "type": "string",

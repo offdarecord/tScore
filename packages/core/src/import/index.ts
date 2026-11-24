@@ -1,6 +1,7 @@
 export {
   readEntryList,
   ImportError,
+  type FileDiagnostics,
   type EntryList,
   type SourceRow,
   type SourceTable,

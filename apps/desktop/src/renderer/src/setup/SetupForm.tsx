@@ -199,7 +199,6 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
             <TextInput
               type="time"
               label={days > 1 ? `Day ${i + 1}: lap 1 starts` : 'Lap 1 starts'}
-              description="Riders with their own start time keep it"
               data-field={`days[${i}].start_time`}
               value={d.startTime}
               onChange={(e) => {

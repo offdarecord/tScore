@@ -31,7 +31,7 @@ const events = fc
     entries: riders.map((_, i) => ({
       number: i + 1,
       riders: [{ givenName: 'Rider', familyName: String(i + 1) }],
-      tier: 'competitive',
+      competitionStatus: 'competitive',
       status: 'riding',
       classes: ['Open'],
     })),

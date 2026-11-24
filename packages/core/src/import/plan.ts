@@ -7,7 +7,7 @@
  */
 import type { EventSetup } from '../generated/event-setup.js';
 import { classesFromSetup } from '../results/from-setup.js';
-import type { EntryInput, PersonInput, Tier } from '../results/model.js';
+import type { EntryInput, PersonInput, CompetitionStatus } from '../results/model.js';
 import type { EntryList, SourceRow } from './extract.js';
 import { IMPORT_PRESETS, matcher, norm, type ImportMapping } from './presets.js';
 
@@ -75,7 +75,7 @@ interface Person {
   family: string;
   club?: string;
   licence?: string;
-  tier: Tier;
+  competitionStatus: CompetitionStatus;
   classes: string[];
   number?: number;
 }
@@ -93,9 +93,9 @@ export function planImport(
   const skipRules = (preset.skip_rows ?? [])
     .filter((r) => has.has(r.field))
     .map((r) => ({ reason: r.reason, m: matcher(r) }));
-  const tierRules = (preset.tier_rules ?? [])
+  const competitionStatusRules = (preset.competition_status_rules ?? [])
     .filter((r) => has.has(r.field))
-    .map((r) => ({ tier: r.tier, m: matcher(r) }));
+    .map((r) => ({ competitionStatus: r.competition_status, m: matcher(r) }));
 
   // 1. Rows that aren't riders.
   const skipped = new Map<string, number>();
@@ -155,7 +155,9 @@ export function planImport(
         family,
         ...(row.club ? { club: row.club } : {}),
         ...(licence ? { licence } : {}),
-        tier: tierRules.find((t) => t.m.test(row[t.m.field] ?? ''))?.tier ?? 'competitive',
+        competitionStatus:
+          competitionStatusRules.find((t) => t.m.test(row[t.m.field] ?? ''))?.competitionStatus ??
+          'competitive',
         classes: [cls],
         ...(number !== undefined ? { number } : {}),
       });
@@ -250,7 +252,7 @@ export function planImport(
       number,
       riders: [rider],
       ...(p.club ? { club: p.club } : {}),
-      tier: p.tier,
+      competitionStatus: p.competitionStatus,
       status: 'riding',
       classes: p.classes,
     };

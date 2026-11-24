@@ -18,7 +18,9 @@
     { "field": "status", "in": ["Withdrawn"], "reason": "withdrawn entries" },
     { "field": "class", "pattern": "\\bminders?\\b", "reason": "minders" }
   ],
-  "tier_rules": [{ "field": "licence_type", "in": ["OREC"], "tier": "non_competitive" }],
+  "competition_status_rules": [
+    { "field": "licence_type", "in": ["OREC"], "competition_status": "non_competitive" }
+  ],
   "class_aliases": {
     "Mini Trial Small Wheel (Non-Comp)": ["Junior", "Juniors"],
     "TMTC Trial 6 JNR (Up to 200CC)": ["Junior", "Juniors"],

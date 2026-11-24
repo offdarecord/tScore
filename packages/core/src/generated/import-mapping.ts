@@ -30,14 +30,14 @@ export type Field =
   | 'club'
   | 'licence'
   | 'number'
-  | 'tier'
+  | 'competition_status'
   | 'group'
   | 'role'
   | 'status'
   | 'licence_type';
 
 /**
- * tscore.import_mapping/1: how to read one entry system's export into tScore riders. Which columns to read (nothing else is read), which rows to skip, how to set each rider's tier, and the entry system's class names. Presets live in presets/import-mappings/ and contain no personal data.
+ * tscore.import_mapping/1: how to read one entry system's export into tScore riders. Which columns to read (nothing else is read), which rows to skip, how to set each rider's competition status, and the entry system's class names. Presets live in presets/import-mappings/ and contain no personal data.
  */
 export interface ImportMapping {
   /**
@@ -75,7 +75,7 @@ export interface ImportMapping {
     club?: Headers;
     licence?: Headers1;
     number?: Headers2;
-    tier?: Headers;
+    competition_status?: Headers;
     group?: Headers;
     role?: Headers;
     status?: Headers;
@@ -86,9 +86,9 @@ export interface ImportMapping {
    */
   skip_rows?: SkipRule[];
   /**
-   * The first matching rule sets the rider's tier; otherwise competitive.
+   * The first matching rule sets the rider's competition status; otherwise competitive.
    */
-  tier_rules?: TierRule[];
+  competition_status_rules?: CompetitionStatusRule[];
   /**
    * Class names in this entry system, and the tScore class (or candidate classes, first that exists in the event) each one means.
    */
@@ -132,9 +132,9 @@ export interface SkipRule {
 }
 /**
  * This interface was referenced by `ImportMapping`'s JSON-Schema
- * via the `definition` "TierRule".
+ * via the `definition` "CompetitionStatusRule".
  */
-export interface TierRule {
+export interface CompetitionStatusRule {
   field: Field;
   /**
    * The value is one of these (any case, spaces trimmed).
@@ -152,5 +152,5 @@ export interface TierRule {
    * A regular expression (ignoring case) finds the value. Use exactly one of in, not_in and pattern; tScore checks this when it loads the preset.
    */
   pattern?: string;
-  tier: 'competitive' | 'no_award' | 'non_competitive';
+  competition_status: 'competitive' | 'no_award' | 'non_competitive';
 }

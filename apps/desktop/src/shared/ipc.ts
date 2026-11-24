@@ -13,7 +13,7 @@ import type {
   LabelLayoutChoice,
   LabelSkip,
   Results,
-  Tier,
+  CompetitionStatus,
   ValidationIssue,
 } from '@tscore/core';
 
@@ -156,7 +156,7 @@ export interface RiderInfo {
   readonly number: number;
   readonly riders: readonly { readonly givenName: string; readonly familyName: string }[];
   readonly club?: string;
-  readonly tier: Tier;
+  readonly competitionStatus: CompetitionStatus;
   readonly status: EntryStatus;
   /** One class, or two for a second-class entry. */
   readonly classes: readonly string[];
@@ -164,7 +164,7 @@ export interface RiderInfo {
 
 export interface RiderChange {
   readonly classes?: readonly string[];
-  readonly tier?: Tier;
+  readonly competitionStatus?: CompetitionStatus;
   readonly status?: EntryStatus;
 }
 

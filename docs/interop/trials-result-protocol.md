@@ -38,25 +38,25 @@ When upstream changes, the weekly `protocol-watch` workflow opens an issue. To c
 
 ## Classes, laps and entries
 
-| `tscore.results/1`                              | `trials-result`                                                                              |
-| ----------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `classes[]`                                     | `classes[]` (`laps`, `sections_per_lap` per day) and one `classifications[]` of kind `class` |
-| `classes[].days[].laps`                         | `parts[]` of kind `lap`, `parent` = the day part                                             |
-| `classes[].days[].skipped`                      | `null` in the grid for that section from that lap                                            |
-| `entries[].number`                              | `entries[].number`                                                                           |
-| `entries[].riders`                              | `entries[].people[]` (`role` rider, or driver/passenger; `kind: "crew"` for a sidecar)       |
-| `riders[].name`, `given_name`, `family_name`    | `person.name.as_printed`, `given`, `family`                                                  |
-| `club`                                          | `person.club`                                                                                |
-| `tier` competitive / no_award / non_competitive | `standing.basis` competition / no-award / non-competitive                                    |
-| `status` finished / dnf / dns                   | event total's `status` classified / dnf / dns                                                |
-| `position`, `tied_with_previous`                | classification row `rank`, `tied`                                                            |
-| `rank_in_tier`                                  | row `rank_as_printed` ("NA") with `rank: null`                                               |
-| `days[].laps[].sections`                        | `grids[]`, one per lap part                                                                  |
-| lap, day and event `total`                      | `totals[]` with `part` = lap, day, or `null` for the event                                   |
-| `counts`                                        | event total's `counts`                                                                       |
-| `penalties[]`                                   | event total's `penalties[]`                                                                  |
-| `ride_off`                                      | row `tie_break` with `rule: "ride-off"`                                                      |
-| `also_in`                                       | the same entry listed in both classes' classifications                                       |
+| `tscore.results/1`                                            | `trials-result`                                                                              |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `classes[]`                                                   | `classes[]` (`laps`, `sections_per_lap` per day) and one `classifications[]` of kind `class` |
+| `classes[].days[].laps`                                       | `parts[]` of kind `lap`, `parent` = the day part                                             |
+| `classes[].days[].skipped`                                    | `null` in the grid for that section from that lap                                            |
+| `entries[].number`                                            | `entries[].number`                                                                           |
+| `entries[].riders`                                            | `entries[].people[]` (`role` rider, or driver/passenger; `kind: "crew"` for a sidecar)       |
+| `riders[].name`, `given_name`, `family_name`                  | `person.name.as_printed`, `given`, `family`                                                  |
+| `club`                                                        | `person.club`                                                                                |
+| `competition_status` competitive / no_award / non_competitive | `standing.basis` competition / no-award / non-competitive                                    |
+| `status` finished / dnf / dns                                 | event total's `status` classified / dnf / dns                                                |
+| `position`, `tied_with_previous`                              | classification row `rank`, `tied`                                                            |
+| `rank_in_competition_status`                                  | row `rank_as_printed` ("NA") with `rank: null`                                               |
+| `days[].laps[].sections`                                      | `grids[]`, one per lap part                                                                  |
+| lap, day and event `total`                                    | `totals[]` with `part` = lap, day, or `null` for the event                                   |
+| `counts`                                                      | event total's `counts`                                                                       |
+| `penalties[]`                                                 | event total's `penalties[]`                                                                  |
+| `ride_off`                                                    | row `tie_break` with `rule: "ride-off"`                                                      |
+| `also_in`                                                     | the same entry listed in both classes' classifications                                       |
 
 ## Tie-breaks
 

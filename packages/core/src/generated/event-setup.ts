@@ -17,7 +17,7 @@ export type ScoreValues = number[];
  */
 export type Direction = 'low_wins' | 'high_wins';
 /**
- * Ranking order within a tier. 'total' first; then most_N / fewest_N count section scores of value N; 'ride_off' uses a recorded ride-off position.
+ * Ranking order within a competition status. 'total' first; then most_N / fewest_N count section scores of value N; 'ride_off' uses a recorded ride-off position.
  *
  * @minItems 1
  *

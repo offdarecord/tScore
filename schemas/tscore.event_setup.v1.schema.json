@@ -103,7 +103,7 @@
       "default": "low_wins"
     },
     "TieBreaks": {
-      "description": "Ranking order within a tier. 'total' first; then most_N / fewest_N count section scores of value N; 'ride_off' uses a recorded ride-off position.",
+      "description": "Ranking order within a competition status. 'total' first; then most_N / fewest_N count section scores of value N; 'ride_off' uses a recorded ride-off position.",
       "type": "array",
       "items": {
         "type": "string",

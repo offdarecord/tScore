@@ -23,7 +23,7 @@ import {
   type EventInput,
   type EventSetup,
   type PenaltyInput,
-  type Tier,
+  type CompetitionStatus,
 } from '@tscore/core';
 import { backupTo, openDatabase, transaction } from './database.js';
 import { SetupError, StoreError } from './errors.js';
@@ -140,7 +140,7 @@ interface EntryRow {
   number: number;
   riders_json: string;
   club: string | null;
-  tier: Tier;
+  competition_status: CompetitionStatus;
   status: EntryStatus;
   classes_json: string;
   ride_off_json: string | null;
@@ -302,7 +302,7 @@ export class EventStore {
       try {
         this.#db
           .prepare(
-            `INSERT INTO entry (id, number, riders_json, club, tier, status, classes_json,
+            `INSERT INTO entry (id, number, riders_json, club, competition_status, status, classes_json,
                ride_off_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           )
           .run(
@@ -310,7 +310,7 @@ export class EventStore {
             entry.number,
             JSON.stringify(entry.riders),
             entry.club ?? null,
-            entry.tier,
+            entry.competitionStatus,
             entry.status,
             JSON.stringify(entry.classes),
             entry.rideOff ? JSON.stringify(entry.rideOff) : null,
@@ -348,8 +348,14 @@ export class EventStore {
     this.#updateEntry(number, 'entry.status', 'status', status, (e) => e.status);
   }
 
-  setTier(number: number, tier: Tier): void {
-    this.#updateEntry(number, 'entry.tier', 'tier', tier, (e) => e.tier);
+  setCompetitionStatus(number: number, competitionStatus: CompetitionStatus): void {
+    this.#updateEntry(
+      number,
+      'entry.competition_status',
+      'competition_status',
+      competitionStatus,
+      (e) => e.competitionStatus,
+    );
   }
 
   // ---- Cards and scores ----
@@ -792,7 +798,7 @@ export class EventStore {
   #updateEntry(
     number: number,
     kind: string,
-    column: 'classes_json' | 'status' | 'tier',
+    column: 'classes_json' | 'status' | 'competition_status',
     value: string,
     read: (e: EntryInput) => unknown,
   ): void {
@@ -930,7 +936,7 @@ function toEntry(r: EntryRow, penalties: PenaltyInput[] | undefined): EntryInput
     number: r.number,
     riders: JSON.parse(r.riders_json) as EntryInput['riders'],
     ...(r.club !== null && { club: r.club }),
-    tier: r.tier,
+    competitionStatus: r.competition_status,
     status: r.status,
     classes: JSON.parse(r.classes_json) as string[],
     ...(penalties && { penalties }),

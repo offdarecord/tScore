@@ -123,7 +123,7 @@ export interface Entry {
   /**
    * competitive: placed 1, 2, 3... no_award: scored and ranked among themselves, shown 'NA', no placing. non_competitive: shown 'NC' after the No award riders, with counts only: their total, scores and penalties are never published (governing-body rule).
    */
-  tier: 'competitive' | 'no_award' | 'non_competitive';
+  competition_status: 'competitive' | 'no_award' | 'non_competitive';
   /**
    * finished, dnf (did not finish) or dns (did not start).
    */
@@ -135,7 +135,7 @@ export interface Entry {
   /**
    * Order among No Award or non-competitive finishers; null otherwise.
    */
-  rank_in_tier?: number | null;
+  rank_in_competition_status?: number | null;
   /**
    * true when every tie-break is equal to the entry above (shared placing).
    */

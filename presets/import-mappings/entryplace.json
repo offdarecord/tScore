@@ -10,7 +10,7 @@
     "class": ["Class"],
     "club": ["Club"],
     "licence": ["Licence Number"],
-    "tier": ["Competitive"],
+    "competition_status": ["Competitive"],
     "group": ["Entry Group"]
   },
   "skip_rows": [
@@ -18,13 +18,17 @@
     { "field": "class", "in": ["Observer"], "reason": "observers" },
     { "field": "class", "pattern": "\\bminders?\\b", "reason": "minders" }
   ],
-  "tier_rules": [
+  "competition_status_rules": [
     {
-      "field": "tier",
+      "field": "competition_status",
       "in": ["N", "No", "Non-competitive", "Non competitive"],
-      "tier": "non_competitive"
+      "competition_status": "non_competitive"
     },
-    { "field": "tier", "in": ["No award", "No-award", "NA"], "tier": "no_award" }
+    {
+      "field": "competition_status",
+      "in": ["No award", "No-award", "NA"],
+      "competition_status": "no_award"
+    }
   ],
   "class_aliases": {
     "Trial 1 (Expert)": ["Trial 1"],

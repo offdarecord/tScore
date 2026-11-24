@@ -42,7 +42,10 @@ async function stubDialog(which: 'showOpenDialog' | 'showSaveDialog', path: stri
 
 async function importRiders(rows: readonly string[]) {
   const csv = join(run.userData, `riders-${rows.length}.csv`);
-  writeFileSync(csv, ['Number,Given name,Family name,Class,Club,Tier', ...rows].join('\r\n'));
+  writeFileSync(
+    csv,
+    ['Number,Given name,Family name,Class,Club,Competition status', ...rows].join('\r\n'),
+  );
   await nav()
     .getByRole('button', { name: /Riders/ })
     .click();

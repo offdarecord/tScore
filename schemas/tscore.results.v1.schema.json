@@ -150,7 +150,7 @@
     },
     "Entry": {
       "type": "object",
-      "required": ["number", "riders", "tier", "status", "position", "total"],
+      "required": ["number", "riders", "competition_status", "status", "position", "total"],
       "additionalProperties": false,
       "properties": {
         "number": { "description": "Rider number.", "type": "integer", "minimum": 1 },
@@ -162,7 +162,7 @@
           "items": { "$ref": "#/$defs/Person" }
         },
         "club": { "type": "string" },
-        "tier": {
+        "competition_status": {
           "description": "competitive: placed 1, 2, 3... no_award: scored and ranked among themselves, shown 'NA', no placing. non_competitive: shown 'NC' after the No award riders, with counts only: their total, scores and penalties are never published (governing-body rule).",
           "type": "string",
           "enum": ["competitive", "no_award", "non_competitive"]
@@ -177,7 +177,7 @@
           "type": ["integer", "null"],
           "minimum": 1
         },
-        "rank_in_tier": {
+        "rank_in_competition_status": {
           "description": "Order among No Award or non-competitive finishers; null otherwise.",
           "type": ["integer", "null"],
           "minimum": 1

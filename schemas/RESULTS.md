@@ -13,7 +13,7 @@ results to websites. A results site needs to understand only this one format.
 
 ## What's in it, and what isn't
 
-**In:** the event, each class, and for each entry: rider number, name(s), club, tier, status,
+**In:** the event, each class, and for each entry: rider number, name(s), club, competition status, status,
 position, total, counts of each score, and every lap's section scores and penalties.
 
 **Not in:** licence numbers, dates of birth, contact or medical details, card images, edit
@@ -42,10 +42,10 @@ Results
       ├─ number
       ├─ riders[]    { name, given_name?, family_name? }   two for a sidecar (driver first)
       ├─ club?
-      ├─ tier        "competitive" | "no_award" | "non_competitive"
+      ├─ competition status        "competitive" | "no_award" | "non_competitive"
       ├─ status      "finished" | "dnf" | "dns"
       ├─ position    1, 2, 3 … or null
-      ├─ rank_in_tier   order among NA or NC finishers, or null
+      ├─ rank_in_competition_status   order among NA or NC finishers, or null
       ├─ tied_with_previous?
       ├─ total       days + penalties, or null for DNS
       ├─ counts      { "0": 8, "1": 1, "2": 0, "3": 1, "5": 0 }
@@ -75,21 +75,21 @@ Results
 - `tie_breaks`: how ties were broken, in order. `total`; then `most_0`, `most_1`, … (more of
   that score is better); `fewest_5` (fewer is better); `ride_off`.
 
-### Tiers, status and position
+### Competition statuses, status and position
 
 Within a class, entries come in this order (checked against past events' scoring workbooks and published results):
 
-| Order | Who                           | `tier`            | `status`   | `position` | `rank_in_tier` | Show as    |
-| ----- | ----------------------------- | ----------------- | ---------- | ---------- | -------------- | ---------- |
-| 1     | Competitive finishers         | `competitive`     | `finished` | 1, 2, 3 …  | null           | 1st, 2nd … |
-| 2     | Competitive non-finishers     | `competitive`     | `dnf`      | null       | null           | DNF        |
-| 3     | Competitive non-starters      | `competitive`     | `dns`      | null       | null           | DNS        |
-| 4     | No Award finishers            | `no_award`        | `finished` | null       | 1, 2 …         | NA         |
-| 5     | No Award non-finishers        | `no_award`        | `dnf`      | null       | null           | DNF        |
-| 6     | No Award non-starters         | `no_award`        | `dns`      | null       | null           | DNS        |
-| 7     | Non-competitive finishers     | `non_competitive` | `finished` | null       | 1, 2 …         | NC         |
-| 8     | Non-competitive non-finishers | `non_competitive` | `dnf`      | null       | null           | NC         |
-| 9     | Non-competitive non-starters  | `non_competitive` | `dns`      | null       | null           | NC         |
+| Order | Who                           | `competition_status` | `status`   | `position` | `rank_in_competition_status` | Show as    |
+| ----- | ----------------------------- | -------------------- | ---------- | ---------- | ---------------------------- | ---------- |
+| 1     | Competitive finishers         | `competitive`        | `finished` | 1, 2, 3 …  | null                         | 1st, 2nd … |
+| 2     | Competitive non-finishers     | `competitive`        | `dnf`      | null       | null                         | DNF        |
+| 3     | Competitive non-starters      | `competitive`        | `dns`      | null       | null                         | DNS        |
+| 4     | No Award finishers            | `no_award`           | `finished` | null       | 1, 2 …                       | NA         |
+| 5     | No Award non-finishers        | `no_award`           | `dnf`      | null       | null                         | DNF        |
+| 6     | No Award non-starters         | `no_award`           | `dns`      | null       | null                         | DNS        |
+| 7     | Non-competitive finishers     | `non_competitive`    | `finished` | null       | 1, 2 …                       | NC         |
+| 8     | Non-competitive non-finishers | `non_competitive`    | `dnf`      | null       | null                         | NC         |
+| 9     | Non-competitive non-starters  | `non_competitive`    | `dns`      | null       | null                         | NC         |
 
 - **Non-competitive riders' scores are never published** (a governing-body rule). Their
   entries carry `counts` only: `total` is null, and there are no `days` or `penalties`.

@@ -130,7 +130,7 @@ describe('importing riders into an event', () => {
 
   it('adds nobody if one rider fails', () => {
     store = EventStore.create(tempFolder(), SETUP, testContext());
-    const ok = { number: 1, riders: [{ givenName: 'A', familyName: 'B' }], tier: 'competitive' as const, status: 'riding' as const, classes: ['Trial 4'] };
+    const ok = { number: 1, riders: [{ givenName: 'A', familyName: 'B' }], competitionStatus: 'competitive' as const, status: 'riding' as const, classes: ['Trial 4'] };
     expect(code(() => store?.importEntries([ok, { ...ok, number: 2, classes: ['Nope'] }]))).toBe('STORE_NO_CLASS');
     expect(code(() => store?.importEntries([ok, ok]))).toBe('STORE_DUPLICATE_RIDER');
     expect(store.entries()).toEqual([]);

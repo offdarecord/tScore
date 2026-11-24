@@ -22,8 +22,8 @@ export function placeLabels(entries: readonly Entry[]): string[] {
   return entries.map((e, i) => {
     if (e.status === 'dns') return 'DNS';
     if (e.status === 'dnf') return 'DNF';
-    if (e.tier === 'non_competitive') return 'NC';
-    if (e.tier === 'no_award') return 'NA';
+    if (e.competition_status === 'non_competitive') return 'NC';
+    if (e.competition_status === 'no_award') return 'NA';
     if (e.position === null) return '';
     const tied = e.tied_with_previous === true || entries[i + 1]?.tied_with_previous === true;
     return `${ordinal(e.position)}${tied ? '=' : ''}`;
@@ -192,7 +192,7 @@ export function resultsHtml(results: Results, opts: PrintOptions): string {
       const places = placeLabels(cls.entries);
       const rows = cls.entries
         .map((e, i) => {
-          const muted = e.tier !== 'competitive' || e.status !== 'finished';
+          const muted = e.competition_status !== 'competitive' || e.status !== 'finished';
           const pen = penaltyPoints(e);
           const cells = [
             `<td class="place">${esc(places[i])}</td>`,

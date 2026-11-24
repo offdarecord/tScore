@@ -32,7 +32,7 @@ async function eventWithRiders() {
   writeFileSync(
     csv,
     [
-      'Number,Given name,Family name,Class,Club,Tier',
+      'Number,Given name,Family name,Class,Club,Competition status',
       '1,Avery,Stone,Trial 3,Example MCC,',
       '2,Blake,River,Trial 3,Example MCC,',
       '3,Casey,Hill,Trial 3,,NC',

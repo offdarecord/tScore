@@ -90,7 +90,7 @@ let library: EventLibrary | null = null;
 /** The entry list the desk last picked, waiting for "Import". Only its scoring columns. */
 let pending: { eventId: string; list: EntryList } | null = null;
 
-const TIERS = ['competitive', 'no_award', 'non_competitive'] as const;
+const COMPETITION_STATUSES = ['competitive', 'no_award', 'non_competitive'] as const;
 const STATUSES = ['riding', 'dnf', 'dns'] as const;
 
 function rider(e: EntryInput): RiderInfo {
@@ -98,7 +98,7 @@ function rider(e: EntryInput): RiderInfo {
     number: e.number,
     riders: e.riders.map((p) => ({ givenName: p.givenName, familyName: p.familyName })),
     ...(e.club ? { club: e.club } : {}),
-    tier: e.tier,
+    competitionStatus: e.competitionStatus,
     status: e.status,
     classes: e.classes,
   };
@@ -266,9 +266,10 @@ export const eventHandlers = {
           throw new StoreError('APP_BAD_REQUEST', 'Choose a class.');
         store.changeClasses(number, change.classes);
       }
-      if (change.tier !== undefined) {
-        if (!TIERS.includes(change.tier)) throw new StoreError('APP_BAD_REQUEST', 'Choose a tier.');
-        store.setTier(number, change.tier);
+      if (change.competitionStatus !== undefined) {
+        if (!COMPETITION_STATUSES.includes(change.competitionStatus))
+          throw new StoreError('APP_BAD_REQUEST', 'Choose a competition status.');
+        store.setCompetitionStatus(number, change.competitionStatus);
       }
       if (change.status !== undefined) {
         if (!STATUSES.includes(change.status))

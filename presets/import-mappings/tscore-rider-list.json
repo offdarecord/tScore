@@ -10,15 +10,19 @@
     "club": ["Club"],
     "licence": ["Licence"],
     "number": ["Number"],
-    "tier": ["Tier"]
+    "competition_status": ["Competition status", "Tier"]
   },
-  "tier_rules": [
+  "competition_status_rules": [
     {
-      "field": "tier",
+      "field": "competition_status",
       "in": ["NC", "Non-competitive", "Non competitive"],
-      "tier": "non_competitive"
+      "competition_status": "non_competitive"
     },
-    { "field": "tier", "in": ["NA", "No award", "No-award"], "tier": "no_award" }
+    {
+      "field": "competition_status",
+      "in": ["NA", "No award", "No-award"],
+      "competition_status": "no_award"
+    }
   ],
   "keep_numbers": true
 }

@@ -23,7 +23,7 @@ const setup = (days = 1): EventSetup => ({
 const rider = (number: number, cls: string, extra: Partial<EntryInput> = {}): EntryInput => ({
   number,
   riders: [{ givenName: 'Avery', familyName: 'Stone' }],
-  tier: 'competitive',
+  competitionStatus: 'competitive',
   status: 'riding',
   classes: [cls],
   ...extra,
@@ -105,7 +105,10 @@ describe('planLabels', () => {
   it('marks NC and No award riders, and puts the scan code in the QR', () => {
     const plan = planLabels(
       setup(),
-      [rider(5, 'Trial 2', { tier: 'non_competitive' }), rider(6, 'Trial 2', { tier: 'no_award' })],
+      [
+        rider(5, 'Trial 2', { competitionStatus: 'non_competitive' }),
+        rider(6, 'Trial 2', { competitionStatus: 'no_award' }),
+      ],
       L7651,
     );
     const all = labels(plan.slots);

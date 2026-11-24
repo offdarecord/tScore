@@ -67,7 +67,7 @@ is used by non-technical volunteers, and is maintained by part-time volunteers. 
 ## Domain quick reference
 
 - Score values (default ruleset): 0 clean, 1/2/3 dabs, 5 fail.
-- Ranking within class: tier (competitive → No Award → non-competitive), then total ascending
+- Ranking within class: competition status (competitive → No Award → non-competitive), then total ascending
   (descending for gate trials), then most 0s, 1s, 2s, 3s, fewest 5s, then ride-off.
 - Row decoding: 1 hole = that value; all-but-one holes = the unpunched value (`INVERSE`);
   0 holes = `NO_PUNCH`; otherwise `MULTI_PUNCH`. A missed section is always flagged, never

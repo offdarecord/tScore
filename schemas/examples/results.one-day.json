@@ -47,10 +47,10 @@
             }
           ],
           "club": "Example Motorcycle Club",
-          "tier": "competitive",
+          "competition_status": "competitive",
           "status": "finished",
           "position": 1,
-          "rank_in_tier": null,
+          "rank_in_competition_status": null,
           "total": 4,
           "counts": {
             "0": 8,
@@ -89,10 +89,10 @@
             }
           ],
           "club": "Example Motorcycle Club",
-          "tier": "competitive",
+          "competition_status": "competitive",
           "status": "finished",
           "position": 2,
-          "rank_in_tier": null,
+          "rank_in_competition_status": null,
           "total": 4,
           "counts": {
             "0": 7,
@@ -131,10 +131,10 @@
             }
           ],
           "club": "Another Example MCC",
-          "tier": "competitive",
+          "competition_status": "competitive",
           "status": "finished",
           "position": 3,
-          "rank_in_tier": null,
+          "rank_in_competition_status": null,
           "total": 6,
           "counts": {
             "0": 9,
@@ -179,10 +179,10 @@
               "family_name": "Dummy"
             }
           ],
-          "tier": "competitive",
+          "competition_status": "competitive",
           "status": "dnf",
           "position": null,
-          "rank_in_tier": null,
+          "rank_in_competition_status": null,
           "total": 16,
           "counts": {
             "0": 0,
@@ -220,10 +220,10 @@
               "family_name": "Absent"
             }
           ],
-          "tier": "competitive",
+          "competition_status": "competitive",
           "status": "dns",
           "position": null,
-          "rank_in_tier": null,
+          "rank_in_competition_status": null,
           "total": null
         },
         {
@@ -235,10 +235,10 @@
               "family_name": "Test"
             }
           ],
-          "tier": "non_competitive",
+          "competition_status": "non_competitive",
           "status": "finished",
           "position": null,
-          "rank_in_tier": 1,
+          "rank_in_competition_status": 1,
           "total": null,
           "counts": {
             "0": 3,
@@ -269,10 +269,10 @@
               "family_name": "M."
             }
           ],
-          "tier": "competitive",
+          "competition_status": "competitive",
           "status": "finished",
           "position": 1,
-          "rank_in_tier": null,
+          "rank_in_competition_status": null,
           "total": 1,
           "counts": {
             "0": 4,
@@ -305,10 +305,10 @@
               "family_name": "F."
             }
           ],
-          "tier": "no_award",
+          "competition_status": "no_award",
           "status": "finished",
           "position": null,
-          "rank_in_tier": 1,
+          "rank_in_competition_status": 1,
           "total": 2,
           "counts": {
             "0": 4,
@@ -358,10 +358,10 @@
               "family_name": "Sample"
             }
           ],
-          "tier": "competitive",
+          "competition_status": "competitive",
           "status": "finished",
           "position": 1,
-          "rank_in_tier": null,
+          "rank_in_competition_status": null,
           "total": 3,
           "counts": {
             "0": 7,

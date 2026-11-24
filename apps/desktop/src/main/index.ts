@@ -101,6 +101,7 @@ function registerIpc(): void {
     eventHandlers.chooseBackupPlace(BrowserWindow.fromWebContents(e.sender)),
   );
   handle(IPC.clearBackupPlace, () => eventHandlers.clearBackupPlace());
+  handle(IPC.preEventCheck, () => eventHandlers.preEventCheck());
   handle(IPC.restoreFromBackup, (e) =>
     eventHandlers.restoreFromBackup(BrowserWindow.fromWebContents(e.sender)),
   );

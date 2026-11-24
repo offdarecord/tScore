@@ -35,6 +35,7 @@ import type {
   DeskRider,
   EntryListFile,
   BackupStatus,
+  PreEventCheck,
   CourseView,
   ExportKind,
   LabelOffset,
@@ -52,6 +53,7 @@ import type {
   SaveCard,
 } from '../shared/ipc';
 import { backUp, backupStatus, beforeClose, setSecondPlace } from './backups';
+import { preEventCheck } from './check';
 import { courseView } from './course';
 import { labelsView, saveLabels, saveLabelTestPage, setLabelOffset } from './labels';
 import { exportResults, markFinal, openLastExport, resultsView } from './results';
@@ -261,6 +263,10 @@ export const eventHandlers = {
       log.info('event opened', { eventId: store.eventId, folder: store.folder });
       return describe(store);
     });
+  },
+
+  preEventCheck(): Outcome<PreEventCheck> {
+    return attempt('checking the event', () => preEventCheck(openStore()));
   },
 
   backupStatus(): Outcome<BackupStatus> {

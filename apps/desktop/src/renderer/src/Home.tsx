@@ -1,5 +1,4 @@
 import {
-  Alert,
   Badge,
   Button,
   Group,
@@ -13,6 +12,7 @@ import {
 import { useEffect, useState } from 'react';
 import type { AppError, AppInfo, OpenEvent, Outcome, RecentEventInfo } from '../../shared/ipc';
 import { formatDate } from './format';
+import { ErrorAlert } from './ErrorAlert';
 
 interface Props {
   readonly info: AppInfo | null;
@@ -61,17 +61,7 @@ export function Home({ info, onNew, onOpened }: Props) {
       </Group>
 
       {error && (
-        <Alert
-          color="red"
-          title="The event didn't open"
-          withCloseButton
-          onClose={() => setError(null)}
-        >
-          {error.message}{' '}
-          <Text span c="dimmed" size="sm">
-            ({error.code})
-          </Text>
-        </Alert>
+        <ErrorAlert error={error} title="The event didn't open" onClose={() => setError(null)} />
       )}
 
       <Paper withBorder radius="md" p="lg" component="section" aria-labelledby="recent-heading">

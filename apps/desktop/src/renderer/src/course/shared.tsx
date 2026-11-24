@@ -46,17 +46,6 @@ export function DayPicker(props: { view: CourseView; onChange: (day: number) => 
   );
 }
 
-export function ErrorAlert({ error, onClose }: { error: AppError; onClose?: () => void }) {
-  return (
-    <Alert color="red" role="alert" {...(onClose && { withCloseButton: true, onClose })}>
-      {error.message}{' '}
-      <Text span c="dimmed" size="sm">
-        ({error.code})
-      </Text>
-    </Alert>
-  );
-}
-
 export const clock = (iso: string) =>
   new Date(iso).toLocaleTimeString('en-AU', {
     hour: '2-digit',

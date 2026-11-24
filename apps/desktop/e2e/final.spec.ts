@@ -91,7 +91,7 @@ test('results are marked final, reopened with a reason, and revised', async () =
 
   // Nothing that affects results can change while they're final.
   await typeCard(1, '5555555555', true);
-  await expect(window.getByRole('alert')).toContainText('STORE_RESULTS_FINAL');
+  await expect(window.getByRole('alert')).toContainText('TS-RES-001');
 
   // Reopen, correct rider 1's card (they drop to 2nd), and issue revision 2.
   await nav().getByRole('button', { name: 'Results' }).click();

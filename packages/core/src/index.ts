@@ -32,5 +32,8 @@ export * from './import/index.js';
 // Card labels (architecture §8.1; templates in presets/label-templates/).
 export * from './labels/index.js';
 
+// The error catalogue (ADR 0012; docs/guide/errors.md).
+export * from './errors.js';
+
 // Progress and still on course (architecture §9).
 export * from './course.js';

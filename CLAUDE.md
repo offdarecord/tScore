@@ -47,8 +47,13 @@ is used by non-technical volunteers, and is maintained by part-time volunteers. 
   Australian English; designed empty/loading/error states.
 - **Data (ADR 0005, 0007):** one SQLite file per event; scores are versioned, never updated in
   place; every data change writes an `audit_event`; every edit needs a reason.
-- **Errors and logs (ADR 0012):** user-facing errors get a `TS-<AREA>-<NNN>` code and a
-  catalogue entry. The diagnostic log never contains rider names (numbers and ids only).
+- **Errors and logs (ADR 0012):** user-facing errors get an entry in
+  `packages/core/src/errors.ts` (internal name → public `TS-<AREA>-<NNN>` code, meaning, fix);
+  `npm run gen:errors` regenerates `docs/guide/errors.md`. The diagnostic log never contains
+  rider names (numbers and ids only).
+- **User guide:** `docs/guide/*.md` is shown on GitHub and built into the app's Help panel
+  (offline). Update it with any behaviour change; `help/topics.ts` maps each screen to its page.
+  GitHub-style links and `> [!TIP]` callouts work in both places.
 - **Commits/PRs:** Conventional Commits PR titles (`feat:`, `fix:`, `docs:` …); squash merge;
   never push to `main`; work on a branch and open a PR.
 

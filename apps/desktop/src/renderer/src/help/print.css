@@ -1,0 +1,40 @@
+/* Printing a help page (the Print button sets data-print="help"): only the page, full width. */
+.help-box {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  margin-right: 0.5em;
+  border: 2px solid currentColor;
+  border-radius: 2px;
+  vertical-align: -0.1em;
+}
+
+@media print {
+  body[data-print='help'] .mantine-AppShell-header,
+  body[data-print='help'] .mantine-AppShell-navbar,
+  body[data-print='help'] .mantine-AppShell-main,
+  body[data-print='help'] .help-toolbar {
+    display: none !important;
+  }
+
+  body[data-print='help'] .mantine-AppShell-aside {
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    transform: none !important;
+    border: 0 !important;
+  }
+
+  /* The screen's large type (18 px body, for daylight in tents) is more than paper needs. */
+  body[data-print='help'] .help-page {
+    overflow: visible !important;
+    padding: 0 !important;
+    zoom: 0.85;
+  }
+
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+}

@@ -180,7 +180,7 @@ test('a file tScore does not recognise is refused in plain words', async () => {
   await window.getByRole('button', { name: 'Import from entry list…' }).click();
   const alert = window.getByRole('alert').filter({ hasText: "The entry list wasn't read" });
   await expect(alert).toContainText("tScore doesn't recognise this file");
-  await expect(alert).toContainText('IMPORT_UNKNOWN_FORMAT');
+  await expect(alert).toContainText('TS-IMP-005');
 });
 
 test("Ridernet's questions export is named, and the log records what kind of file it was", async () => {
@@ -200,7 +200,7 @@ test("Ridernet's questions export is named, and the log records what kind of fil
   await window.getByRole('button', { name: 'Import from entry list…' }).click();
   const alert = window.getByRole('alert').filter({ hasText: "The entry list wasn't read" });
   await expect(alert).toContainText("Ridernet's entry questions export");
-  await expect(alert).toContainText('IMPORT_OTHER_EXPORT');
+  await expect(alert).toContainText('TS-IMP-006');
 
   const logged = readFileSync(join(run.userData, 'logs', 'main.log'), 'utf8');
   expect(logged).toContain('entry list not read');

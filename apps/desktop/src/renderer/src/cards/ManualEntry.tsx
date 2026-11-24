@@ -27,6 +27,7 @@ import type {
 } from '../../../shared/ipc';
 import { riderName } from '../riders/Riders';
 import { CardPreview } from './CardPreview';
+import { ErrorAlert } from '../ErrorAlert';
 
 export const PENALTY_LABEL: Record<PenaltyReason, string> = {
   time: 'Time (e.g. lap not finished in the time allowed)',
@@ -750,16 +751,5 @@ function PenaltyList(props: {
         Added to the rider&apos;s total on the results. Adding or removing one is logged.
       </Text>
     </Stack>
-  );
-}
-
-function ErrorAlert({ error, onClose }: { error: AppError; onClose?: () => void }) {
-  return (
-    <Alert color="red" role="alert" {...(onClose && { withCloseButton: true, onClose })}>
-      {error.message}{' '}
-      <Text span c="dimmed" size="sm">
-        ({error.code})
-      </Text>
-    </Alert>
   );
 }

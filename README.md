@@ -53,6 +53,7 @@ npm start
 | `assets/`         | tScore artwork (banner) for the README and project pages         |
 | `presets/`        | Class lists, rulesets, label templates, card profiles, as data   |
 | `fixtures/`       | Anonymised test data: card images, golden events                 |
+| `docs/guide/`     | The user guide, also built into the app as its Help              |
 | `docs/adr/`       | Architecture decision records: _why_ things are the way they are |
 | `.claude/skills/` | Maintainer workflows for Claude Code                             |
 

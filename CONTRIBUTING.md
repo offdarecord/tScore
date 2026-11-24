@@ -40,10 +40,14 @@ No native build tools are needed. Use Node.js 24 LTS (`.nvmrc`).
 - TypeScript `strict`; lint and format clean (`npm run check`); no `any` in `core` or `vision`.
 - Unit tests for logic; an end-to-end test (`apps/desktop/e2e/`, `npm run test:e2e`) for each
   screen or user journey touched, passing the automated accessibility check.
-- New user-facing errors have an error code (`TS-<AREA>-<NNN>`) and a catalogue entry; key
-  steps write diagnostic log lines (no rider names in diagnostic logs).
-- Docs updated (user guide or ADR) where behaviour changes. Changing a recorded decision
-  means a new ADR in `docs/adr/`.
+- New user-facing errors have an entry in the error catalogue (`packages/core/src/errors.ts`):
+  a public code (`TS-<AREA>-<NNN>`), what it means and what to do. Run `npm run gen:errors` to
+  update the guide's error-code page. Key steps write diagnostic log lines (no rider names in
+  diagnostic logs).
+- The user guide (`docs/guide/`) changes in the same pull request as the behaviour it
+  describes: a new screen gets its section and an entry in `help/topics.ts`, so **Help** and F1
+  open it. Write by task, in the desk's words, naming buttons exactly as the screen does.
+  Changing a recorded decision means a new ADR in `docs/adr/`.
 - CI green on Windows.
 
 ## Releasing (maintainers)

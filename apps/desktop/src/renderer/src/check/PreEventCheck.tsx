@@ -1,6 +1,7 @@
-import { Alert, Button, Group, Paper, Stack, Text, Title } from '@mantine/core';
+import { Button, Group, Paper, Stack, Text, Title } from '@mantine/core';
 import { useCallback, useEffect, useState } from 'react';
 import type { AppError, CheckItem, OpenEvent, PreEventCheck as Check } from '../../../shared/ipc';
+import { ErrorAlert } from '../ErrorAlert';
 
 const LOOK: Record<CheckItem['state'], { icon: string; bg: string; fg: string; words: string }> = {
   ok: { icon: '✓', bg: '#e3f4e6', fg: '#1f5f26', words: 'OK' },
@@ -55,14 +56,7 @@ export function PreEventCheck(props: {
         </Text>
       </div>
 
-      {error && (
-        <Alert color="red" role="alert">
-          {error.message}{' '}
-          <Text span c="dimmed" size="sm">
-            ({error.code})
-          </Text>
-        </Alert>
-      )}
+      {error && <ErrorAlert error={error} />}
 
       {check && (
         <Paper withBorder radius="md" p="lg" component="section" aria-label="Checks">

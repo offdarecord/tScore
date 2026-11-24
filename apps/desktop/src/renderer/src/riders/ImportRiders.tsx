@@ -16,6 +16,7 @@ import { planImport, type ImportChoices, type MatchedBy } from '@tscore/core';
 import { useEffect, useMemo, useState } from 'react';
 import type { AppError, EntryListFile, OpenEvent, RiderInfo } from '../../../shared/ipc';
 import { riderName } from './Riders';
+import { ErrorAlert } from '../ErrorAlert';
 
 interface Props {
   readonly event: OpenEvent;
@@ -276,17 +277,7 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
           </Paper>
 
           {error && (
-            <Alert
-              color="red"
-              title="Nothing was imported"
-              withCloseButton
-              onClose={() => setError(null)}
-            >
-              {error.message}{' '}
-              <Text span c="dimmed" size="sm">
-                ({error.code})
-              </Text>
-            </Alert>
+            <ErrorAlert error={error} title="Nothing was imported" onClose={() => setError(null)} />
           )}
           <Group>
             <Button disabled={!plan.ready || busy} loading={busy} onClick={() => void doImport()}>

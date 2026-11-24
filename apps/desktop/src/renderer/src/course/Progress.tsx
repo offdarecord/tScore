@@ -11,7 +11,8 @@ import {
 } from '@mantine/core';
 import { useState } from 'react';
 import type { CourseLap, OpenEvent } from '../../../shared/ipc';
-import { DayPicker, ErrorAlert, MarkDnf, minutes, useCourse, useDnf } from './shared';
+import { DayPicker, MarkDnf, minutes, useCourse, useDnf } from './shared';
+import { ErrorAlert } from '../ErrorAlert';
 
 type Filter = 'all' | 'missing' | 'overdue';
 

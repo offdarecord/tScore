@@ -20,7 +20,16 @@ test.afterEach(async () => {
 async function openForm() {
   await window.getByRole('button', { name: 'About' }).click();
   await window.getByRole('button', { name: 'Suggest a feature' }).click();
-  return window.getByRole('dialog', { name: 'Suggest a feature' });
+  const form = window.getByRole('dialog', { name: 'Suggest a feature' });
+  // Let the About box finish fading out and the form fading in: half-faded text fails contrast.
+  await expect(window.getByRole('dialog', { name: 'About tScore' })).toHaveCount(0);
+  await expect(form).toBeVisible();
+  await window.waitForFunction(() =>
+    [...document.querySelectorAll('.mantine-Modal-content, .mantine-Modal-overlay')].every(
+      (el) => getComputedStyle(el).opacity === '1' || getComputedStyle(el).opacity === '0.6',
+    ),
+  );
+  return form;
 }
 
 test('a suggestion needs its required answers, then copies, saves and emails', async () => {
@@ -75,5 +84,7 @@ test('the suggestion form meets WCAG 2.2 AA (automated check)', async () => {
     .setLegacyMode(true)
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
     .analyze();
-  expect(results.violations.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
+  expect(
+    results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`),
+  ).toEqual([]);
 });

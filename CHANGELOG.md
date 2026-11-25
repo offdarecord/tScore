@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.7.0](https://github.com/offdarecord/tScore/compare/v0.6.0...v0.7.0) (2026-11-25)
+
+
+### Added
+
+* "Suggest a feature" on the About screen, for people without GitHub ([#70](https://github.com/offdarecord/tScore/issues/70)) ([e22a58e](https://github.com/offdarecord/tScore/commit/e22a58e11703f18a20c12c077768fee390db1fcb))
+* dark mode, with a Light / Dark / Match Windows switch ([#66](https://github.com/offdarecord/tScore/issues/66)) ([4745de6](https://github.com/offdarecord/tScore/commit/4745de67931a9f9051651edc6fb582fdec6399c7))
+* event logo and sponsor logos on the results PDF and big screen ([#69](https://github.com/offdarecord/tScore/issues/69)) ([0cb6996](https://github.com/offdarecord/tScore/commit/0cb6996fa348dfa17b26455e6b98b90f9b209fe0))
+* live scores on a big screen ([#68](https://github.com/offdarecord/tScore/issues/68)) ([c92a0d2](https://github.com/offdarecord/tScore/commit/c92a0d2f7effee04213ea66dd651b1f02490c230))
+* move an event to another laptop in one checked file ([#67](https://github.com/offdarecord/tScore/issues/67)) ([b023029](https://github.com/offdarecord/tScore/commit/b02302964cc582e8edfeb38fb44b6043369527f0))
+* read punched regional cards from a camera frame ([#72](https://github.com/offdarecord/tScore/issues/72)) ([7a7893d](https://github.com/offdarecord/tScore/commit/7a7893d1c20f8155c43a5222c2a08dc3287fef00))
+* scan desk and review queue ([#73](https://github.com/offdarecord/tScore/issues/73)) ([77806a2](https://github.com/offdarecord/tScore/commit/77806a287ea483aa07e4219d810823addca25f7b))
+* series points, a tally across the rounds of a series ([#71](https://github.com/offdarecord/tScore/issues/71)) ([4a59b34](https://github.com/offdarecord/tScore/commit/4a59b340c85aec9d96ef4a5e3e3b603c416f2967))
+
+
+### Fixed
+
+* a typed card's hand-in time is on the event day, not today ([#77](https://github.com/offdarecord/tScore/issues/77)) ([92bfb62](https://github.com/offdarecord/tScore/commit/92bfb626d340df7f65ec0e51244476e812d70f62))
+* drop the lap 1 start time's help text ([#51](https://github.com/offdarecord/tScore/issues/51)) ([fb5dc41](https://github.com/offdarecord/tScore/commit/fb5dc41c7ff1734f4dbed1fad087938eb174e5b2))
+* shorter help text for Leave out minders ([#63](https://github.com/offdarecord/tScore/issues/63)) ([2e8adf4](https://github.com/offdarecord/tScore/commit/2e8adf4a517893351b7a57c7e8c3d017ff42547c))
+
 ## [0.6.0](https://github.com/offdarecord/tScore/compare/v0.5.0...v0.6.0) (2026-11-24)
 
 

@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.7.1](https://github.com/offdarecord/tScore/compare/v0.7.0...v0.7.1) (2026-11-25)
+
+
+### Added
+
+* a bit of humour on the About screen ([#86](https://github.com/offdarecord/tScore/issues/86)) ([3252e5a](https://github.com/offdarecord/tScore/commit/3252e5aa98f05b06bcf04d5f8f83a007a8a0294d))
+* find the rider by number or name on the scan desk ([#89](https://github.com/offdarecord/tScore/issues/89)) ([189d0b8](https://github.com/offdarecord/tScore/commit/189d0b8f4ecded1347f3ba4a1f6022e8cf9a3f5b))
+* link to manual entry from the bottom of the review queue ([#85](https://github.com/offdarecord/tScore/issues/85)) ([655700c](https://github.com/offdarecord/tScore/commit/655700cf53afc9f1926243a6c07849821bc998f4))
+* mark required fields with a red asterisk, and hide the session column ([#90](https://github.com/offdarecord/tScore/issues/90)) ([8450a4f](https://github.com/offdarecord/tScore/commit/8450a4f090740b2ce0459439523902ffe1fb1a68))
+
+
+### Fixed
+
+* esc closes help from its button, and no longer closes live scores ([#82](https://github.com/offdarecord/tScore/issues/82)) ([5d00ad6](https://github.com/offdarecord/tScore/commit/5d00ad6b01024f9b0b512a1b16e03dfe52e31610))
+* label the riders' status column DNS / DNF ([#84](https://github.com/offdarecord/tScore/issues/84)) ([311bf16](https://github.com/offdarecord/tScore/commit/311bf16ddc13d3170acc6cc8641fc9bab32b9c61))
+* the scan desk saves each card once ([#91](https://github.com/offdarecord/tScore/issues/91)) ([2d935d8](https://github.com/offdarecord/tScore/commit/2d935d894e9a71831d6e8f81c95dd3b61caf6b73))
+
 ## [0.7.0](https://github.com/offdarecord/tScore/compare/v0.6.0...v0.7.0) (2026-11-25)
 
 ### Added

@@ -1,4 +1,5 @@
 import { Alert, Group, Text } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import { errorAnchor, errorByCode } from '@tscore/core';
 import type { AppError } from '../../shared/ipc';
 import { HelpLink } from './help/Help';
@@ -16,13 +17,14 @@ export function ErrorAlert(props: {
   withHelp?: boolean;
 }) {
   const { error, title, onClose, withHelp = true } = props;
+  const { t } = useTranslation();
   const known = errorByCode(error.code);
   return (
     <Alert
       color="red"
       role="alert"
       {...(title && { title })}
-      {...(onClose && { withCloseButton: true, onClose, closeButtonLabel: 'Close' })}
+      {...(onClose && { withCloseButton: true, onClose, closeButtonLabel: t('errorAlert.close') })}
     >
       {error.message}{' '}
       <Text span c="dimmed" size="sm">
@@ -31,7 +33,7 @@ export function ErrorAlert(props: {
       {withHelp && known && (
         <Group mt={4}>
           <HelpLink topic={{ page: 'errors', anchor: errorAnchor(known.code) }}>
-            What to do
+            {t('errorAlert.whatToDo')}
           </HelpLink>
         </Group>
       )}

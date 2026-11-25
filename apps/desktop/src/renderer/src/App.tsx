@@ -2,6 +2,7 @@ import { Anchor, AppShell, Button, Group, Modal, Stack, Text, Title } from '@man
 import { useDisclosure } from '@mantine/hooks';
 import { newEventSetup } from '@tscore/core';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { AppInfo, OpenEvent } from '../../shared/ipc';
 import { ColorSchemeSwitch } from './ColorSchemeSwitch';
 import { EventMain, EventNav, type EventPage } from './EventShell';
@@ -67,6 +68,7 @@ function topicFor(screen: Screen): HelpTopicName {
 function Shell() {
   const help = useHelp();
   const [info, setInfo] = useState<AppInfo | null>(null);
+  const { t } = useTranslation();
   const [aboutOpen, about] = useDisclosure(false);
   const [suggestOpen, suggest] = useDisclosure(false);
   const [screen, setScreen] = useState<Screen>({ kind: 'home' });
@@ -81,8 +83,8 @@ function Shell() {
 
   const eventName = screen.kind === 'event' ? screen.event.setup.event.name : null;
   useEffect(() => {
-    document.title = eventName ? `${eventName} – tScore` : 'tScore';
-  }, [eventName]);
+    document.title = eventName ? t('app.windowTitle', { event: eventName }) : t('app.name');
+  }, [eventName, t]);
 
   /** Show the event: a newly opened one at its setup, the same one on the page it's on. */
   const open = (event: OpenEvent) =>
@@ -108,13 +110,13 @@ function Shell() {
       <AppShell.Header>
         <Group h="100%" px="lg" justify="space-between">
           <Title order={1} size="h3">
-            tScore
+            {t('app.name')}
           </Title>
           <Group gap="xs">
             <ColorSchemeSwitch />
             <HelpButton topic={topicFor(screen)} />
             <Button variant="subtle" onClick={about.open}>
-              About
+              {t('app.about')}
             </Button>
           </Group>
         </Group>
@@ -177,21 +179,25 @@ function Shell() {
         )}
       </AppShell.Main>
 
-      <AppShell.Aside aria-label="Help panel">
+      <AppShell.Aside aria-label={t('app.helpPanel')}>
         <HelpPanel />
       </AppShell.Aside>
 
-      <Modal opened={aboutOpen} onClose={about.close} title="About tScore">
+      <Modal opened={aboutOpen} onClose={about.close} title={t('app.aboutTitle')}>
         <Stack gap="xs">
-          <Text>Version {info?.version ?? '…'}</Text>
-          <Text fs="italic">Artisanally AI-crafted by trials nerds, for trials nerds.</Text>
+          <Text>{t('app.version', { version: info?.version ?? '…' })}</Text>
+          <Text fs="italic">{t('app.tagline')}</Text>
           <Text size="xs" c="dimmed">
-            Electron {info?.electron} · {info?.platform} {info?.arch}
+            {t('app.runtime', {
+              electron: info?.electron ?? '',
+              platform: info?.platform ?? '',
+              arch: info?.arch ?? '',
+            })}
           </Text>
           <Text size="xs">
-            Free and open source under the Apache License 2.0.{' '}
+            {t('app.licence')}{' '}
             <Anchor href="https://github.com/offdarecord/tScore" target="_blank">
-              Source and changelog
+              {t('app.source')}
             </Anchor>
           </Text>
           <Group mt="sm">
@@ -202,7 +208,7 @@ function Shell() {
                 suggest.open();
               }}
             >
-              Suggest a feature
+              {t('app.suggest')}
             </Button>
           </Group>
         </Stack>

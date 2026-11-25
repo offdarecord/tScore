@@ -1,7 +1,6 @@
 import { Button, Tooltip, type ButtonProps } from '@mantine/core';
 import type { ReactNode } from 'react';
-
-const MESSAGE = 'Coming in a later version of tScore';
+import { useTranslation } from 'react-i18next';
 
 /**
  * A button for a feature that isn't built yet. It looks disabled and does nothing, but stays
@@ -9,9 +8,11 @@ const MESSAGE = 'Coming in a later version of tScore';
  * shows nothing, which reads as "broken").
  */
 export function ComingSoonButton(props: ButtonProps & { children: ReactNode }) {
+  const { t } = useTranslation();
+  const message = t('comingSoon');
   return (
     <Tooltip
-      label={MESSAGE}
+      label={message}
       withArrow
       openDelay={100}
       events={{ hover: true, focus: true, touch: true }}
@@ -20,7 +21,7 @@ export function ComingSoonButton(props: ButtonProps & { children: ReactNode }) {
         {...props}
         data-disabled
         aria-disabled="true"
-        aria-description={MESSAGE}
+        aria-description={message}
         onClick={(e) => e.preventDefault()}
       />
     </Tooltip>

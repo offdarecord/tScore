@@ -15,6 +15,7 @@ import {
 import { startBackups } from './backups';
 import { closeEvents, currentStore, eventHandlers, eventsDir } from './events';
 import { closeLiveWindow, liveWindowState, showLiveWindow, toggleLiveFullScreen } from './live';
+import { uiLanguage } from './locale';
 import { startLogging } from './logging';
 import { copySuggestion, emailSuggestion, saveSuggestion } from './suggestion';
 import { manageHandlers } from './manage';
@@ -222,9 +223,11 @@ function createWindow(): void {
   });
 
   if (RENDERER_DEV_URL && !app.isPackaged) {
-    void win.loadURL(RENDERER_DEV_URL);
+    void win.loadURL(`${RENDERER_DEV_URL}?lang=${encodeURIComponent(uiLanguage())}`);
   } else {
-    void win.loadFile(join(__dirname, '../renderer/index.html'));
+    void win.loadFile(join(__dirname, '../renderer/index.html'), {
+      query: { lang: uiLanguage() },
+    });
   }
 }
 

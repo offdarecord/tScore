@@ -1,4 +1,5 @@
 import { Button, Stack, Text } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import type { EntryListFile, OpenEvent } from '../../shared/ipc';
 import { ManualEntry } from './cards/ManualEntry';
 import { PreEventCheck } from './check/PreEventCheck';
@@ -45,11 +46,12 @@ export function EventNav(props: {
 }) {
   const { event, page, onClose, onNavigate } = props;
   const { setup } = event;
+  const { t } = useTranslation();
   const date = setup.days[0]?.date;
   return (
-    <Stack gap={2} component="nav" aria-label="Event">
+    <Stack gap={2} component="nav" aria-label={t('nav.label')}>
       <Button variant="subtle" color="gray" justify="flex-start" onClick={onClose}>
-        ← All events
+        {t('nav.allEvents')}
       </Button>
       <div style={{ padding: '10px 12px 4px' }}>
         <Text fw={700} size="lg">
@@ -60,59 +62,59 @@ export function EventNav(props: {
           {date ? ` · ${formatDate(date)}` : ''}
         </Text>
       </div>
-      <NavHeading>Before the event</NavHeading>
+      <NavHeading>{t('nav.before')}</NavHeading>
       <NavGroup>
         <NavLink
-          label="Pre-event check"
+          label={t('nav.check')}
           current={page.name === 'check'}
           onClick={() => onNavigate({ name: 'check' })}
         />
         <NavLink
-          label="Event setup"
+          label={t('nav.setup')}
           current={page.name === 'setup'}
           onClick={() => onNavigate({ name: 'setup' })}
         />
         <NavLink
-          label="Riders"
+          label={t('nav.riders')}
           count={event.riders}
           current={page.name === 'riders' || page.name === 'import'}
           onClick={() => onNavigate({ name: 'riders' })}
         />
         <NavLink
-          label="Card labels"
+          label={t('nav.labels')}
           current={page.name === 'labels'}
           onClick={() => onNavigate({ name: 'labels' })}
         />
       </NavGroup>
-      <NavHeading>On the day</NavHeading>
+      <NavHeading>{t('nav.onTheDay')}</NavHeading>
       <NavGroup>
         <NavLink
-          label="Scan desk"
+          label={t('nav.scan')}
           current={page.name === 'scan'}
           onClick={() => onNavigate({ name: 'scan' })}
         />
         <NavLink
-          label="Manual entry"
+          label={t('nav.manual')}
           current={page.name === 'manual'}
           onClick={() => onNavigate({ name: 'manual' })}
         />
         <NavLink
-          label="Review queue"
+          label={t('nav.review')}
           current={page.name === 'review'}
           onClick={() => onNavigate({ name: 'review' })}
         />
         <NavLink
-          label="Progress"
+          label={t('nav.progress')}
           current={page.name === 'progress'}
           onClick={() => onNavigate({ name: 'progress' })}
         />
         <NavLink
-          label="Still on course"
+          label={t('nav.course')}
           current={page.name === 'course'}
           onClick={() => onNavigate({ name: 'course' })}
         />
         <NavLink
-          label="Results"
+          label={t('nav.results')}
           current={page.name === 'results'}
           onClick={() => onNavigate({ name: 'results' })}
         />

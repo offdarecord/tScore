@@ -53,6 +53,24 @@ No native build tools are needed. Use Node.js 24 LTS (`.nvmrc`).
   Changing a recorded decision means a new ADR in `docs/adr/`.
 - CI green on Windows.
 
+## Wording and translations
+
+Everything a screen says lives in one English message file,
+[`apps/desktop/src/locales/en.json`](apps/desktop/src/locales/en.json), and screens show it with
+`t('home.newEvent')` (react-i18next). Message keys are type-checked, so a typo fails the build.
+Converted screens are listed in `eslint.config.js` (`TRANSLATED`): wording written straight into
+their markup fails the lint. Screens are being converted area by area (#64).
+
+- **New wording:** add it to `en.json` under the screen's section, and use `t()`. Plurals use
+  i18next's `_one` / `_other` keys with a `count`.
+- **Check a screen:** run the app with `TSCORE_TEST_LOCALE=en-XA` (a development build). The
+  pseudo-language accents and lengthens every message, so English left in a screen, or text cut
+  off when a translation is longer, stands out.
+- **Add a language:** copy `en.json` to, say, `fr.json` and translate the values, never the keys
+  or the `{{placeholders}}`. Add it to `LANGUAGES` in `apps/desktop/src/shared/i18n.ts`, then
+  open a pull request. tScore picks the laptop's language, and English for anything not
+  translated. The user guide (`docs/guide/`) isn't translated yet.
+
 ## Releasing (maintainers)
 
 Releases are cut with the `/cut-release` Claude Code skill

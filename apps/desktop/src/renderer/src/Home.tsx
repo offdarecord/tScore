@@ -13,6 +13,7 @@ import {
   VisuallyHidden,
 } from '@mantine/core';
 import { useEffect, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import type {
   AppError,
   AppInfo,
@@ -37,6 +38,7 @@ interface Props {
 
 /** The start screen: no event open. New event, open one, or pick up a recent one. */
 export function Home({ info, onNew, onSeries, onManage, onOpened }: Props) {
+  const { t } = useTranslation();
   const [recent, setRecent] = useState<RecentEventInfo[] | null>(null);
   const [error, setError] = useState<AppError | null>(null);
 
@@ -70,45 +72,47 @@ export function Home({ info, onNew, onSeries, onManage, onOpened }: Props) {
   return (
     <Stack gap="xl" maw={1040} mx="auto" py="lg">
       <Group justify="space-between" wrap="wrap">
-        <Title order={2}>{recent?.length ? 'Events' : 'No event open'}</Title>
+        <Title order={2}>{recent?.length ? t('home.events') : t('home.noEventOpen')}</Title>
         <Group gap="sm">
-          <Button onClick={onNew}>New event</Button>
+          <Button onClick={onNew}>{t('home.newEvent')}</Button>
           <Button variant="default" onClick={() => void opened(window.tscore.openEventFile())}>
-            Open event file…
+            {t('home.openFile')}
           </Button>
           <Button variant="default" onClick={() => void restore()}>
-            Restore from backup…
+            {t('home.restore')}
           </Button>
           <Button variant="default" onClick={onSeries}>
-            Series points
+            {t('home.series')}
           </Button>
           <Button variant="default" onClick={() => onManage()}>
-            Manage events
+            {t('home.manage')}
           </Button>
         </Group>
       </Group>
 
       {error && (
-        <ErrorAlert error={error} title="The event didn't open" onClose={() => setError(null)} />
+        <ErrorAlert error={error} title={t('home.didntOpen')} onClose={() => setError(null)} />
       )}
 
       {old.length > 0 && (
-        <Alert color="gray" title="Tidy up old events?" role="status">
+        <Alert color="gray" title={t('home.tidyTitle')} role="status">
           <Group justify="space-between" wrap="wrap" gap="sm">
             <Text size="sm">
-              {old.length === 1 ? '1 event is' : `${old.length} events are`} over a month old and
-              use {formatBytes(old.reduce((n, e) => n + totalBytes(e), 0))}.
+              {t('home.tidyOld', {
+                count: old.length,
+                size: formatBytes(old.reduce((n, e) => n + totalBytes(e), 0)),
+              })}
             </Text>
             <Group gap="sm">
               <Button size="xs" onClick={() => onManage(old.map((e) => e.folder))}>
-                Review in Manage events
+                {t('home.tidyReview')}
               </Button>
               <Button
                 size="xs"
                 variant="default"
                 onClick={() => void window.tscore.remindTidyLater().then(() => setOld([]))}
               >
-                Remind me later
+                {t('home.remindLater')}
               </Button>
             </Group>
           </Group>
@@ -117,21 +121,21 @@ export function Home({ info, onNew, onSeries, onManage, onOpened }: Props) {
 
       <Paper withBorder radius="md" p="lg" component="section" aria-labelledby="recent-heading">
         <Title order={3} id="recent-heading" mb="sm">
-          Recent events
+          {t('home.recent')}
         </Title>
         {recent === null ? null : recent.length === 0 ? (
           <Text c="dimmed">
-            No events yet. Start with <strong>New event</strong>; it takes a couple of minutes.
+            <Trans i18nKey="home.none" components={{ strong: <strong /> }} />
           </Text>
         ) : (
           <Table.ScrollContainer minWidth={640}>
             <Table verticalSpacing="sm">
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Event</Table.Th>
-                  <Table.Th>Date</Table.Th>
+                  <Table.Th>{t('home.event')}</Table.Th>
+                  <Table.Th>{t('home.date')}</Table.Th>
                   <Table.Th>
-                    <VisuallyHidden>Actions</VisuallyHidden>
+                    <VisuallyHidden>{t('home.actions')}</VisuallyHidden>
                   </Table.Th>
                 </Table.Tr>
               </Table.Thead>
@@ -142,7 +146,7 @@ export function Home({ info, onNew, onSeries, onManage, onOpened }: Props) {
                       <Text fw={700}>{r.name}</Text>
                       <Text size="sm" c="dimmed">
                         {r.code}
-                        {r.days > 1 ? ` · ${r.days} days` : ''}
+                        {r.days > 1 ? t('home.days', { count: r.days }) : ''}
                       </Text>
                     </Table.Td>
                     <Table.Td>{r.date ? formatDate(r.date) : '–'}</Table.Td>
@@ -150,30 +154,30 @@ export function Home({ info, onNew, onSeries, onManage, onOpened }: Props) {
                       {r.missing ? (
                         <Group justify="flex-end" gap="sm">
                           <Badge color="gray" variant="light" title={r.folder}>
-                            Can't find its folder
+                            {t('home.missing')}
                           </Badge>
                           <Button
                             variant="default"
-                            aria-label={`Remove ${r.name} from this list`}
+                            aria-label={t('home.forgetLabel', { name: r.name })}
                             onClick={() => void window.tscore.forgetEvent(r.folder).then(refresh)}
                           >
-                            Remove from list
+                            {t('home.forget')}
                           </Button>
                         </Group>
                       ) : (
                         <Group justify="flex-end" gap="xs" wrap="nowrap">
                           <Button
-                            aria-label={`Open ${r.name}`}
+                            aria-label={t('home.openLabel', { name: r.name })}
                             onClick={() => void opened(window.tscore.openRecentEvent(r.folder))}
                           >
-                            Open
+                            {t('home.open')}
                           </Button>
                           <Menu position="bottom-end" withinPortal>
                             <Menu.Target>
                               <ActionIcon
                                 variant="default"
                                 size="lg"
-                                aria-label={`More for ${r.name}`}
+                                aria-label={t('home.more', { name: r.name })}
                               >
                                 ⋯
                               </ActionIcon>
@@ -182,16 +186,16 @@ export function Home({ info, onNew, onSeries, onManage, onOpened }: Props) {
                               <Menu.Item
                                 onClick={() => void window.tscore.showEventFolder(r.folder)}
                               >
-                                Show in folder
+                                {t('home.showInFolder')}
                               </Menu.Item>
                               <Menu.Item onClick={() => onManage([r.folder], 'remove')}>
-                                Remove card scans…
+                                {t('home.removeScans')}
                               </Menu.Item>
                               <Menu.Item color="red" onClick={() => onManage([r.folder], 'delete')}>
-                                Delete event…
+                                {t('home.deleteEvent')}
                               </Menu.Item>
                               <Menu.Divider />
-                              <Menu.Item onClick={() => onManage()}>Manage events</Menu.Item>
+                              <Menu.Item onClick={() => onManage()}>{t('home.manage')}</Menu.Item>
                             </Menu.Dropdown>
                           </Menu>
                         </Group>
@@ -206,7 +210,7 @@ export function Home({ info, onNew, onSeries, onManage, onOpened }: Props) {
       </Paper>
 
       <Text size="sm" c="dimmed">
-        Works offline. New events are saved in {info?.eventsDir ?? 'Documents\\tScore'}.
+        {t('home.offline', { folder: info?.eventsDir ?? 'Documents\\tScore' })}
       </Text>
     </Stack>
   );

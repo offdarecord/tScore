@@ -83,6 +83,14 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
       '(a PDF reader for PDFs).',
     internal: ['APP_OPEN_FAILED'],
   },
+  {
+    code: 'TS-APP-006',
+    title: "Couldn't save the file",
+    meaning:
+      "Windows wouldn't let tScore write the file there (the folder may be read-only, full or gone).",
+    fix: 'Choose another folder, such as Documents, and save again.',
+    internal: ['APP_SAVE_FAILED'],
+  },
 
   // Event files
   {

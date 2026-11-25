@@ -28,6 +28,8 @@ It downloads it and installs it the next time tScore closes. It never updates du
   Dark is easier on the eyes in a dim clubroom or trailer. The choice stays on this laptop.
   Printouts, PDFs and labels are always light.
 - Grey buttons that say "Coming in a later version" are features not built yet.
+- **About → Suggest a feature** asks a few questions about an idea, then lets you email, copy
+  or save it. It works without internet.
 
 ## Your first event
 

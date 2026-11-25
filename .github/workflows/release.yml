@@ -50,8 +50,88 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
-      - run: npm run dist
-      # Code signing goes here once the certificate is set up (SignPath / Azure Trusted Signing).
+      - name: Build the installer
+        shell: bash
+        run: |
+          if [ -n "${{ vars.SIGNPATH_ORGANIZATION_ID }}" ]; then
+            # Signed releases: installed copies accept an update only from the same publisher
+            # (SignPath Foundation signs on behalf of open-source projects). This goes into the
+            # app's update settings, so it must be in this first build.
+            cd apps/desktop
+            npx electron-vite build
+            npx electron-builder --win --x64 --publish never               -c.win.signtoolOptions.publisherName="${{ vars.SIGNPATH_PUBLISHER || 'SignPath Foundation' }}"
+          else
+            npm run dist
+          fi
+
+      # Code signing through SignPath Foundation (docs/maintainers/code-signing.md). Off until
+      # the repository variable SIGNPATH_ORGANIZATION_ID is set; releases are then unsigned, as
+      # before. The private key never leaves SignPath: GitHub sends the files, SignPath signs
+      # them. Two passes: the app itself, then the installer rebuilt around the signed app.
+      - name: Upload the app for signing
+        id: app-unsigned
+        if: vars.SIGNPATH_ORGANIZATION_ID != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-unsigned
+          path: apps/desktop/release/win-unpacked/tScore.exe
+          if-no-files-found: error
+      - name: Sign the app
+        if: vars.SIGNPATH_ORGANIZATION_ID != ''
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG || 'tScore' }}
+          signing-policy-slug: ${{ vars.SIGNPATH_POLICY_SLUG || 'release-signing' }}
+          artifact-configuration-slug: app
+          github-artifact-id: ${{ steps.app-unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed-app
+      - name: Rebuild the installer around the signed app
+        if: vars.SIGNPATH_ORGANIZATION_ID != ''
+        shell: bash
+        run: |
+          cp signed-app/tScore.exe apps/desktop/release/win-unpacked/tScore.exe
+          rm -f apps/desktop/release/tScore-Setup-*
+          cd apps/desktop
+          npx electron-builder --win --x64 --prepackaged release/win-unpacked --publish never
+      - name: Upload the installer for signing
+        id: installer-unsigned
+        if: vars.SIGNPATH_ORGANIZATION_ID != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-unsigned
+          path: apps/desktop/release/tScore-Setup-*.exe
+          if-no-files-found: error
+      - name: Sign the installer
+        if: vars.SIGNPATH_ORGANIZATION_ID != ''
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG || 'tScore' }}
+          signing-policy-slug: ${{ vars.SIGNPATH_POLICY_SLUG || 'release-signing' }}
+          artifact-configuration-slug: installer
+          github-artifact-id: ${{ steps.installer-unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed-installer
+      - name: Use the signed installer, and refresh the update information
+        if: vars.SIGNPATH_ORGANIZATION_ID != ''
+        shell: bash
+        run: |
+          cp signed-installer/tScore-Setup-*.exe apps/desktop/release/
+          node scripts/refresh-update-info.mjs apps/desktop/release
+      - name: Check both are signed
+        if: vars.SIGNPATH_ORGANIZATION_ID != ''
+        shell: pwsh
+        run: |
+          foreach ($f in @('apps/desktop/release/win-unpacked/tScore.exe') + (Get-ChildItem apps/desktop/release/tScore-Setup-*.exe).FullName) {
+            $s = Get-AuthenticodeSignature $f
+            if ($s.Status -ne 'Valid') { throw "$f is not validly signed: $($s.Status)" }
+            Write-Host "$f signed by $($s.SignerCertificate.Subject)"
+          }
+
       - name: Attach installer to the GitHub Release
         shell: bash
         env:

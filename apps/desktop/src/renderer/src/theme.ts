@@ -7,7 +7,8 @@ import { createTheme, type CSSVariablesResolver } from '@mantine/core';
 export const cssVariablesResolver: CSSVariablesResolver = () => ({
   variables: {},
   light: { '--mantine-color-dimmed': '#495057' },
-  dark: {},
+  // Mantine's dark "dimmed" (#828282) is about 4:1 on the dark background; this is about 7.8:1.
+  dark: { '--mantine-color-dimmed': 'var(--mantine-color-dark-1)' },
 });
 
 /**
@@ -16,7 +17,8 @@ export const cssVariablesResolver: CSSVariablesResolver = () => ({
  */
 export const theme = createTheme({
   primaryColor: 'blue',
-  primaryShade: { light: 8, dark: 5 },
+  // Dark shade 8 keeps white text on filled buttons at 4.5:1 or better.
+  primaryShade: { light: 8, dark: 8 },
   fontFamily: 'system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   fontSizes: {
     xs: '14px',

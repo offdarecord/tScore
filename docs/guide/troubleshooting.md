@@ -54,6 +54,13 @@ If tScore says the event file is damaged or isn't an event, use **Restore from b
 [Backups and restore](backups.md)). Your backups are in the event's `backups` folder and on the
 USB stick.
 
+### An event says "Can't find its folder"
+
+The event's folder was moved, renamed or deleted, or it's on a USB stick that isn't plugged in.
+If it was moved, use **Open event file…** to open it from where it is now. If it was deleted on
+purpose, choose **Remove from list** (see
+[Delete an old event](getting-started.md#delete-an-old-event)).
+
 ### tScore stops responding
 
 Close it and open it again, then open the event from **Recent events**. Everything up to the last

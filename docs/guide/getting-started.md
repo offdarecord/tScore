@@ -45,3 +45,26 @@ Backups go in the event's `backups` folder, and to a USB stick if you choose one
 [Backups and restore](backups.md).
 
 To move an event to another laptop, copy its whole folder, then use **Open event file…** there.
+
+## Delete an old event
+
+tScore has no button to delete an event. To free up space, or to tidy up after a practice
+event, delete its folder in File Explorer:
+
+1. Close the event in tScore (**← All events**).
+2. In File Explorer, open `Documents\tScore` and find the event's folder, named
+   `<date> <event code>` (for example `2027-02-06 ECT`). To see how big it is, right-click it
+   and choose **Properties**.
+3. Delete the folder.
+
+On Home, the event then shows **Can't find its folder**. Choose **Remove from list** to take it
+off the list. This only tidies the list: it doesn't delete anything.
+
+> [!WARNING]
+> tScore doesn't warn you, and doesn't check that anything was saved first. Deleting the folder
+> also deletes the backups in its `backups` folder. Before you delete an event:
+>
+> - Make sure the final results PDF and CSV are saved somewhere else (they're in the event's
+>   `exports` folder until you move them).
+> - Keep a copy of the newest backup off the laptop, such as on the USB stick, in case a
+>   result is queried later.

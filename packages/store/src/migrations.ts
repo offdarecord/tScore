@@ -149,6 +149,18 @@ export const MIGRATIONS: readonly string[] = [
     reopen_reason TEXT
   ) STRICT;
   `,
+  // 7: the event logo and sponsor logos for the results PDF and the big screen. Kept in the
+  // event file, so backups and a copy moved to another laptop carry them.
+  `
+  CREATE TABLE logo (
+    id        TEXT PRIMARY KEY,
+    role      TEXT NOT NULL CHECK (role IN ('event', 'sponsor')),
+    position  INTEGER NOT NULL,
+    mime      TEXT NOT NULL CHECK (mime IN ('image/png', 'image/jpeg')),
+    data      BLOB NOT NULL,
+    added_at  TEXT NOT NULL
+  ) STRICT;
+  `,
 ];
 
 /** The schema version a fresh event file gets, and the newest this build can open. */

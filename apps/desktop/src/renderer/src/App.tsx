@@ -3,6 +3,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { newEventSetup } from '@tscore/core';
 import { useEffect, useState } from 'react';
 import type { AppInfo, OpenEvent } from '../../shared/ipc';
+import { ColorSchemeSwitch } from './ColorSchemeSwitch';
 import { EventMain, EventNav, type EventPage } from './EventShell';
 import { today } from './format';
 import { HelpButton, HelpProvider, useHelp } from './help/Help';
@@ -80,6 +81,7 @@ function Shell() {
             tScore
           </Title>
           <Group gap="xs">
+            <ColorSchemeSwitch />
             <HelpButton topic={topicFor(screen)} />
             <Button variant="subtle" onClick={about.open}>
               About

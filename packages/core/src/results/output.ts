@@ -108,7 +108,7 @@ export function gapWords(gaps: readonly ResultsGap[]): string {
 /** UTF-8 byte-order mark: tells Excel the CSV is UTF-8, so accented names come through. */
 export const BOM = String.fromCharCode(0xfeff);
 
-function csvField(v: string | number | null | undefined): string {
+export function csvField(v: string | number | null | undefined): string {
   if (v === null || v === undefined) return '';
   // Text that a spreadsheet would run as a formula gets a leading apostrophe.
   const s = typeof v === 'string' && /^[=+\-@\t\r]/.test(v) ? `'${v}` : String(v);
@@ -198,7 +198,7 @@ export function placeChanges(before: Results, after: Results): string[] {
 
 // ---- Printable HTML (becomes the PDF) ----
 
-const esc = (s: string | number | null | undefined) =>
+export const esc = (s: string | number | null | undefined) =>
   String(s ?? '').replace(
     /[&<>"']/g,
     (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] ?? c,

@@ -19,6 +19,7 @@ import {
   type EntryList,
   type EventSetup,
   type ImportChoices,
+  type SeriesRules,
   publicErrorCode,
 } from '@tscore/core';
 import {
@@ -49,6 +50,9 @@ import type {
   PenaltyReason,
   RecentEventInfo,
   ResultsView,
+  SeriesChange,
+  SeriesSummary,
+  SeriesView,
   RiderChange,
   RiderInfo,
   SaveCard,
@@ -57,6 +61,14 @@ import { backUp, backupStatus, beforeClose, setSecondPlace } from './backups';
 import { preEventCheck } from './check';
 import { courseView } from './course';
 import { labelsView, saveLabels, saveLabelTestPage, setLabelOffset } from './labels';
+import {
+  exportSeries,
+  newSeries,
+  removeSeries,
+  seriesSummaries,
+  seriesView,
+  updateSeries,
+} from './series';
 import { exportResults, markFinal, openLastExport, resultsView } from './results';
 
 const PENALTY_REASONS: readonly PenaltyReason[] = [
@@ -125,6 +137,18 @@ function ridersOf(store: EventStore): RiderInfo[] {
 }
 
 const isText = (v: unknown): v is string | null => v === null || typeof v === 'string';
+
+/** Series rules from the window: whole points that don't go up, a sane best-of, a known tie rule. */
+function checkRules(rules: SeriesRules): void {
+  const ok =
+    Array.isArray(rules.points) &&
+    rules.points.length > 0 &&
+    rules.points.length <= 100 &&
+    rules.points.every((p, i) => isWhole(p, 0) && p <= (rules.points[i - 1] ?? Infinity)) &&
+    (rules.bestOf === undefined || isWhole(rules.bestOf, 1)) &&
+    (rules.ties === 'share' || rules.ties === 'split');
+  if (!ok) throw new StoreError('APP_BAD_REQUEST', 'The series rules are not valid.');
+}
 
 function openStore(): EventStore {
   const store = library?.current;
@@ -570,6 +594,78 @@ export const eventHandlers = {
       store.removePenalty(id);
       log.info('penalty removed', { eventId: store.eventId });
       return cardDesk(store);
+    });
+  },
+
+  listSeries(): Outcome<SeriesSummary[]> {
+    return attempt('listing series', () => seriesSummaries(eventsDir()));
+  },
+
+  newSeries(name: string): Outcome<SeriesView> {
+    return attempt('making the series', () => {
+      const file = newSeries(eventsDir(), typeof name === 'string' ? name : '');
+      return seriesView(eventsDir(), file);
+    });
+  },
+
+  seriesView(file: string): Outcome<SeriesView> {
+    return attempt('working out series points', () => seriesView(eventsDir(), String(file)));
+  },
+
+  updateSeries(file: string, change: SeriesChange): Outcome<SeriesView> {
+    return attempt('saving the series', () => {
+      if (change?.addRound !== undefined && !events().isRecent(change.addRound)) {
+        throw new StoreError('APP_NOT_RECENT', "That event isn't in the recent list.");
+      }
+      if (change?.rules) checkRules(change.rules);
+      updateSeries(eventsDir(), String(file), {
+        ...(typeof change?.name === 'string' && { name: change.name }),
+        ...(change?.rules && { rules: change.rules }),
+        ...(typeof change?.addRound === 'string' && { addRound: change.addRound }),
+        ...(typeof change?.removeRound === 'string' && { removeRound: change.removeRound }),
+      });
+      return seriesView(eventsDir(), String(file));
+    });
+  },
+
+  async addSeriesRoundFile(
+    file: string,
+    win: BrowserWindow | null,
+  ): Promise<Outcome<SeriesView | null>> {
+    const options: Electron.OpenDialogOptions = {
+      title: 'Add a round: choose its event file',
+      defaultPath: eventsDir(),
+      properties: ['openFile'],
+      filters: [{ name: 'tScore event', extensions: ['sqlite'] }],
+    };
+    const picked = win
+      ? await dialog.showOpenDialog(win, options)
+      : await dialog.showOpenDialog(options);
+    const chosen = picked.filePaths[0];
+    if (picked.canceled || !chosen) return { ok: true, value: null };
+    return attempt('adding the round', () => {
+      updateSeries(eventsDir(), String(file), { addRound: dirname(chosen) });
+      return seriesView(eventsDir(), String(file));
+    });
+  },
+
+  deleteSeries(file: string): Outcome<SeriesSummary[]> {
+    return attempt('deleting the series', () => {
+      removeSeries(eventsDir(), String(file));
+      return seriesSummaries(eventsDir());
+    });
+  },
+
+  exportSeries(
+    file: string,
+    kind: ExportKind,
+    juniorInitials: boolean,
+    win: BrowserWindow | null,
+  ): Promise<Outcome<string | null>> {
+    return attemptAsync('saving series points', () => {
+      if (kind !== 'pdf' && kind !== 'csv')
+        throw new StoreError('APP_BAD_REQUEST', 'Choose PDF or CSV.');
+      return exportSeries(eventsDir(), String(file), kind, juniorInitials === true, win);
     });
   },
 

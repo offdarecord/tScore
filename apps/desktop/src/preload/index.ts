@@ -8,6 +8,13 @@ const call =
 
 const api: TscoreApi = {
   getAppInfo: call(IPC.appInfo),
+  listSeries: call(IPC.listSeries),
+  newSeries: call(IPC.newSeries),
+  seriesView: call(IPC.seriesView),
+  updateSeries: call(IPC.updateSeries),
+  addSeriesRoundFile: call(IPC.addSeriesRoundFile),
+  deleteSeries: call(IPC.deleteSeries),
+  exportSeries: call(IPC.exportSeries),
   recentEvents: call(IPC.recentEvents),
   createEvent: call(IPC.createEvent),
   openEventFile: call(IPC.openEventFile),

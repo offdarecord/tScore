@@ -7,6 +7,7 @@ import {
   type ExportKind,
   type LabelOffset,
   type LabelRequest,
+  type SeriesChange,
 } from '../shared/ipc';
 import { startBackups } from './backups';
 import { closeEvents, currentStore, eventHandlers, eventsDir } from './events';
@@ -56,6 +57,19 @@ function registerIpc(): void {
     eventsDir: eventsDir(),
   }));
   handle(IPC.recentEvents, () => eventHandlers.recent());
+  handle(IPC.listSeries, () => eventHandlers.listSeries());
+  handle(IPC.newSeries, (_e, name: string) => eventHandlers.newSeries(name));
+  handle(IPC.seriesView, (_e, file: string) => eventHandlers.seriesView(file));
+  handle(IPC.updateSeries, (_e, file: string, change: SeriesChange) =>
+    eventHandlers.updateSeries(file, change),
+  );
+  handle(IPC.addSeriesRoundFile, (e, file: string) =>
+    eventHandlers.addSeriesRoundFile(file, BrowserWindow.fromWebContents(e.sender)),
+  );
+  handle(IPC.deleteSeries, (_e, file: string) => eventHandlers.deleteSeries(file));
+  handle(IPC.exportSeries, (e, file: string, kind: ExportKind, initials: boolean) =>
+    eventHandlers.exportSeries(file, kind, initials, BrowserWindow.fromWebContents(e.sender)),
+  );
   handle(IPC.createEvent, (_e, setup: Parameters<typeof eventHandlers.create>[0]) =>
     eventHandlers.create(setup),
   );

@@ -287,3 +287,17 @@ If a problem keeps happening, see [Troubleshooting](troubleshooting.md).
 **No labels to print.** With the settings chosen, there are no riders to print labels for.
 
 **What to do:** Check the riders are entered and the classes or numbers chosen include them.
+
+## Series points
+
+### TS-SER-001
+
+**The series needs a name.** A series is saved under its name, so it needs one.
+
+**What to do:** Type a name, for example "Winter Series 2027", then save again.
+
+### TS-SER-002
+
+**That series isn't on this laptop any more.** The series file was deleted or moved while the screen was open.
+
+**What to do:** Go back to **Series points** and choose it again, or make it again.

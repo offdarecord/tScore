@@ -141,7 +141,7 @@ function fileName(store: EventStore, kind: ExportKind): string {
   return `${base.replace(/[<>:"/\\|?*]/g, '')}.${kind}`;
 }
 
-async function pdfOf(html: string): Promise<Buffer> {
+export async function pdfOf(html: string): Promise<Buffer> {
   // A hidden window with no scripts, no preload and no network: it only lays out the page.
   const win = new BrowserWindow({
     show: false,

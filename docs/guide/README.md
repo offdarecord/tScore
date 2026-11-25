@@ -13,11 +13,12 @@ of any screen to open the page for that screen.
 3. [Event day](event-day.md): typing in cards, penalties, late entries, DNF and DNS, and who is
    still on course.
 4. [Results](results.md): provisional and final results, ties, and saving a PDF or CSV.
-5. [Backups and restore](backups.md): what is saved, where, and how to get an event back.
-6. [Event-day checklist](checklist.md): one page to print and take to the venue.
-7. [Troubleshooting](troubleshooting.md): common problems, and how to get help.
-8. [Error codes](errors.md): what each error code means and what to do.
-9. [Glossary](glossary.md): trials and tScore words.
+5. [Series points](series.md): a points tally across the rounds of a series.
+6. [Backups and restore](backups.md): what is saved, where, and how to get an event back.
+7. [Event-day checklist](checklist.md): one page to print and take to the venue.
+8. [Troubleshooting](troubleshooting.md): common problems, and how to get help.
+9. [Error codes](errors.md): what each error code means and what to do.
+10. [Glossary](glossary.md): trials and tScore words.
 
 > [!NOTE]
 > Scanning punched cards with a document camera is coming in a later version. Until then, cards

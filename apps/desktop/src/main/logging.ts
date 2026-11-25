@@ -1,5 +1,6 @@
 /**
- * The diagnostic log (ADR 0012): `%APPDATA%\tScore\logs\main.log`.
+ * The diagnostic log (ADR 0012): `logs\main.log` in the app's data folder (`%APPDATA%\tScore` on
+ * Windows, `~/Library/Application Support/tScore` on macOS).
  *
  * electron-log tests the log file once, on the first message. If that one write fails, even
  * briefly (another program has the file open as tScore starts), it silently drops every
@@ -41,8 +42,10 @@ export interface LogStart {
 export function startLogging(): LogStart {
   log.initialize();
   const file = log.transports.file;
-  // Where electron-log will write (the app's data folder), before it runs its own one-off test.
+  // The app's data folder on every system. electron-log's own default matches it on Windows,
+  // but on macOS it's ~/Library/Logs, so set it before electron-log runs its one-off test.
   const usual = join(app.getPath('userData'), 'logs', file.fileName);
+  file.resolvePathFn = () => usual;
 
   let problem: NodeJS.ErrnoException | null = null;
   for (let i = 0; i < ATTEMPTS; i++) {

@@ -60,10 +60,16 @@ const nowHHMM = () => {
   const d = new Date();
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
-/** Today at the time the desk typed, in the laptop's time zone. */
-function todayAt(hhmm: string): string {
+/**
+ * The time the desk typed, on the event day's date (today if the day has no date), in the
+ * laptop's time zone. Not today's date: cards are often typed in after midnight or the next
+ * morning, and they must still count on the day they were ridden.
+ */
+function dayAt(date: string | undefined, hhmm: string): string {
   const [h, m] = hhmm.split(':').map(Number);
   const d = new Date();
+  const [y, mo, dd] = (date ?? '').split('-').map(Number);
+  if (y && mo && dd) d.setFullYear(y, mo - 1, dd);
   d.setHours(h ?? d.getHours(), m ?? d.getMinutes(), 0, 0);
   return d.toISOString();
 }
@@ -190,7 +196,7 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
       day,
       lap,
       scores,
-      receivedAt: todayAt(inAt),
+      receivedAt: dayAt(desk?.days.find((d) => d.day === day)?.date, inAt),
       editing: editing !== null,
     });
     if (!r.ok) {

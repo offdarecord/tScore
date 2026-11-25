@@ -347,6 +347,7 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
             <TextInput
               ref={scoresRef}
               label="Scores, section 1 onwards"
+              required
               description={
                 singleDigitScores(scoreValues)
                   ? `One digit per section (${scoreValues.join(' ')}). Spaces are ignored.`
@@ -621,6 +622,7 @@ function PenaltyForm(props: {
         <Group align="flex-start" gap="md" wrap="wrap">
           <TextInput
             label="Points"
+            required
             type="number"
             min={1}
             w={110}
@@ -655,6 +657,7 @@ function PenaltyForm(props: {
         </Group>
         <TextInput
           label={reason === 'other' ? 'What for' : 'Note (optional)'}
+          required={reason === 'other'}
           value={note}
           onChange={(e) => setNote(e.currentTarget.value)}
         />

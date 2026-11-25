@@ -72,9 +72,9 @@ export function SuggestFeature(props: {
           event or rider details. Questions marked * are needed.
         </Text>
         {SUGGESTION_QUESTIONS.map((q) => {
-          const label = `${q.label}${q.required ? ' *' : ''}`;
           const common = {
-            label,
+            label: q.label,
+            required: q.required === true,
             error: error_(q.label),
             ...(q.help && { description: q.help }),
           };

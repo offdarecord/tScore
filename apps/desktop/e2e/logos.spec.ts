@@ -32,7 +32,7 @@ async function pick(path: string) {
 test('the event and sponsor logos are chosen on Event setup and shown on the big screen', async () => {
   await window.getByRole('button', { name: 'New event' }).click();
   await window.getByLabel('Event name').fill('Example Club Trial');
-  await window.getByLabel('Date', { exact: true }).fill('2027-02-06');
+  await window.getByLabel(/^Date\b/).fill('2027-02-06');
   await window.getByRole('button', { name: 'Create event' }).click();
   const card = window.getByRole('region', { name: 'Logos' });
   await expect(card).toBeVisible();

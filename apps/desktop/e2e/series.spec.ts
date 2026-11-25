@@ -42,7 +42,7 @@ async function stub(kind: 'showOpenDialog' | 'showSaveDialog', path: string) {
 async function round(name: string, date: string, cards: [number, string][], final = true) {
   await window.getByRole('button', { name: 'New event' }).click();
   await window.getByLabel('Event name').fill(name);
-  await window.getByLabel('Date', { exact: true }).fill(date);
+  await window.getByLabel(/^Date\b/).fill(date);
   await window.getByLabel('Laps for Trial 3').fill('1');
   await window.getByRole('button', { name: 'Create event' }).click();
   await expect(window.getByRole('heading', { name: 'Event setup', level: 1 })).toBeVisible();

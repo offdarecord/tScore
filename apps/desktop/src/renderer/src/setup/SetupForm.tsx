@@ -17,6 +17,7 @@ import { suggestEventCode, type EventSetup } from '@tscore/core';
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 import type { AppError, OpenEvent, Outcome } from '../../../shared/ipc';
 import { ComingSoonButton } from '../ComingSoonButton';
+import { RequiredMark } from '../RequiredMark';
 import {
   MAX_DAYS,
   isJunior,
@@ -31,12 +32,6 @@ import {
   type DraftClassDay,
   type Problem,
 } from './draft';
-
-const SESSIONS = [
-  { value: 'full', label: 'All day' },
-  { value: 'am', label: 'Morning' },
-  { value: 'pm', label: 'Afternoon' },
-];
 
 interface Props {
   /** The setup to start from: a new event's defaults, or the open event's. */
@@ -113,7 +108,8 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
             {mode === 'new' ? 'New event' : 'Event setup'}
           </Title>
           <Text c="dimmed">
-            Everything else (labels, scanning, results) follows from this page.
+            Everything else (labels, scanning, results) follows from this page. Boxes marked{' '}
+            <RequiredMark /> must be filled in.
           </Text>
         </div>
         <Group gap="sm">
@@ -126,6 +122,7 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
         <Group align="flex-start" grow wrap="wrap">
           <TextInput
             label="Event name"
+            required
             data-field="event.name"
             value={draft.name}
             onChange={(e) => {
@@ -138,6 +135,7 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
           />
           <TextInput
             label="Event code"
+            required
             description="Goes in each label's QR code"
             data-field="event.code"
             value={draft.code}
@@ -174,6 +172,7 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
           />
           <TextInput
             label="First rider number"
+            required
             inputMode="numeric"
             data-field="event.first_rider_number"
             value={draft.firstNumber}
@@ -187,6 +186,7 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
             <TextInput
               type="date"
               label={days > 1 ? `Day ${i + 1} date` : 'Date'}
+              required
               data-field={`days[${i}].date`}
               value={d.date}
               onChange={(e) => {
@@ -199,6 +199,7 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
             <TextInput
               type="time"
               label={days > 1 ? `Day ${i + 1}: lap 1 starts` : 'Lap 1 starts'}
+              required
               data-field={`days[${i}].start_time`}
               value={d.startTime}
               onChange={(e) => {
@@ -227,6 +228,7 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
         />
         <TextInput
           label="Overdue after (minutes)"
+          required
           description="A rider is overdue this long past their class's average lap. Overdue never marks anyone DNF."
           inputMode="numeric"
           data-field="overdue_margin_minutes"
@@ -253,10 +255,12 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
           <Table verticalSpacing={6}>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th rowSpan={days > 1 ? 2 : 1}>Class</Table.Th>
+                <Table.Th rowSpan={days > 1 ? 2 : 1}>
+                  Class <RequiredMark />
+                </Table.Th>
                 {days > 1
                   ? draft.days.map((_, j) => (
-                      <Table.Th key={j} colSpan={3} ta="center">
+                      <Table.Th key={j} colSpan={2} ta="center">
                         Day {j + 1}
                       </Table.Th>
                     ))
@@ -280,6 +284,7 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
                     <Table.Td>
                       <TextInput
                         aria-label={`Name of ${label}`}
+                        required
                         data-field={`classes[${i}].name`}
                         value={c.name}
                         onChange={(e) => updateClass(i, { name: e.currentTarget.value })}
@@ -296,6 +301,7 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
                           <TextInput
                             inputMode="numeric"
                             aria-label={`Sections per lap for ${label}${on}`}
+                            required
                             data-field={`${f}.sections`}
                             value={d.sections}
                             onChange={(e) =>
@@ -309,24 +315,12 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
                           <TextInput
                             inputMode="numeric"
                             aria-label={`Laps for ${label}${on}`}
+                            required
                             data-field={`${f}.laps`}
                             value={d.laps}
                             onChange={(e) => updateClassDay(i, j, { laps: e.currentTarget.value })}
                             error={!!problems.find((p) => p.field === `${f}.laps`)}
                             w={70}
-                          />
-                        </Table.Td>,
-                        <Table.Td key={`p${j}`}>
-                          <NativeSelect
-                            aria-label={`Session for ${label}${on}`}
-                            data={SESSIONS}
-                            value={d.session}
-                            onChange={(e) =>
-                              updateClassDay(i, j, {
-                                session: e.currentTarget.value as DraftClassDay['session'],
-                              })
-                            }
-                            w={130}
                           />
                         </Table.Td>,
                       ];
@@ -428,9 +422,12 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
 function dayHeads(day?: number) {
   const k = day ?? 0;
   return [
-    <Table.Th key={`s${k}`}>Sections per lap</Table.Th>,
-    <Table.Th key={`l${k}`}>Laps</Table.Th>,
-    <Table.Th key={`p${k}`}>Session</Table.Th>,
+    <Table.Th key={`s${k}`}>
+      Sections per lap <RequiredMark />
+    </Table.Th>,
+    <Table.Th key={`l${k}`}>
+      Laps <RequiredMark />
+    </Table.Th>,
   ];
 }
 

@@ -36,7 +36,7 @@ async function accessible(name: string) {
 test('a clear card is saved by itself; an unclear one goes to review and is decided there', async () => {
   await window.getByRole('button', { name: 'New event' }).click();
   await window.getByLabel('Event name').fill('Example Club Trial');
-  await window.getByLabel('Date', { exact: true }).fill('2027-02-06');
+  await window.getByLabel(/^Date\b/).fill('2027-02-06');
   await window.getByLabel('Laps for Trial 3').fill('2');
   await window.getByRole('button', { name: 'Create event' }).click();
   const csv = join(run.userData, 'riders.csv');

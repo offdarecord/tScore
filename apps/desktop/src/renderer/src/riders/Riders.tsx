@@ -440,7 +440,7 @@ function LateEntryDialog(props: {
     givenName: tidyText(p.givenName),
     familyName: tidyText(p.familyName),
   }));
-  const nameless = people.some((p) => !p.givenName && !p.familyName);
+  const nameless = people.some((p) => !p.givenName || !p.familyName);
   const wanted = Number(number.trim());
   const numberProblem =
     !/^\d{1,4}$/.test(number.trim()) || wanted < 1
@@ -488,6 +488,7 @@ function LateEntryDialog(props: {
       <Stack gap="md">
         <TextInput
           label="Rider number"
+          required
           description={`The next free number is ${next}. Numbers already given never change.`}
           inputMode="numeric"
           value={number}
@@ -507,12 +508,14 @@ function LateEntryDialog(props: {
               label={
                 sidecar ? (i === 0 ? 'Driver first name' : 'Passenger first name') : 'First name'
               }
+              required
               value={names[i]?.givenName ?? ''}
               maxLength={NAME_MAX}
               onChange={(e) => setName(i, 'givenName', e.currentTarget.value)}
             />
             <TextInput
               label={sidecar ? (i === 0 ? 'Driver surname' : 'Passenger surname') : 'Surname'}
+              required
               value={names[i]?.familyName ?? ''}
               maxLength={NAME_MAX}
               onChange={(e) => setName(i, 'familyName', e.currentTarget.value)}
@@ -527,6 +530,7 @@ function LateEntryDialog(props: {
         )}
         <TextInput
           label="Club"
+          required
           value={club}
           maxLength={CLUB_MAX}
           onChange={(e) => setClub(e.currentTarget.value)}
@@ -554,7 +558,7 @@ function LateEntryDialog(props: {
           </Button>
           <Button
             loading={busy}
-            disabled={nameless || numberProblem !== null || !className}
+            disabled={nameless || !tidyText(club) || numberProblem !== null || !className}
             onClick={() => void save()}
           >
             Add rider

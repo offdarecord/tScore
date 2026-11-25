@@ -129,7 +129,9 @@ function NavHeading({ children }: { children: string }) {
       mb={4}
       px={4}
       pt="sm"
-      style={{ borderTop: '1px solid var(--mantine-color-gray-3)' }}
+      style={{
+        borderTop: '1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
+      }}
     >
       {children}
     </Text>

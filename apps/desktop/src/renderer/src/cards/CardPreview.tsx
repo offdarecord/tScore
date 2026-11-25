@@ -49,7 +49,23 @@ export function CardPreview(props: Props) {
   };
 
   return (
-    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+    <div
+      style={
+        {
+          display: 'flex',
+          gap: 12,
+          alignItems: 'flex-start',
+          // A drawing of a paper card: it stays light in Dark, on its own light panel. The
+          // outline widens the panel without moving anything in Light.
+          color: INK,
+          '--mantine-color-text': INK,
+          '--mantine-color-dimmed': '#495057',
+          background: 'light-dark(transparent, #fff)',
+          outline: '8px solid light-dark(transparent, #fff)',
+          borderRadius: 2,
+        } as CSSProperties
+      }
+    >
       <div
         aria-hidden="true"
         data-testid="card-preview"

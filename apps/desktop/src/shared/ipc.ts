@@ -47,6 +47,11 @@ export const IPC = {
   preEventCheck: 'check:pre-event',
   markFinal: 'results:mark-final',
   reopenResults: 'results:reopen',
+  liveScores: 'live:scores',
+  showLiveScores: 'live:show',
+  closeLiveScores: 'live:close',
+  liveWindowState: 'live:state',
+  toggleLiveFullScreen: 'live:fullscreen',
   labels: 'labels:view',
   saveLabels: 'labels:save',
   saveLabelTestPage: 'labels:save-test-page',
@@ -223,6 +228,19 @@ export interface ResultsView {
   readonly nextRevision: number;
   /** While reopened: the places that would change from the last final revision. */
   readonly changes?: readonly string[];
+}
+
+/** The big screen's content (see main/live.ts). */
+export interface LiveScores {
+  readonly results: Results;
+  /** Expected cards not in yet. */
+  readonly missingCards: number;
+}
+
+/** Whether the big-screen window is open, and whether it found a second screen. */
+export interface LiveWindowState {
+  readonly open: boolean;
+  readonly secondScreen: boolean;
 }
 
 export interface AppInfo {
@@ -428,6 +446,13 @@ export interface TscoreApi {
   >;
   /** Freeze the results as the next revision. */
   markFinal(): Promise<Outcome<ResultsView>>;
+  /** The big screen's content, or null with no event open. */
+  liveScores(): Promise<Outcome<LiveScores | null>>;
+  /** Open the big-screen window (full screen on a second screen if there is one). */
+  showLiveScores(): Promise<LiveWindowState>;
+  closeLiveScores(): Promise<LiveWindowState>;
+  liveWindowState(): Promise<LiveWindowState>;
+  toggleLiveFullScreen(): Promise<void>;
   /** Reopen final results to correct something, saying why. */
   reopenResults(reason: string): Promise<Outcome<ResultsView>>;
   labels(request: LabelRequest): Promise<Outcome<LabelsView>>;

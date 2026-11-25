@@ -43,6 +43,7 @@ import type {
   NewRider,
   LabelRequest,
   LabelsView,
+  LiveScores,
   NewPenalty,
   OpenEvent,
   Outcome,
@@ -57,7 +58,7 @@ import { backUp, backupStatus, beforeClose, setSecondPlace } from './backups';
 import { preEventCheck } from './check';
 import { courseView } from './course';
 import { labelsView, saveLabels, saveLabelTestPage, setLabelOffset } from './labels';
-import { exportResults, markFinal, openLastExport, resultsView } from './results';
+import { exportResults, liveScores, markFinal, openLastExport, resultsView } from './results';
 
 const PENALTY_REASONS: readonly PenaltyReason[] = [
   'time',
@@ -571,6 +572,12 @@ export const eventHandlers = {
       log.info('penalty removed', { eventId: store.eventId });
       return cardDesk(store);
     });
+  },
+
+  liveScores(): Outcome<LiveScores | null> {
+    const store = library?.current;
+    if (!store) return { ok: true, value: null };
+    return attempt('working out live scores', () => liveScores(store));
   },
 
   results(): Outcome<ResultsView> {

@@ -195,7 +195,7 @@ export function CardLabels({ event }: { readonly event: OpenEvent }) {
               />
               <Checkbox
                 label="Leave out minders"
-                description="Minders aren't scored. Untick to print their labels too, for the laps their class has in Event setup."
+                description="Minders aren't scored. Untick to print their labels."
                 checked={leaveOutMinders}
                 onChange={(e) => setLeaveOutMinders(e.currentTarget.checked)}
               />

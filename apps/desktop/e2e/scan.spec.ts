@@ -59,6 +59,14 @@ test('a clear card is saved by itself; an unclear one goes to review and is deci
   await expect(window.getByRole('heading', { name: 'Scan desk', level: 2 })).toBeVisible();
   await accessible('Scan desk');
 
+  // A card with no label: find the rider by part of their name, as on the Riders screen.
+  const find = window.getByLabel('Rider for a card with no label: number or name');
+  await find.fill('ston');
+  await window.getByRole('option', { name: /7\s*Avery Stone/ }).click();
+  await expect(find).toHaveValue('7 Avery Stone');
+  await expect(window.getByRole('listbox', { name: 'Matching riders' })).toHaveCount(0);
+  await find.fill('');
+
   // A clear card, with its label: saved by itself.
   await window.getByRole('button', { name: 'Practice card', exact: true }).click();
   const lastCard = window.getByRole('log', { name: 'Last card' });

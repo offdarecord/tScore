@@ -7,6 +7,8 @@
     "electron.vite.config.ts",
     "playwright.config.ts",
     "e2e",
+    "screenshots",
+    "playwright.screenshots.config.ts",
     "src/main",
     "src/preload",
     "src/shared"

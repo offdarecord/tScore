@@ -32,6 +32,7 @@ import type {
   ResultsView,
 } from '../../../shared/ipc';
 import { ErrorAlert } from '../ErrorAlert';
+import { LiveScreenButton } from '../live/LiveScreenButton';
 
 type ClassResults = ResultsTypes.ClassResults;
 
@@ -86,7 +87,8 @@ export function Results({ event }: { readonly event: OpenEvent }) {
           <Title order={2}>Results</Title>
           <Text c="dimmed">Worked out from every card in so far. Updates as cards are saved.</Text>
         </div>
-        <Group gap="sm">
+        <Group gap="sm" align="flex-start">
+          <LiveScreenButton />
           <Button
             onClick={() => void save('pdf')}
             loading={busy === 'pdf'}

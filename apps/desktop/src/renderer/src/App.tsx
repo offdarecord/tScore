@@ -10,10 +10,15 @@ import { HelpButton, HelpProvider, useHelp } from './help/Help';
 import { HelpPanel } from './help/HelpPanel';
 import type { HelpTopicName } from './help/topics';
 import { Home } from './Home';
+import { Series } from './series/Series';
 import { SetupForm } from './setup/SetupForm';
+import { SuggestFeature } from './SuggestFeature';
 
 type Screen =
-  { kind: 'home' } | { kind: 'new' } | { kind: 'event'; event: OpenEvent; page: EventPage };
+  | { kind: 'home' }
+  | { kind: 'new' }
+  | { kind: 'series' }
+  | { kind: 'event'; event: OpenEvent; page: EventPage };
 
 export function App() {
   return (
@@ -23,10 +28,34 @@ export function App() {
   );
 }
 
+/** The screen's name for a feature suggestion: never the event's name or anything in it. */
+const SCREEN_NAMES: Record<EventPage['name'], string> = {
+  setup: 'Event setup',
+  riders: 'Riders',
+  import: 'Import review',
+  check: 'Pre-event check',
+  labels: 'Card labels',
+  scan: 'Scan desk',
+  manual: 'Manual entry',
+  review: 'Review queue',
+  progress: 'Progress',
+  course: 'Still on course',
+  results: 'Results',
+};
+const screenName = (s: Screen) =>
+  s.kind === 'home'
+    ? 'Home'
+    : s.kind === 'new'
+      ? 'New event'
+      : s.kind === 'series'
+        ? 'Series points'
+        : SCREEN_NAMES[s.page.name];
+
 /** The guide page for the screen in front of the desk. */
 function topicFor(screen: Screen): HelpTopicName {
   if (screen.kind === 'home') return 'home';
   if (screen.kind === 'new') return 'newEvent';
+  if (screen.kind === 'series') return 'series';
   return screen.page.name;
 }
 
@@ -34,6 +63,7 @@ function Shell() {
   const help = useHelp();
   const [info, setInfo] = useState<AppInfo | null>(null);
   const [aboutOpen, about] = useDisclosure(false);
+  const [suggestOpen, suggest] = useDisclosure(false);
   const [screen, setScreen] = useState<Screen>({ kind: 'home' });
 
   useEffect(() => {
@@ -98,8 +128,14 @@ function Shell() {
 
       <AppShell.Main>
         {screen.kind === 'home' && (
-          <Home info={info} onNew={() => setScreen({ kind: 'new' })} onOpened={open} />
+          <Home
+            info={info}
+            onNew={() => setScreen({ kind: 'new' })}
+            onSeries={() => setScreen({ kind: 'series' })}
+            onOpened={open}
+          />
         )}
+        {screen.kind === 'series' && <Series onBack={() => setScreen({ kind: 'home' })} />}
         {screen.kind === 'new' && (
           <SetupForm
             mode="new"
@@ -138,8 +174,29 @@ function Shell() {
               Source and changelog
             </Anchor>
           </Text>
+          <Group mt="sm">
+            <Button
+              variant="default"
+              onClick={() => {
+                about.close();
+                suggest.open();
+              }}
+            >
+              Suggest a feature
+            </Button>
+          </Group>
         </Stack>
       </Modal>
+
+      <SuggestFeature
+        opened={suggestOpen}
+        onClose={suggest.close}
+        context={{
+          version: info?.version ?? 'unknown',
+          windows: info?.os ?? 'unknown',
+          screen: screenName(screen),
+        }}
+      />
     </AppShell>
   );
 }

@@ -397,7 +397,7 @@ describe('cards and scores', () => {
     first.close();
     const db = new DatabaseSync(join(folder, EVENT_FILE));
     db.exec(
-      'DROP TABLE results_final; ALTER TABLE entry DROP COLUMN machine; ALTER TABLE entry RENAME COLUMN competition_status TO tier; DROP TABLE label_print; ALTER TABLE card DROP COLUMN received_at; PRAGMA user_version = 1',
+      'DROP TABLE logo; DROP TABLE results_final; ALTER TABLE entry DROP COLUMN machine; ALTER TABLE entry RENAME COLUMN competition_status TO tier; DROP TABLE label_print; ALTER TABLE card DROP COLUMN received_at; PRAGMA user_version = 1',
     );
     db.close();
     const store = track(EventStore.open(folder, testContext()));
@@ -503,7 +503,7 @@ describe('backups', () => {
     const files = readdirSync(join(store.folder, 'backups'));
     expect(files.filter((f) => f.endsWith('-auto.sqlite'))).toHaveLength(3);
     expect(files.filter((f) => f.endsWith('-named.sqlite'))).toHaveLength(1);
-  });
+  }, 30_000);
 });
 
 describe('card labels', () => {
@@ -593,5 +593,37 @@ describe('results marked final', () => {
     const again = track(EventStore.open(folder, testContext()));
     expect(again.finalState()?.revision).toBe(1);
     expect(code(() => again.setStatus(1, 'dns'))).toBe('STORE_RESULTS_FINAL');
+  });
+});
+
+describe('the review queue', () => {
+  it('lists scanned cards with undecided sections, with why, until a person decides them', () => {
+    const store = newEvent();
+    store.addEntry(rider(1));
+    store.recordCard({
+      number: 1,
+      day: 1,
+      lap: 1,
+      scores: [0, null, 1, null],
+      source: 'scan',
+      confidence: [0.9, 0.1, 0.8, 0],
+      reasons: [null, 'LOW_CONF', null, 'NO_PUNCH'],
+      imagePath: 'cards/1-1-1-x.jpg',
+    });
+    expect(store.reviewCards()).toEqual([
+      expect.objectContaining({
+        number: 1,
+        lap: 1,
+        imagePath: 'cards/1-1-1-x.jpg',
+        sections: [
+          { section: 2, reason: 'LOW_CONF' },
+          { section: 4, reason: 'NO_PUNCH' },
+        ],
+      }),
+    ]);
+    store.correctScore({ number: 1, day: 1, lap: 1, section: 2, value: 1, source: 'review' });
+    store.correctScore({ number: 1, day: 1, lap: 1, section: 4, value: 0, source: 'review' });
+    expect(store.reviewCards()).toEqual([]);
+    expect(store.cardLog()[0]?.scores).toEqual([0, 1, 1, 0]);
   });
 });

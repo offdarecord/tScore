@@ -7,6 +7,9 @@ about keeping it **stable, simple and cheap to support**.
 
 - **Report a problem:** use the _Bug report_ issue form and attach the app's "Report a problem"
   zip if you have one. Don't post rider names or photos of cards with names on them.
+- **Suggest a feature:** use the _Idea or feature request_ form, or, without a GitHub account,
+  tScore's **About → Suggest a feature** or the questions in
+  [docs/suggest-a-feature.md](docs/suggest-a-feature.md).
 - **Request a new card type, label stock or region:** use the matching issue form. Most of
   these become data files in `presets/`, not code.
 - **Code and docs:** pick an issue labelled `good first issue` or `help wanted`, or open an

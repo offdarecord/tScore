@@ -22,7 +22,7 @@ export function ErrorAlert(props: {
       color="red"
       role="alert"
       {...(title && { title })}
-      {...(onClose && { withCloseButton: true, onClose })}
+      {...(onClose && { withCloseButton: true, onClose, closeButtonLabel: 'Close' })}
     >
       {error.message}{' '}
       <Text span c="dimmed" size="sm">

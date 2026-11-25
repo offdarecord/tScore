@@ -14,11 +14,23 @@ import type {
   LabelSkip,
   Results,
   CompetitionStatus,
+  SeriesRules,
+  SeriesTally,
   ValidationIssue,
 } from '@tscore/core';
 
 export const IPC = {
   appInfo: 'app:info',
+  listSeries: 'series:list',
+  newSeries: 'series:new',
+  seriesView: 'series:view',
+  updateSeries: 'series:update',
+  addSeriesRoundFile: 'series:add-round-file',
+  deleteSeries: 'series:delete',
+  exportSeries: 'series:export',
+  emailSuggestion: 'suggest:email',
+  copySuggestion: 'suggest:copy',
+  saveSuggestion: 'suggest:save',
   recentEvents: 'events:recent',
   createEvent: 'events:create',
   openEventFile: 'events:open-file',
@@ -34,6 +46,10 @@ export const IPC = {
   importRiders: 'import:riders',
   cardDesk: 'cards:desk',
   saveCard: 'cards:save',
+  saveScan: 'scan:save',
+  reviewQueue: 'scan:review',
+  cardImage: 'scan:image',
+  decideScores: 'scan:decide',
   addPenalty: 'penalties:add',
   removePenalty: 'penalties:remove',
   results: 'results:view',
@@ -48,6 +64,14 @@ export const IPC = {
   preEventCheck: 'check:pre-event',
   markFinal: 'results:mark-final',
   reopenResults: 'results:reopen',
+  liveScores: 'live:scores',
+  logos: 'logos:list',
+  chooseLogo: 'logos:choose',
+  removeLogo: 'logos:remove',
+  showLiveScores: 'live:show',
+  closeLiveScores: 'live:close',
+  liveWindowState: 'live:state',
+  toggleLiveFullScreen: 'live:fullscreen',
   labels: 'labels:view',
   saveLabels: 'labels:save',
   saveLabelTestPage: 'labels:save-test-page',
@@ -226,12 +250,81 @@ export interface ResultsView {
   readonly changes?: readonly string[];
 }
 
+/** A series on this laptop, for the list. */
+export interface SeriesSummary {
+  readonly file: string;
+  readonly name: string;
+  readonly rounds: number;
+}
+
+export interface SeriesRoundView {
+  readonly round: number;
+  readonly folder: string;
+  readonly name: string;
+  readonly code: string;
+  readonly date?: string;
+  /** Only final rounds count. */
+  readonly state: 'final' | 'provisional' | 'reopened' | 'missing' | 'unreadable';
+  readonly revision?: number;
+}
+
+export interface SeriesView {
+  readonly file: string;
+  readonly name: string;
+  readonly rules: SeriesRules;
+  readonly rounds: readonly SeriesRoundView[];
+  /** A label per counted round, matching the tally's columns. */
+  readonly roundLabels: readonly string[];
+  readonly tally: SeriesTally;
+  /** Rounds not counted yet, and why. */
+  readonly notCounted: readonly string[];
+}
+
+export interface SeriesChange {
+  readonly name?: string;
+  readonly rules?: SeriesRules;
+  /** An event folder from the recent list. */
+  readonly addRound?: string;
+  readonly removeRound?: string;
+}
+
+/** How a suggestion left tScore (never sent by tScore itself). */
+export interface SuggestionSent {
+  readonly via: 'email' | 'email-and-clipboard' | 'clipboard' | 'file' | 'none';
+  readonly file?: string;
+}
+
+/** The big screen's content (see main/live.ts). */
+export interface LiveScores {
+  readonly results: Results;
+  /** Expected cards not in yet. */
+  readonly missingCards: number;
+  /** Data URIs. */
+  readonly logos: { readonly event?: string; readonly sponsors: readonly string[] };
+}
+
+/** A logo on Event setup, with its picture as a data URI. */
+export interface LogoView {
+  readonly id: string;
+  readonly role: 'event' | 'sponsor';
+  readonly uri: string;
+  readonly bytes: number;
+}
+
+/** Whether the big-screen window is open, and whether it found a second screen. */
+export interface LiveWindowState {
+  readonly open: boolean;
+  readonly secondScreen: boolean;
+}
+
 export interface AppInfo {
   readonly name: string;
   readonly version: string;
   readonly electron: string;
   readonly platform: string;
   readonly arch: string;
+  /** e.g. "Windows 11 Home (10.0.26200)", for feature suggestions. */
+  readonly os: string;
   /** Where new events are saved. */
   readonly eventsDir: string;
 }
@@ -362,6 +455,40 @@ export interface SaveCard {
   readonly editing: boolean;
 }
 
+/** A card read on the Scan desk. Undecided sections are null, with the reader's reason. */
+export interface SaveScan {
+  readonly number: number;
+  readonly day: number;
+  readonly lap: number;
+  readonly scores: readonly (number | null)[];
+  readonly confidence: readonly (number | null)[];
+  readonly reasons: readonly (string | null)[];
+  /** The frame the card was read from, as a JPEG. */
+  readonly image: Uint8Array;
+}
+
+/** A scanned card waiting for a person (the Review queue). */
+export interface ReviewItem {
+  readonly number: number;
+  readonly day: number;
+  readonly lap: number;
+  readonly name: string;
+  readonly className: string;
+  readonly imagePath: string | null;
+  readonly receivedAt: string;
+  /** Every section's current score; null = undecided. */
+  readonly scores: readonly (number | null)[];
+  /** The undecided sections and why. */
+  readonly sections: readonly { readonly section: number; readonly reason: string | null }[];
+}
+
+export interface DecideScores {
+  readonly number: number;
+  readonly day: number;
+  readonly lap: number;
+  readonly scores: readonly { readonly section: number; readonly value: number }[];
+}
+
 export interface NewPenalty {
   readonly number: number;
   readonly points: number;
@@ -385,6 +512,24 @@ export type Outcome<T> =
 
 export interface TscoreApi {
   getAppInfo(): Promise<AppInfo>;
+  listSeries(): Promise<Outcome<SeriesSummary[]>>;
+  newSeries(name: string): Promise<Outcome<SeriesView>>;
+  seriesView(file: string): Promise<Outcome<SeriesView>>;
+  updateSeries(file: string, change: SeriesChange): Promise<Outcome<SeriesView>>;
+  /** Shows the open dialog for an event file and adds it as a round. `null` if cancelled. */
+  addSeriesRoundFile(file: string): Promise<Outcome<SeriesView | null>>;
+  deleteSeries(file: string): Promise<Outcome<SeriesSummary[]>>;
+  /** Shows the save dialog, then saves. The saved path, or `null` if the desk cancels. */
+  exportSeries(
+    file: string,
+    kind: ExportKind,
+    juniorInitials: boolean,
+  ): Promise<Outcome<string | null>>;
+  /** Opens the mail app with the suggestion (via the clipboard if it's long). */
+  emailSuggestion(text: string): Promise<Outcome<SuggestionSent>>;
+  copySuggestion(text: string): Promise<Outcome<SuggestionSent>>;
+  /** Shows the save dialog, then saves the suggestion as a text file. */
+  saveSuggestion(text: string): Promise<Outcome<SuggestionSent>>;
   recentEvents(): Promise<RecentEventInfo[]>;
   createEvent(setup: EventSetup): Promise<Outcome<OpenEvent>>;
   /** Shows the open dialog. `null` if the desk cancels. */
@@ -409,6 +554,13 @@ export interface TscoreApi {
   /** Save a typed card, or an edit of one. Checked again in the main process. */
   saveCard(card: SaveCard): Promise<Outcome<CardDesk>>;
   addPenalty(penalty: NewPenalty): Promise<Outcome<CardDesk>>;
+  /** Save a card read on the Scan desk, with its photo. */
+  saveScan(scan: SaveScan): Promise<Outcome<CardDesk>>;
+  reviewQueue(): Promise<Outcome<ReviewItem[]>>;
+  /** A card photo (from the review queue) as a data URI. */
+  cardImage(path: string): Promise<Outcome<string>>;
+  /** Decide undecided sections from the review queue. */
+  decideScores(decision: DecideScores): Promise<Outcome<ReviewItem[]>>;
   removePenalty(id: string): Promise<Outcome<CardDesk>>;
   results(): Promise<Outcome<ResultsView>>;
   /** Shows the save dialog, then saves. The saved path, or `null` if the desk cancels. */
@@ -436,6 +588,17 @@ export interface TscoreApi {
   >;
   /** Freeze the results as the next revision. */
   markFinal(): Promise<Outcome<ResultsView>>;
+  logos(): Promise<Outcome<LogoView[]>>;
+  /** Shows the open dialog for a PNG or JPEG. The logos after, or `null` if cancelled. */
+  chooseLogo(role: 'event' | 'sponsor'): Promise<Outcome<LogoView[] | null>>;
+  removeLogo(id: string): Promise<Outcome<LogoView[]>>;
+  /** The big screen's content, or null with no event open. */
+  liveScores(): Promise<Outcome<LiveScores | null>>;
+  /** Open the big-screen window (full screen on a second screen if there is one). */
+  showLiveScores(): Promise<LiveWindowState>;
+  closeLiveScores(): Promise<LiveWindowState>;
+  liveWindowState(): Promise<LiveWindowState>;
+  toggleLiveFullScreen(): Promise<void>;
   /** Reopen final results to correct something, saying why. */
   reopenResults(reason: string): Promise<Outcome<ResultsView>>;
   labels(request: LabelRequest): Promise<Outcome<LabelsView>>;

@@ -1,3 +1,4 @@
+import os from 'node:os';
 import { join } from 'node:path';
 import { app, BrowserWindow, ipcMain, shell, type IpcMainInvokeEvent } from 'electron';
 import log from 'electron-log/main';
@@ -7,10 +8,15 @@ import {
   type ExportKind,
   type LabelOffset,
   type LabelRequest,
+  type SeriesChange,
+  type DecideScores,
+  type SaveScan,
 } from '../shared/ipc';
 import { startBackups } from './backups';
 import { closeEvents, currentStore, eventHandlers, eventsDir } from './events';
+import { closeLiveWindow, liveWindowState, showLiveWindow, toggleLiveFullScreen } from './live';
 import { startLogging } from './logging';
+import { copySuggestion, emailSuggestion, saveSuggestion } from './suggestion';
 import { checkForUpdatesWhenSafe } from './updates';
 
 // Automated tests run the app with its own data folder, so they never touch (or get blocked by)
@@ -53,9 +59,28 @@ function registerIpc(): void {
     electron: process.versions.electron,
     platform: process.platform,
     arch: process.arch,
+    os: `${os.version()} (${os.release()})`,
     eventsDir: eventsDir(),
   }));
+  handle(IPC.emailSuggestion, (_e, text: string) => emailSuggestion(text));
+  handle(IPC.copySuggestion, (_e, text: string) => copySuggestion(text));
+  handle(IPC.saveSuggestion, (e, text: string) =>
+    saveSuggestion(text, BrowserWindow.fromWebContents(e.sender)),
+  );
   handle(IPC.recentEvents, () => eventHandlers.recent());
+  handle(IPC.listSeries, () => eventHandlers.listSeries());
+  handle(IPC.newSeries, (_e, name: string) => eventHandlers.newSeries(name));
+  handle(IPC.seriesView, (_e, file: string) => eventHandlers.seriesView(file));
+  handle(IPC.updateSeries, (_e, file: string, change: SeriesChange) =>
+    eventHandlers.updateSeries(file, change),
+  );
+  handle(IPC.addSeriesRoundFile, (e, file: string) =>
+    eventHandlers.addSeriesRoundFile(file, BrowserWindow.fromWebContents(e.sender)),
+  );
+  handle(IPC.deleteSeries, (_e, file: string) => eventHandlers.deleteSeries(file));
+  handle(IPC.exportSeries, (e, file: string, kind: ExportKind, initials: boolean) =>
+    eventHandlers.exportSeries(file, kind, initials, BrowserWindow.fromWebContents(e.sender)),
+  );
   handle(IPC.createEvent, (_e, setup: Parameters<typeof eventHandlers.create>[0]) =>
     eventHandlers.create(setup),
   );
@@ -86,6 +111,10 @@ function registerIpc(): void {
   handle(IPC.saveCard, (_e, card: Parameters<typeof eventHandlers.saveCard>[0]) =>
     eventHandlers.saveCard(card),
   );
+  handle(IPC.saveScan, (_e, scan: SaveScan) => eventHandlers.saveScan(scan));
+  handle(IPC.reviewQueue, () => eventHandlers.reviewQueue());
+  handle(IPC.cardImage, (_e, path: string) => eventHandlers.cardImage(path));
+  handle(IPC.decideScores, (_e, d: DecideScores) => eventHandlers.decideScores(d));
   handle(IPC.addPenalty, (_e, penalty: Parameters<typeof eventHandlers.addPenalty>[0]) =>
     eventHandlers.addPenalty(penalty),
   );
@@ -119,7 +148,20 @@ function registerIpc(): void {
   );
   handle(IPC.setLabelOffset, (_e, offset: LabelOffset) => eventHandlers.setLabelOffset(offset));
   handle(IPC.course, (_e, day?: number) => eventHandlers.course(day));
+  handle(IPC.liveScores, () => eventHandlers.liveScores());
+  handle(IPC.logos, () => eventHandlers.logos());
+  handle(IPC.chooseLogo, (e, role: 'event' | 'sponsor') =>
+    eventHandlers.chooseLogo(role, BrowserWindow.fromWebContents(e.sender)),
+  );
+  handle(IPC.removeLogo, (_e, id: string) => eventHandlers.removeLogo(id));
+  handle(IPC.showLiveScores, () => showLiveWindow(desk, RENDERER_DEV_URL));
+  handle(IPC.closeLiveScores, () => closeLiveWindow());
+  handle(IPC.liveWindowState, () => liveWindowState());
+  handle(IPC.toggleLiveFullScreen, () => toggleLiveFullScreen());
 }
+
+/** The desk window (the big screen is another window, see live.ts). */
+let desk: BrowserWindow | null = null;
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -141,7 +183,13 @@ function createWindow(): void {
     },
   });
 
+  desk = win;
   win.once('ready-to-show', () => win.show());
+  // The big screen goes when the desk does, so closing the desk still quits tScore.
+  win.on('closed', () => {
+    desk = null;
+    closeLiveWindow();
+  });
 
   // No remote content: external links open in the user's browser, never in the app.
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -169,7 +217,7 @@ if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
   app.on('second-instance', () => {
-    const [win] = BrowserWindow.getAllWindows();
+    const win = desk;
     if (win) {
       if (win.isMinimized()) win.restore();
       win.focus();

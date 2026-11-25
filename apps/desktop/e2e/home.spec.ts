@@ -44,11 +44,9 @@ async function newEvent() {
   await expect(window.getByRole('heading', { name: 'Event setup', level: 1 })).toBeVisible();
 }
 
-test('"Scan desk" is marked as coming later and explains why', async () => {
+test('a feature not built yet is marked as coming later and explains why', async () => {
   await newEvent();
-  const button = window
-    .getByRole('navigation', { name: 'Event' })
-    .getByRole('button', { name: 'Scan desk' });
+  const button = window.getByRole('button', { name: 'Copy from a previous event…' });
   await expect(button).toHaveAttribute('aria-disabled', 'true');
 
   await button.hover();
@@ -63,11 +61,10 @@ test('"Scan desk" is marked as coming later and explains why', async () => {
 
 test('keyboard users get the same explanation', async () => {
   await newEvent();
-  const nav = window.getByRole('navigation', { name: 'Event' });
-  // Tab to it, as a keyboard user would: back one step from Manual entry.
-  await nav.getByRole('button', { name: 'Manual entry' }).focus();
+  // Tab to it, as a keyboard user would: back one step from the button after it.
+  await window.getByRole('button', { name: 'Save as template' }).focus();
   await window.keyboard.press('Shift+Tab');
-  await expect(nav.getByRole('button', { name: 'Scan desk' })).toBeFocused();
+  await expect(window.getByRole('button', { name: 'Copy from a previous event…' })).toBeFocused();
   await expect(window.getByRole('tooltip')).toHaveText('Coming in a later version of tScore');
 });
 

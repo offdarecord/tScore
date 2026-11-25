@@ -8,6 +8,8 @@ import {
   type ExportKind,
   type LabelOffset,
   type LabelRequest,
+  type DecideScores,
+  type SaveScan,
 } from '../shared/ipc';
 import { startBackups } from './backups';
 import { closeEvents, currentStore, eventHandlers, eventsDir } from './events';
@@ -95,6 +97,10 @@ function registerIpc(): void {
   handle(IPC.saveCard, (_e, card: Parameters<typeof eventHandlers.saveCard>[0]) =>
     eventHandlers.saveCard(card),
   );
+  handle(IPC.saveScan, (_e, scan: SaveScan) => eventHandlers.saveScan(scan));
+  handle(IPC.reviewQueue, () => eventHandlers.reviewQueue());
+  handle(IPC.cardImage, (_e, path: string) => eventHandlers.cardImage(path));
+  handle(IPC.decideScores, (_e, d: DecideScores) => eventHandlers.decideScores(d));
   handle(IPC.addPenalty, (_e, penalty: Parameters<typeof eventHandlers.addPenalty>[0]) =>
     eventHandlers.addPenalty(penalty),
   );

@@ -37,6 +37,10 @@ export const IPC = {
   importRiders: 'import:riders',
   cardDesk: 'cards:desk',
   saveCard: 'cards:save',
+  saveScan: 'scan:save',
+  reviewQueue: 'scan:review',
+  cardImage: 'scan:image',
+  decideScores: 'scan:decide',
   addPenalty: 'penalties:add',
   removePenalty: 'penalties:remove',
   results: 'results:view',
@@ -404,6 +408,40 @@ export interface SaveCard {
   readonly editing: boolean;
 }
 
+/** A card read on the Scan desk. Undecided sections are null, with the reader's reason. */
+export interface SaveScan {
+  readonly number: number;
+  readonly day: number;
+  readonly lap: number;
+  readonly scores: readonly (number | null)[];
+  readonly confidence: readonly (number | null)[];
+  readonly reasons: readonly (string | null)[];
+  /** The frame the card was read from, as a JPEG. */
+  readonly image: Uint8Array;
+}
+
+/** A scanned card waiting for a person (the Review queue). */
+export interface ReviewItem {
+  readonly number: number;
+  readonly day: number;
+  readonly lap: number;
+  readonly name: string;
+  readonly className: string;
+  readonly imagePath: string | null;
+  readonly receivedAt: string;
+  /** Every section's current score; null = undecided. */
+  readonly scores: readonly (number | null)[];
+  /** The undecided sections and why. */
+  readonly sections: readonly { readonly section: number; readonly reason: string | null }[];
+}
+
+export interface DecideScores {
+  readonly number: number;
+  readonly day: number;
+  readonly lap: number;
+  readonly scores: readonly { readonly section: number; readonly value: number }[];
+}
+
 export interface NewPenalty {
   readonly number: number;
   readonly points: number;
@@ -456,6 +494,13 @@ export interface TscoreApi {
   /** Save a typed card, or an edit of one. Checked again in the main process. */
   saveCard(card: SaveCard): Promise<Outcome<CardDesk>>;
   addPenalty(penalty: NewPenalty): Promise<Outcome<CardDesk>>;
+  /** Save a card read on the Scan desk, with its photo. */
+  saveScan(scan: SaveScan): Promise<Outcome<CardDesk>>;
+  reviewQueue(): Promise<Outcome<ReviewItem[]>>;
+  /** A card photo (from the review queue) as a data URI. */
+  cardImage(path: string): Promise<Outcome<string>>;
+  /** Decide undecided sections from the review queue. */
+  decideScores(decision: DecideScores): Promise<Outcome<ReviewItem[]>>;
   removePenalty(id: string): Promise<Outcome<CardDesk>>;
   results(): Promise<Outcome<ResultsView>>;
   /** Shows the save dialog, then saves. The saved path, or `null` if the desk cancels. */

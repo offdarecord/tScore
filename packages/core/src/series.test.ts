@@ -201,7 +201,9 @@ describe('series points', () => {
       footer: 'tScore',
       notCounted: 'Round 3 is not final yet, so it is not counted.',
     };
-    const csv = seriesCsv(t, opts).replace(/^﻿/, '').split('\r\n');
+    const csv = seriesCsv(t, opts)
+      .replace(/^\uFEFF/, '')
+      .split('\r\n');
     expect(csv.slice(0, 3)).toEqual([
       'Class,Place,Name,Number,Club,Rd 1,Rd 2,Total,Best 1',
       'T1,1=,Lee Glen,2,,22,25,47,25',

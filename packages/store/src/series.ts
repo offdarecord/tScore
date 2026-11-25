@@ -120,7 +120,7 @@ export function saveSeries(eventsDir: string, setup: SeriesSetup, file?: string)
   mkdirSync(dir, { recursive: true });
   let target = file && file.startsWith(dir) ? file : undefined;
   if (!target) {
-    const base = name.replace(/[<>:"/\|?*]/g, '_').slice(0, 80);
+    const base = name.replace(/[<>:"/\\|?*]/g, '_').slice(0, 80);
     target = join(dir, `${base}.json`);
     for (let n = 2; existsSync(target); n++) target = join(dir, `${base} (${n}).json`);
   }

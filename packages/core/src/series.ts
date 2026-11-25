@@ -159,8 +159,10 @@ export function computeSeries(
       const wins = (r: (typeof rows)[number]) =>
         winPoints === undefined ? 0 : r.rounds.filter((p) => p === winPoints).length;
       const latest = (r: (typeof rows)[number]) => {
-        for (let i = r.rounds.length - 1; i >= 0; i--)
-          if (r.rounds[i] !== null) return r.rounds[i]!;
+        for (let i = r.rounds.length - 1; i >= 0; i--) {
+          const p = r.rounds[i];
+          if (p !== null && p !== undefined) return p;
+        }
         return 0;
       };
       const compare = (a: (typeof rows)[number], b: (typeof rows)[number]) =>
@@ -170,7 +172,7 @@ export function computeSeries(
       const placed: SeriesRow[] = [];
       rows.forEach((r, i) => {
         const prev = rows[i - 1];
-        const place = prev && compare(prev, r) === 0 ? placed[i - 1]!.place : i + 1;
+        const place = prev && compare(prev, r) === 0 ? (placed[i - 1]?.place ?? i + 1) : i + 1;
         placed.push({ ...r, place, shared: false });
       });
       return {
@@ -193,7 +195,7 @@ export function parsePointsScale(text: string): number[] | null {
   if (parts.length === 0 || parts.length > 100) return null;
   const nums = parts.map(Number);
   if (nums.some((n) => !Number.isInteger(n) || n < 0 || n > 1000)) return null;
-  if (nums.some((n, i) => i > 0 && n > nums[i - 1]!)) return null;
+  if (nums.some((n, i) => i > 0 && n > (nums[i - 1] ?? Infinity))) return null;
   return nums;
 }
 

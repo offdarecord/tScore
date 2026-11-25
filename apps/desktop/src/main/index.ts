@@ -118,6 +118,11 @@ function registerIpc(): void {
   handle(IPC.setLabelOffset, (_e, offset: LabelOffset) => eventHandlers.setLabelOffset(offset));
   handle(IPC.course, (_e, day?: number) => eventHandlers.course(day));
   handle(IPC.liveScores, () => eventHandlers.liveScores());
+  handle(IPC.logos, () => eventHandlers.logos());
+  handle(IPC.chooseLogo, (e, role: 'event' | 'sponsor') =>
+    eventHandlers.chooseLogo(role, BrowserWindow.fromWebContents(e.sender)),
+  );
+  handle(IPC.removeLogo, (_e, id: string) => eventHandlers.removeLogo(id));
   handle(IPC.showLiveScores, () => showLiveWindow(desk, RENDERER_DEV_URL));
   handle(IPC.closeLiveScores, () => closeLiveWindow());
   handle(IPC.liveWindowState, () => liveWindowState());

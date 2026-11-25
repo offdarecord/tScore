@@ -2,7 +2,7 @@
  * Events in the main process: the one EventLibrary, and the IPC handlers the event screens use.
  * The renderer never touches files; it asks for these and shows the outcome.
  */
-import { statSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { basename, dirname, extname, join } from 'node:path';
 import {
   CARD_PROFILE_ROWS,
@@ -23,6 +23,7 @@ import {
 } from '@tscore/core';
 import {
   EventLibrary,
+  LOGO_MAX_BYTES,
   readEntryFile,
   SetupError,
   StoreError,
@@ -44,6 +45,7 @@ import type {
   LabelRequest,
   LabelsView,
   LiveScores,
+  LogoView,
   NewPenalty,
   OpenEvent,
   Outcome,
@@ -126,6 +128,22 @@ function ridersOf(store: EventStore): RiderInfo[] {
 }
 
 const isText = (v: unknown): v is string | null => v === null || typeof v === 'string';
+
+function logoViews(store: EventStore): LogoView[] {
+  return store.logos().flatMap((l) => {
+    const data = store.logoData(l.id);
+    return data
+      ? [
+          {
+            id: l.id,
+            role: l.role,
+            bytes: l.bytes,
+            uri: `data:${l.mime};base64,${Buffer.from(data).toString('base64')}`,
+          },
+        ]
+      : [];
+  });
+}
 
 function openStore(): EventStore {
   const store = library?.current;
@@ -571,6 +589,48 @@ export const eventHandlers = {
       store.removePenalty(id);
       log.info('penalty removed', { eventId: store.eventId });
       return cardDesk(store);
+    });
+  },
+
+  logos(): Outcome<LogoView[]> {
+    return attempt('reading the logos', () => logoViews(openStore()));
+  },
+
+  async chooseLogo(
+    role: 'event' | 'sponsor',
+    win: BrowserWindow | null,
+  ): Promise<Outcome<LogoView[] | null>> {
+    if (role !== 'event' && role !== 'sponsor') return { ok: true, value: null };
+    const options: Electron.OpenDialogOptions = {
+      title: role === 'event' ? 'Choose the event logo' : 'Add a sponsor logo',
+      properties: ['openFile'],
+      filters: [{ name: 'Picture (PNG or JPEG)', extensions: ['png', 'jpg', 'jpeg'] }],
+    };
+    const picked = win
+      ? await dialog.showOpenDialog(win, options)
+      : await dialog.showOpenDialog(options);
+    const file = picked.filePaths[0];
+    if (picked.canceled || !file) return { ok: true, value: null };
+    return attempt('adding the logo', () => {
+      const store = openStore();
+      const size = statSync(file).size;
+      if (size > LOGO_MAX_BYTES) {
+        throw new StoreError(
+          'STORE_LOGO_SIZE',
+          `That picture is ${(size / 1_000_000).toFixed(1)} MB. Logos can be up to 1 MB: save a smaller copy.`,
+        );
+      }
+      const added = store.addLogo(role, readFileSync(file));
+      log.info('logo added', { role, mime: added.mime, bytes: added.bytes });
+      return logoViews(store);
+    });
+  },
+
+  removeLogo(id: string): Outcome<LogoView[]> {
+    return attempt('removing the logo', () => {
+      const store = openStore();
+      if (typeof id === 'string') store.removeLogo(id);
+      return logoViews(store);
     });
   },
 

@@ -149,6 +149,27 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
     fix: 'Set the date for each day in **Event setup**.',
     internal: ['STORE_NO_DATE'],
   },
+  {
+    code: 'TS-SET-005',
+    title: "That picture can't be a logo",
+    meaning: 'Logos must be PNG or JPEG pictures.',
+    fix: 'Save the logo as a PNG or JPEG (most image programs can), then choose it again.',
+    internal: ['STORE_LOGO_TYPE'],
+  },
+  {
+    code: 'TS-SET-006',
+    title: 'That logo is too big',
+    meaning: 'Logos can be up to 1 MB each, so backups and the results PDF stay small.',
+    fix: 'Save a smaller copy (about 1000 pixels wide is plenty for print), then choose it again.',
+    internal: ['STORE_LOGO_SIZE'],
+  },
+  {
+    code: 'TS-SET-007',
+    title: 'Too many sponsor logos',
+    meaning: 'The results have room for up to 8 sponsor logos.',
+    fix: 'Remove one before adding another.',
+    internal: ['STORE_LOGO_COUNT'],
+  },
 
   // Riders
   {

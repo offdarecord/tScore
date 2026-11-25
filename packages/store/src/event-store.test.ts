@@ -397,7 +397,7 @@ describe('cards and scores', () => {
     first.close();
     const db = new DatabaseSync(join(folder, EVENT_FILE));
     db.exec(
-      'DROP TABLE results_final; ALTER TABLE entry DROP COLUMN machine; ALTER TABLE entry RENAME COLUMN competition_status TO tier; DROP TABLE label_print; ALTER TABLE card DROP COLUMN received_at; PRAGMA user_version = 1',
+      'DROP TABLE logo; DROP TABLE results_final; ALTER TABLE entry DROP COLUMN machine; ALTER TABLE entry RENAME COLUMN competition_status TO tier; DROP TABLE label_print; ALTER TABLE card DROP COLUMN received_at; PRAGMA user_version = 1',
     );
     db.close();
     const store = track(EventStore.open(folder, testContext()));

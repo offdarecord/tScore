@@ -31,6 +31,8 @@ card needs a look.
 Scanned cards with a score the reader couldn't decide wait here with their photo. For each,
 check the photo (or the card itself), pick the score for each section listed, and choose
 **Save scores**. Results stay provisional until the queue is empty.
+A card that can't be read at all is quicker typed in: **Go to Manual entry**, at the bottom of
+the queue, takes you there.
 
 ## Manual entry
 

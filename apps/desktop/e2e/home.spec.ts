@@ -31,6 +31,7 @@ test('About shows the installed version', async () => {
   const dialog = window.getByRole('dialog', { name: 'About tScore' });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByText(`Version ${pkg.version}`)).toBeVisible();
+  await expect(dialog.getByText('by trials nerds, for trials nerds')).toBeVisible();
   await window.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
 });

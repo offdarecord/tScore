@@ -108,7 +108,7 @@ export function gapWords(gaps: readonly ResultsGap[]): string {
 /** UTF-8 byte-order mark: tells Excel the CSV is UTF-8, so accented names come through. */
 export const BOM = String.fromCharCode(0xfeff);
 
-function csvField(v: string | number | null | undefined): string {
+export function csvField(v: string | number | null | undefined): string {
   if (v === null || v === undefined) return '';
   // Text that a spreadsheet would run as a formula gets a leading apostrophe.
   const s = typeof v === 'string' && /^[=+\-@\t\r]/.test(v) ? `'${v}` : String(v);
@@ -198,7 +198,7 @@ export function placeChanges(before: Results, after: Results): string[] {
 
 // ---- Printable HTML (becomes the PDF) ----
 
-const esc = (s: string | number | null | undefined) =>
+export const esc = (s: string | number | null | undefined) =>
   String(s ?? '').replace(
     /[&<>"']/g,
     (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] ?? c,
@@ -222,7 +222,14 @@ export interface PrintOptions {
   readonly dates: string;
   /** e.g. "tScore 0.5.0, 24 Nov 2026 3:15 pm". */
   readonly footer: string;
+  /** Pictures as `data:image/png;base64,…` or JPEG: the event logo by the title, sponsors at the end. */
+  readonly logos?: { readonly event?: string; readonly sponsors?: readonly string[] };
 }
+
+/** Only PNG or JPEG data URIs go into the page, never anything that could run or load. */
+const LOGO_URI = /^data:image\/(png|jpeg);base64,[A-Za-z0-9+/]+=*$/;
+const logo = (uri: string | undefined, cls: string) =>
+  uri && LOGO_URI.test(uri) ? `<img class="${cls}" src="${uri}" alt="">` : '';
 
 /** A complete HTML page for A4 printing: one table per class, provisional marked plainly. */
 export function resultsHtml(results: Results, opts: PrintOptions): string {
@@ -296,14 +303,28 @@ export function resultsHtml(results: Results, opts: PrintOptions): string {
   .place { font-weight: 700; width: 3.5em; }
   .total { font-weight: 700; }
   .count { color: #444; }
+  .head { display: flex; align-items: center; gap: 12px; }
+  .event-logo { max-height: 20mm; max-width: 45mm; object-fit: contain; }
+  .sponsors { margin-top: 14px; break-inside: avoid; }
+  .sponsors p { margin: 0 0 4px; color: #444; font-size: 8.5pt; }
+  .sponsors div { display: flex; flex-wrap: wrap; gap: 8mm; align-items: center; }
+  .sponsor-logo { max-height: 14mm; max-width: 40mm; object-fit: contain; }
   tr.muted td { color: #555; }
   footer { margin-top: 14px; color: #444; font-size: 8pt; }
 </style></head><body>
-<h1>${esc(ev.name)}</h1>
-<div class="sub">${sub}</div>
+<div class="head">${logo(opts.logos?.event, 'event-logo')}<div><h1>${esc(ev.name)}</h1>
+<div class="sub">${sub}</div></div></div>
 ${provisional ? `<div class="provisional">PROVISIONAL: ${esc(gapWords(opts.gaps))} Positions may change.</div>` : ''}
 ${final ? `<div class="final"><strong>FINAL RESULTS${results.revision > 1 ? ` · REVISION ${results.revision}` : ''}</strong>${note ? `<div>Replaces revision ${note.replaces} of ${esc(note.replacedAt)}. Reason: ${esc(note.reason)}</div>${note.changes.length ? `<ul>${note.changes.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : '<div>No places changed.</div>'}` : ''}</div>` : ''}
 ${classes}
+${sponsorsHtml(opts.logos?.sponsors)}
 <footer>${esc(tieBreakWords(results))} NA = No award (scored, not placed). NC = Non-competitive (counts only; scores are not published). DNF = did not finish. DNS = did not start.<br>${esc(opts.footer)}</footer>
 </body></html>`;
+}
+
+function sponsorsHtml(sponsors: readonly string[] | undefined): string {
+  const imgs = (sponsors ?? []).map((u) => logo(u, 'sponsor-logo')).filter(Boolean);
+  return imgs.length
+    ? `<div class="sponsors"><p>Supported by</p><div>${imgs.join('')}</div></div>`
+    : '';
 }

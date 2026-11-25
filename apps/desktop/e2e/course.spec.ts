@@ -4,14 +4,14 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { launchApp, type Launched } from './app';
 
-// Invented riders only. The event is today, starting at midnight, with cards handed in at
-// 00:10 and 00:20, so the test needs the clock to be well past that.
+// Invented riders only. The event starts on the hour at least two hours ago (yesterday, just
+// after midnight), and cards are handed in within 25 minutes of the start. So riders are
+// always overdue by the time the test looks, at any time of day, and no card crosses midnight.
 
 let run: Launched;
 let window: Page;
 
 test.beforeEach(async () => {
-  test.skip(new Date().getHours() < 2, 'needs the local time to be after 02:00');
   run = await launchApp();
   ({ window } = run);
 });
@@ -21,17 +21,22 @@ test.afterEach(async () => {
 });
 
 const nav = () => window.getByRole('navigation', { name: 'Event' });
-const today = () => {
-  const d = new Date();
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-};
+const p = (n: number) => String(n).padStart(2, '0');
+/** The event's start: on the hour, at least two hours ago. */
+const start = (() => {
+  const d = new Date(Date.now() - 2 * 60 * 60 * 1000);
+  d.setMinutes(0, 0, 0);
+  return d;
+})();
+const eventDate = `${start.getFullYear()}-${p(start.getMonth() + 1)}-${p(start.getDate())}`;
+/** A time `minutes` after the start, as typed into the app. */
+const at = (minutes: number) => `${p(start.getHours())}:${p(minutes)}`;
 
-async function eventToday() {
+async function eventEarlier() {
   await window.getByRole('button', { name: 'New event' }).click();
   await window.getByLabel('Event name').fill('Example Club Trial');
-  await window.getByLabel('Date', { exact: true }).fill(today());
-  await window.getByLabel('Lap 1 starts').fill('00:00');
+  await window.getByLabel('Date', { exact: true }).fill(eventDate);
+  await window.getByLabel('Lap 1 starts').fill(at(0));
   await window.getByLabel('Laps for Trial 3').fill('2');
   await window.getByRole('button', { name: 'Create event' }).click();
   await expect(window.getByRole('heading', { name: 'Event setup', level: 1 })).toBeVisible();
@@ -76,12 +81,12 @@ async function typeCards(cards: readonly [number, number, string][]) {
 }
 
 test('who is overdue and still on course follows the cards in, with Mark DNF and Undo', async () => {
-  await eventToday();
+  await eventEarlier();
   // Trial 3 laps take 10 minutes (rider 1), so riders 2 and 3 are long overdue.
   await typeCards([
-    [1, 1, '00:10'],
-    [1, 2, '00:20'],
-    [2, 1, '00:10'],
+    [1, 1, at(10)],
+    [1, 2, at(20)],
+    [2, 1, at(10)],
   ]);
 
   await nav().getByRole('button', { name: 'Progress' }).click();
@@ -123,7 +128,7 @@ test('who is overdue and still on course follows the cards in, with Mark DNF and
   await expect(board.getByRole('img', { name: /Rider 4/ })).toHaveCount(0); // minder
 
   // Rider 2's last card comes in: everyone is accounted for.
-  await typeCards([[2, 2, '00:25']]);
+  await typeCards([[2, 2, at(25)]]);
   await nav().getByRole('button', { name: 'Still on course' }).click();
   await expect(window.getByText('Everyone is accounted for.', { exact: false })).toBeVisible();
   await window
@@ -133,8 +138,8 @@ test('who is overdue and still on course follows the cards in, with Mark DNF and
 });
 
 test('the Progress and Still on course screens meet WCAG 2.2 AA (automated check)', async () => {
-  await eventToday();
-  await typeCards([[1, 1, '00:10']]);
+  await eventEarlier();
+  await typeCards([[1, 1, at(10)]]);
   for (const page of ['Progress', 'Still on course']) {
     await nav().getByRole('button', { name: page }).click();
     await expect(window.getByRole('heading', { name: page, level: 2 })).toBeVisible();

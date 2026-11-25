@@ -17,11 +17,12 @@ import { ErrorAlert } from './ErrorAlert';
 interface Props {
   readonly info: AppInfo | null;
   readonly onNew: () => void;
+  readonly onSeries: () => void;
   readonly onOpened: (event: OpenEvent) => void;
 }
 
 /** The start screen: no event open. New event, open one, or pick up a recent one. */
-export function Home({ info, onNew, onOpened }: Props) {
+export function Home({ info, onNew, onSeries, onOpened }: Props) {
   const [recent, setRecent] = useState<RecentEventInfo[] | null>(null);
   const [error, setError] = useState<AppError | null>(null);
 
@@ -56,6 +57,9 @@ export function Home({ info, onNew, onOpened }: Props) {
           </Button>
           <Button variant="default" onClick={() => void restore()}>
             Restore from backup…
+          </Button>
+          <Button variant="default" onClick={onSeries}>
+            Series points
           </Button>
         </Group>
       </Group>

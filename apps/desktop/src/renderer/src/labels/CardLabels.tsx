@@ -195,7 +195,7 @@ export function CardLabels({ event }: { readonly event: OpenEvent }) {
               />
               <Checkbox
                 label="Leave out minders"
-                description="Minders aren't scored. Untick to print their labels too, for the laps their class has in Event setup."
+                description="Minders aren't scored. Untick to print their labels."
                 checked={leaveOutMinders}
                 onChange={(e) => setLeaveOutMinders(e.currentTarget.checked)}
               />
@@ -355,7 +355,7 @@ function Alignment(props: {
           </Text>
         )}
         {problem && (
-          <Text size="sm" c="#a51111" role="alert">
+          <Text size="sm" c="light-dark(#a51111, #ffa8a8)" role="alert">
             {problem}
           </Text>
         )}

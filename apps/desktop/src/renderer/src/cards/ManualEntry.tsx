@@ -38,9 +38,21 @@ export const PENALTY_LABEL: Record<PenaltyReason, string> = {
 };
 
 const HOW: Record<string, { label: string; bg: string; fg: string }> = {
-  scan: { label: 'Scanned', bg: '#e9ecef', fg: '#343a40' },
-  manual: { label: 'Typed', bg: '#e3eefa', fg: '#0b4a8b' },
-  edited: { label: 'Edited', bg: '#fff0de', fg: '#8a3b00' },
+  scan: {
+    label: 'Scanned',
+    bg: 'light-dark(#e9ecef, #2e3236)',
+    fg: 'light-dark(#343a40, #dee2e6)',
+  },
+  manual: {
+    label: 'Typed',
+    bg: 'light-dark(#e3eefa, #1a3049)',
+    fg: 'light-dark(#0b4a8b, #a5d8ff)',
+  },
+  edited: {
+    label: 'Edited',
+    bg: 'light-dark(#fff0de, #3f2a10)',
+    fg: 'light-dark(#8a3b00, #ffc078)',
+  },
 };
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -48,10 +60,16 @@ const nowHHMM = () => {
   const d = new Date();
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
-/** Today at the time the desk typed, in the laptop's time zone. */
-function todayAt(hhmm: string): string {
+/**
+ * The time the desk typed, on the event day's date (today if the day has no date), in the
+ * laptop's time zone. Not today's date: cards are often typed in after midnight or the next
+ * morning, and they must still count on the day they were ridden.
+ */
+function dayAt(date: string | undefined, hhmm: string): string {
   const [h, m] = hhmm.split(':').map(Number);
   const d = new Date();
+  const [y, mo, dd] = (date ?? '').split('-').map(Number);
+  if (y && mo && dd) d.setFullYear(y, mo - 1, dd);
   d.setHours(h ?? d.getHours(), m ?? d.getMinutes(), 0, 0);
   return d.toISOString();
 }
@@ -178,7 +196,7 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
       day,
       lap,
       scores,
-      receivedAt: todayAt(inAt),
+      receivedAt: dayAt(desk?.days.find((d) => d.day === day)?.date, inAt),
       editing: editing !== null,
     });
     if (!r.ok) {
@@ -241,7 +259,7 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
             flex: '999 1 440px',
             minWidth: 0,
             borderWidth: 2,
-            borderColor: editing ? '#1864ab' : undefined,
+            borderColor: editing ? 'light-dark(#1864ab, #4dabf7)' : undefined,
           }}
         >
           <Stack gap="md">
@@ -274,7 +292,7 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
                     suggestions.length === 0 && {
                       error: `No rider matches "${query.trim()}". Check the number, or add them on the Riders screen.`,
                     })}
-                  styles={{ error: { color: '#a51111', fontSize: 15 } }}
+                  styles={{ error: { color: 'light-dark(#a51111, #ffa8a8)', fontSize: 15 } }}
                 />
                 {suggestions.length > 0 && (
                   <Paper withBorder mt={4} role="listbox" aria-label="Matching riders">
@@ -291,7 +309,7 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
                           padding: '8px 12px',
                           minHeight: 44,
                           alignItems: 'center',
-                          borderTop: '1px solid #e9ecef',
+                          borderTop: '1px solid light-dark(#e9ecef, #2e3236)',
                         }}
                       >
                         <Text fw={800} w={40} size="lg">
@@ -347,7 +365,7 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
                 <Text fz={24} fw={700}>
                   {riderName(rider)}
                 </Text>
-                <Text fz={18} c="dark.6">
+                <Text fz={18}>
                   {rider.classes[0]} · {sections} sections · lap {lap} of {rides?.laps ?? 0}
                   {multiDay ? ` · day ${day}` : ''}
                 </Text>
@@ -405,11 +423,11 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
               styles={{
                 input: { fontFamily: 'Consolas, monospace', letterSpacing: '0.2em', fontSize: 26 },
                 // Mantine's default red is too light on white for WCAG AA at this size.
-                error: { color: '#a51111', fontSize: 15, fontWeight: 600 },
+                error: { color: 'light-dark(#a51111, #ffa8a8)', fontSize: 15, fontWeight: 600 },
               }}
             />
             {problem && stillTyping && (
-              <Text size="sm" c="dark.6" mt={-8}>
+              <Text size="sm" mt={-8}>
                 {problem}
               </Text>
             )}
@@ -554,7 +572,7 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
                   return (
                     <Table.Tr
                       key={`${c.number}-${c.day}-${c.lap}`}
-                      {...(isEditing && { bg: '#e3eefa' })}
+                      {...(isEditing && { bg: 'light-dark(#e3eefa, #1a3049)' })}
                     >
                       <Table.Td fw={700}>{c.number}</Table.Td>
                       {multiDay && <Table.Td>{c.day}</Table.Td>}
@@ -645,7 +663,7 @@ function PenaltyForm(props: {
       radius="md"
       component="section"
       aria-label="Add penalty"
-      style={{ borderColor: '#f08c00', borderWidth: 2, background: '#fffaf2' }}
+      style={{ borderColor: '#f08c00', borderWidth: 2, background: 'light-dark(#fffaf2, #2f2413)' }}
     >
       <Stack gap="sm">
         <Text fw={700} fz="lg">
@@ -730,7 +748,11 @@ function PenaltyList(props: {
           gap="sm"
           px="sm"
           py={6}
-          style={{ background: '#fff0de', color: '#6b2e00', borderRadius: 8 }}
+          style={{
+            background: 'light-dark(#fff0de, #3f2a10)',
+            color: 'light-dark(#6b2e00, #ffc078)',
+            borderRadius: 8,
+          }}
         >
           <span>
             <strong>+{p.points}</strong> · {PENALTY_LABEL[p.reason].replace(/ \(.*\)$/, '')}

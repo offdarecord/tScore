@@ -16,10 +16,13 @@ export const HELP_TOPICS = {
   import: { page: 'before-the-event', anchor: 'import-the-entry-list' },
   check: { page: 'before-the-event', anchor: 'pre-event-check' },
   labels: { page: 'before-the-event', anchor: 'card-labels' },
+  scan: { page: 'event-day', anchor: 'scan-desk' },
   manual: { page: 'event-day', anchor: 'manual-entry' },
+  review: { page: 'event-day', anchor: 'review-queue' },
   progress: { page: 'event-day', anchor: 'progress' },
   course: { page: 'event-day', anchor: 'still-on-course' },
   results: { page: 'results' },
+  series: { page: 'series' },
   checklist: { page: 'checklist' },
   errors: { page: 'errors' },
 } as const satisfies Record<string, HelpTopic>;

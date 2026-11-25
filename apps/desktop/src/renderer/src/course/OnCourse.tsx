@@ -8,11 +8,31 @@ type Rider = CourseView['riders'][number];
 /** Traffic-light colours; white text on these meets WCAG AA. */
 const LOOK = {
   out: { bg: '#b02525', fg: '#fff', tag: 'OUT', words: 'on course' },
-  waiting: { bg: '#e9ecef', fg: '#212529', tag: 'START', words: 'not started yet' },
+  waiting: {
+    bg: 'light-dark(#e9ecef, #2e3236)',
+    fg: 'light-dark(#212529, #f1f3f5)',
+    tag: 'START',
+    words: 'not started yet',
+  },
   in: { bg: '#237032', fg: '#fff', tag: 'IN', words: 'final card in' },
-  dnf: { bg: '#ced4da', fg: '#212529', tag: 'DNF', words: 'did not finish' },
-  dns: { bg: '#ced4da', fg: '#212529', tag: 'DNS', words: 'did not start' },
-  not_riding: { bg: '#ced4da', fg: '#212529', tag: '', words: 'not riding today' },
+  dnf: {
+    bg: 'light-dark(#ced4da, #495057)',
+    fg: 'light-dark(#212529, #f1f3f5)',
+    tag: 'DNF',
+    words: 'did not finish',
+  },
+  dns: {
+    bg: 'light-dark(#ced4da, #495057)',
+    fg: 'light-dark(#212529, #f1f3f5)',
+    tag: 'DNS',
+    words: 'did not start',
+  },
+  not_riding: {
+    bg: 'light-dark(#ced4da, #495057)',
+    fg: 'light-dark(#212529, #f1f3f5)',
+    tag: '',
+    words: 'not riding today',
+  },
 } as const;
 
 const ORDER: Record<Rider['state'], number> = {
@@ -64,12 +84,27 @@ export function OnCourse({
         <Count
           label="Still on course"
           value={view.counts.out}
-          bg={view.counts.out ? LOOK.out.bg : '#e3f4e6'}
-          fg={view.counts.out ? LOOK.out.fg : '#1f5f26'}
+          bg={view.counts.out ? LOOK.out.bg : 'light-dark(#e3f4e6, #1c3b22)'}
+          fg={view.counts.out ? LOOK.out.fg : 'light-dark(#1f5f26, #8ce99a)'}
         />
-        <Count label="Final card in" value={view.counts.in} bg="#e3f4e6" fg="#1f5f26" />
-        <Count label="DNF" value={view.counts.dnf} bg="#e9ecef" fg="#212529" />
-        <Count label="DNS" value={view.counts.dns} bg="#e9ecef" fg="#212529" />
+        <Count
+          label="Final card in"
+          value={view.counts.in}
+          bg="light-dark(#e3f4e6, #1c3b22)"
+          fg="light-dark(#1f5f26, #8ce99a)"
+        />
+        <Count
+          label="DNF"
+          value={view.counts.dnf}
+          bg="light-dark(#e9ecef, #2e3236)"
+          fg="light-dark(#212529, #f1f3f5)"
+        />
+        <Count
+          label="DNS"
+          value={view.counts.dns}
+          bg="light-dark(#e9ecef, #2e3236)"
+          fg="light-dark(#212529, #f1f3f5)"
+        />
       </Group>
 
       {flash}
@@ -81,7 +116,7 @@ export function OnCourse({
           </Text>
         ) : out.length === 0 ? (
           <Stack align="center" gap="sm" py="lg">
-            <Text fz={22} fw={700} ta="center" c="#1f5f26">
+            <Text fz={22} fw={700} ta="center" c="light-dark(#1f5f26, #8ce99a)">
               {view.riders.length === 0
                 ? 'No riders yet.'
                 : 'Everyone is accounted for. The event can be closed down.'}
@@ -128,7 +163,7 @@ export function OnCourse({
                     <Table.Td>
                       {minutes(r.minutesOut ?? 0)}
                       {r.overdue && (
-                        <Text span fw={700} c="#a51111">
+                        <Text span fw={700} c="light-dark(#a51111, #ffa8a8)">
                           {' '}
                           · overdue
                         </Text>

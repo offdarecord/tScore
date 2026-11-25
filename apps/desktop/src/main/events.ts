@@ -2,7 +2,7 @@
  * Events in the main process: the one EventLibrary, and the IPC handlers the event screens use.
  * The renderer never touches files; it asks for these and shows the outcome.
  */
-import { statSync } from 'node:fs';
+import { readFileSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, extname, join } from 'node:path';
 import {
   CARD_PROFILE_ROWS,
@@ -19,10 +19,13 @@ import {
   type EntryList,
   type EventSetup,
   type ImportChoices,
+  type SeriesRules,
   publicErrorCode,
 } from '@tscore/core';
 import {
   EventLibrary,
+  LOGO_MAX_BYTES,
+  MOVE_EXTENSION,
   readEntryFile,
   SetupError,
   StoreError,
@@ -33,6 +36,9 @@ import log from 'electron-log/main';
 import type {
   AppError,
   CardDesk,
+  DecideScores,
+  ReviewItem,
+  SaveScan,
   DeskRider,
   EntryListFile,
   BackupStatus,
@@ -43,12 +49,17 @@ import type {
   NewRider,
   LabelRequest,
   LabelsView,
+  LiveScores,
+  LogoView,
   NewPenalty,
   OpenEvent,
   Outcome,
   PenaltyReason,
   RecentEventInfo,
   ResultsView,
+  SeriesView,
+  SeriesSummary,
+  SeriesChange,
   RiderChange,
   RiderInfo,
   SaveCard,
@@ -57,7 +68,15 @@ import { backUp, backupStatus, beforeClose, setSecondPlace } from './backups';
 import { preEventCheck } from './check';
 import { courseView } from './course';
 import { labelsView, saveLabels, saveLabelTestPage, setLabelOffset } from './labels';
-import { exportResults, markFinal, openLastExport, resultsView } from './results';
+import {
+  exportSeries,
+  newSeries,
+  removeSeries,
+  seriesSummaries,
+  seriesView,
+  updateSeries,
+} from './series';
+import { exportResults, liveScores, markFinal, openLastExport, resultsView } from './results';
 
 const PENALTY_REASONS: readonly PenaltyReason[] = [
   'time',
@@ -125,6 +144,53 @@ function ridersOf(store: EventStore): RiderInfo[] {
 }
 
 const isText = (v: unknown): v is string | null => v === null || typeof v === 'string';
+
+/** Series rules from the window: whole points that don't go up, a sane best-of, a known tie rule. */
+function checkRules(rules: SeriesRules): void {
+  const ok =
+    Array.isArray(rules.points) &&
+    rules.points.length > 0 &&
+    rules.points.length <= 100 &&
+    rules.points.every((p, i) => isWhole(p, 0) && p <= (rules.points[i - 1] ?? Infinity)) &&
+    (rules.bestOf === undefined || isWhole(rules.bestOf, 1)) &&
+    (rules.ties === 'share' || rules.ties === 'split');
+  if (!ok) throw new StoreError('APP_BAD_REQUEST', 'The series rules are not valid.');
+}
+
+function reviewItems(store: EventStore): ReviewItem[] {
+  const riders = new Map(ridersOf(store).map((r) => [r.number, r]));
+  const current = new Map(store.cardLog().map((c) => [`${c.number}/${c.day}/${c.lap}`, c.scores]));
+  return store.reviewCards().map((c) => {
+    const r = riders.get(c.number);
+    return {
+      number: c.number,
+      day: c.day,
+      lap: c.lap,
+      name: r ? r.riders.map((p) => `${p.givenName} ${p.familyName}`).join(' & ') : '',
+      className: r?.classes[0] ?? '',
+      imagePath: c.imagePath,
+      receivedAt: c.receivedAt,
+      scores: current.get(`${c.number}/${c.day}/${c.lap}`) ?? [],
+      sections: c.sections,
+    };
+  });
+}
+
+function logoViews(store: EventStore): LogoView[] {
+  return store.logos().flatMap((l) => {
+    const data = store.logoData(l.id);
+    return data
+      ? [
+          {
+            id: l.id,
+            role: l.role,
+            bytes: l.bytes,
+            uri: `data:${l.mime};base64,${Buffer.from(data).toString('base64')}`,
+          },
+        ]
+      : [];
+  });
+}
 
 function openStore(): EventStore {
   const store = library?.current;
@@ -237,14 +303,53 @@ export const eventHandlers = {
       title: 'Open an event',
       defaultPath: eventsDir(),
       properties: ['openFile'],
-      filters: [{ name: 'tScore event', extensions: ['sqlite'] }],
+      filters: [{ name: 'tScore event', extensions: ['sqlite', MOVE_EXTENSION] }],
     };
     const picked = win
       ? await dialog.showOpenDialog(win, options)
       : await dialog.showOpenDialog(options);
     const file = picked.filePaths[0];
     if (picked.canceled || !file) return { ok: true, value: null };
+    if (extname(file).toLowerCase() === `.${MOVE_EXTENSION}`) {
+      return attempt('opening the event from another laptop', () => {
+        const store = events().openMoved(file);
+        log.info('event opened from another laptop', {
+          eventId: store.eventId,
+          folder: store.folder,
+        });
+        return describe(store);
+      });
+    }
     return this.open(dirname(file));
+  },
+
+  async saveForMove(
+    win: BrowserWindow | null,
+  ): Promise<Outcome<{ file: string; bytes: number; files: number } | null>> {
+    const store = library?.current;
+    const date = store?.setup.days[0]?.date ?? '';
+    const options: Electron.SaveDialogOptions = {
+      title: 'Save a copy for another laptop',
+      defaultPath: join(
+        app.getPath('documents'),
+        `${date} ${store?.setup.event.code ?? 'event'}.${MOVE_EXTENSION}`.trim(),
+      ),
+      filters: [{ name: 'tScore event', extensions: [MOVE_EXTENSION] }],
+    };
+    const picked = win
+      ? await dialog.showSaveDialog(win, options)
+      : await dialog.showSaveDialog(options);
+    if (picked.canceled || !picked.filePath) return { ok: true, value: null };
+    const file = picked.filePath;
+    return attempt('saving a copy for another laptop', () => {
+      const saved = events().saveForMove(file);
+      log.info('event saved for another laptop', {
+        eventId: openStore().eventId,
+        bytes: saved.bytes,
+        files: saved.files,
+      });
+      return { file, ...saved };
+    });
   },
 
   /** Only folders the library knows (recent list), or from the open dialog. */
@@ -533,6 +638,106 @@ export const eventHandlers = {
     });
   },
 
+  saveScan(scan: SaveScan): Outcome<CardDesk> {
+    return attempt('saving a scanned card', () => {
+      const store = openStore();
+      const okScores =
+        Array.isArray(scan?.scores) && scan.scores.every((s) => s === null || isWhole(s, 0));
+      const image = scan?.image;
+      const jpeg =
+        image instanceof Uint8Array &&
+        image.length > 3 &&
+        image.length <= 8_000_000 &&
+        image[0] === 0xff &&
+        image[1] === 0xd8;
+      if (
+        !isWhole(scan?.number) ||
+        !isWhole(scan.day) ||
+        !isWhole(scan.lap) ||
+        !okScores ||
+        !jpeg
+      ) {
+        throw new StoreError('APP_BAD_REQUEST', 'That scan is incomplete.');
+      }
+      const words = (xs: unknown) =>
+        Array.isArray(xs) ? xs.map((x) => (typeof x === 'string' ? x.slice(0, 20) : null)) : [];
+      const nums = (xs: unknown) =>
+        Array.isArray(xs)
+          ? xs.map((x) => (typeof x === 'number' && x >= 0 && x <= 1 ? x : null))
+          : [];
+      const stampNow = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
+      const name = `${scan.number}-${scan.day}-${scan.lap}-${stampNow}.jpg`;
+      const imagePath = `cards/${name}`;
+      writeFileSync(join(store.folder, 'cards', name), image);
+      store.recordCard({
+        number: scan.number,
+        day: scan.day,
+        lap: scan.lap,
+        scores: scan.scores,
+        source: 'scan',
+        confidence: nums(scan.confidence),
+        reasons: words(scan.reasons),
+        imagePath,
+      });
+      const undecided = scan.scores.filter((s) => s === null).length;
+      log.info('card scanned', {
+        eventId: store.eventId,
+        number: scan.number,
+        day: scan.day,
+        lap: scan.lap,
+        undecided,
+      });
+      return cardDesk(store);
+    });
+  },
+
+  reviewQueue(): Outcome<ReviewItem[]> {
+    return attempt('listing cards to review', () => reviewItems(openStore()));
+  },
+
+  cardImage(path: string): Outcome<string> {
+    return attempt('opening the card photo', () => {
+      const store = openStore();
+      // Only photos in this event's cards folder.
+      if (typeof path !== 'string' || !/^cards\/[\w.-]+\.jpg$/.test(path)) {
+        throw new StoreError('APP_BAD_REQUEST', "That isn't a card photo.");
+      }
+      const data = readFileSync(join(store.folder, path));
+      return `data:image/jpeg;base64,${data.toString('base64')}`;
+    });
+  },
+
+  decideScores(d: DecideScores): Outcome<ReviewItem[]> {
+    return attempt('saving the decided scores', () => {
+      const store = openStore();
+      if (
+        !isWhole(d?.number) ||
+        !isWhole(d.day) ||
+        !isWhole(d.lap) ||
+        !Array.isArray(d.scores) ||
+        !d.scores.every((s) => isWhole(s?.section) && isWhole(s.value, 0))
+      ) {
+        throw new StoreError('APP_BAD_REQUEST', 'Choose a score for each section.');
+      }
+      for (const s of d.scores) {
+        store.correctScore({
+          number: d.number,
+          day: d.day,
+          lap: d.lap,
+          section: s.section,
+          value: s.value,
+          source: 'review',
+        });
+      }
+      log.info('scan reviewed', {
+        eventId: store.eventId,
+        number: d.number,
+        sections: d.scores.length,
+      });
+      return reviewItems(store);
+    });
+  },
+
   addPenalty(p: NewPenalty): Outcome<CardDesk> {
     return attempt('adding a penalty', () => {
       const store = openStore();
@@ -570,6 +775,126 @@ export const eventHandlers = {
       store.removePenalty(id);
       log.info('penalty removed', { eventId: store.eventId });
       return cardDesk(store);
+    });
+  },
+
+  logos(): Outcome<LogoView[]> {
+    return attempt('reading the logos', () => logoViews(openStore()));
+  },
+
+  async chooseLogo(
+    role: 'event' | 'sponsor',
+    win: BrowserWindow | null,
+  ): Promise<Outcome<LogoView[] | null>> {
+    if (role !== 'event' && role !== 'sponsor') return { ok: true, value: null };
+    const options: Electron.OpenDialogOptions = {
+      title: role === 'event' ? 'Choose the event logo' : 'Add a sponsor logo',
+      properties: ['openFile'],
+      filters: [{ name: 'Picture (PNG or JPEG)', extensions: ['png', 'jpg', 'jpeg'] }],
+    };
+    const picked = win
+      ? await dialog.showOpenDialog(win, options)
+      : await dialog.showOpenDialog(options);
+    const file = picked.filePaths[0];
+    if (picked.canceled || !file) return { ok: true, value: null };
+    return attempt('adding the logo', () => {
+      const store = openStore();
+      const size = statSync(file).size;
+      if (size > LOGO_MAX_BYTES) {
+        throw new StoreError(
+          'STORE_LOGO_SIZE',
+          `That picture is ${(size / 1_000_000).toFixed(1)} MB. Logos can be up to 1 MB: save a smaller copy.`,
+        );
+      }
+      const added = store.addLogo(role, readFileSync(file));
+      log.info('logo added', { role, mime: added.mime, bytes: added.bytes });
+      return logoViews(store);
+    });
+  },
+
+  removeLogo(id: string): Outcome<LogoView[]> {
+    return attempt('removing the logo', () => {
+      const store = openStore();
+      if (typeof id === 'string') store.removeLogo(id);
+      return logoViews(store);
+    });
+  },
+
+  liveScores(): Outcome<LiveScores | null> {
+    const store = library?.current;
+    if (!store) return { ok: true, value: null };
+    return attempt('working out live scores', () => liveScores(store));
+  },
+
+  listSeries(): Outcome<SeriesSummary[]> {
+    return attempt('listing series', () => seriesSummaries(eventsDir()));
+  },
+
+  newSeries(name: string): Outcome<SeriesView> {
+    return attempt('making the series', () => {
+      const file = newSeries(eventsDir(), typeof name === 'string' ? name : '');
+      return seriesView(eventsDir(), file);
+    });
+  },
+
+  seriesView(file: string): Outcome<SeriesView> {
+    return attempt('working out series points', () => seriesView(eventsDir(), String(file)));
+  },
+
+  updateSeries(file: string, change: SeriesChange): Outcome<SeriesView> {
+    return attempt('saving the series', () => {
+      if (change?.addRound !== undefined && !events().isRecent(change.addRound)) {
+        throw new StoreError('APP_NOT_RECENT', "That event isn't in the recent list.");
+      }
+      if (change?.rules) checkRules(change.rules);
+      updateSeries(eventsDir(), String(file), {
+        ...(typeof change?.name === 'string' && { name: change.name }),
+        ...(change?.rules && { rules: change.rules }),
+        ...(typeof change?.addRound === 'string' && { addRound: change.addRound }),
+        ...(typeof change?.removeRound === 'string' && { removeRound: change.removeRound }),
+      });
+      return seriesView(eventsDir(), String(file));
+    });
+  },
+
+  async addSeriesRoundFile(
+    file: string,
+    win: BrowserWindow | null,
+  ): Promise<Outcome<SeriesView | null>> {
+    const options: Electron.OpenDialogOptions = {
+      title: 'Add a round: choose its event file',
+      defaultPath: eventsDir(),
+      properties: ['openFile'],
+      filters: [{ name: 'tScore event', extensions: ['sqlite'] }],
+    };
+    const picked = win
+      ? await dialog.showOpenDialog(win, options)
+      : await dialog.showOpenDialog(options);
+    const chosen = picked.filePaths[0];
+    if (picked.canceled || !chosen) return { ok: true, value: null };
+    return attempt('adding the round', () => {
+      updateSeries(eventsDir(), String(file), { addRound: dirname(chosen) });
+      return seriesView(eventsDir(), String(file));
+    });
+  },
+
+  deleteSeries(file: string): Outcome<SeriesSummary[]> {
+    return attempt('deleting the series', () => {
+      removeSeries(eventsDir(), String(file));
+      return seriesSummaries(eventsDir());
+    });
+  },
+
+  exportSeries(
+    file: string,
+    kind: ExportKind,
+    juniorInitials: boolean,
+    win: BrowserWindow | null,
+  ): Promise<Outcome<string | null>> {
+    return attemptAsync('saving series points', () => {
+      if (kind !== 'pdf' && kind !== 'csv')
+        throw new StoreError('APP_BAD_REQUEST', 'Choose PDF or CSV.');
+      return exportSeries(eventsDir(), String(file), kind, juniorInitials === true, win);
     });
   },
 

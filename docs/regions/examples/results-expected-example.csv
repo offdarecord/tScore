@@ -1,0 +1,7 @@
+class,position,rider_number,name,club,status,lap1,lap2,lap3,total,cleans,ones,twos,threes,fives
+Expert,1,101,Alex Ample,Hilltop MCC,,3,4,5,12,7,2,1,1,1
+Expert,2,102,Bo Bramble,Riverside TC,,5,4,3,12,6,2,2,2,0
+Expert,3,103,Cam Cobble,Hilltop MCC,,11,10,12,33,1,3,2,2,4
+Novice,1,201,Dee Dapple,Riverside TC,,1,0,1,2,10,2,0,0,0
+Novice,,203,Fen Fable,Valley MCC,DNF,15,18,,33,0,0,1,2,5
+Novice,,202,Eli Ember,Hilltop MCC,NC,,,,,11,1,0,0,0

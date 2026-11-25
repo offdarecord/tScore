@@ -32,6 +32,28 @@ import { backupTo, openDatabase, transaction } from './database.js';
 import { SetupError, StoreError } from './errors.js';
 
 export const EVENT_FILE = 'event.sqlite';
+export const LOGO_MAX_BYTES = 1_000_000;
+export const LOGO_MAX_SPONSORS = 8;
+
+export type LogoRole = 'event' | 'sponsor';
+
+export interface LogoInfo {
+  readonly id: string;
+  readonly role: LogoRole;
+  readonly position: number;
+  readonly mime: 'image/png' | 'image/jpeg';
+  readonly bytes: number;
+}
+
+/** PNG or JPEG, from the first bytes (never from a file name). */
+export function imageType(data: Uint8Array): LogoInfo['mime'] | null {
+  const png = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+  if (data.length > 8 && png.every((b, i) => data[i] === b)) return 'image/png';
+  if (data.length > 3 && data[0] === 0xff && data[1] === 0xd8 && data[2] === 0xff) {
+    return 'image/jpeg';
+  }
+  return null;
+}
 export const EVENT_DIRS = ['cards', 'exports', 'backups'] as const;
 
 /** Who and where changes come from, recorded on every row and audit event. */
@@ -60,6 +82,8 @@ export interface RecordCard {
   readonly source: ScoreSource;
   /** Per section, the reader's confidence from 0 to 1, when scanned. */
   readonly confidence?: readonly (number | null)[];
+  /** Per section, why it's undecided when scanned (e.g. NO_PUNCH), for the review queue. */
+  readonly reasons?: readonly (string | null)[];
   /** The card photo, relative to the event folder (e.g. `cards/12-1-2.jpg`). */
   readonly imagePath?: string;
   /**
@@ -89,6 +113,17 @@ export interface CardSummary {
   readonly source: ScoreSource;
   /** Any score changed since. */
   readonly edited: boolean;
+}
+
+/** A scanned card with sections still to decide (the review queue). */
+export interface ReviewCard {
+  readonly number: number;
+  readonly day: number;
+  readonly lap: number;
+  /** The card photo, relative to the event folder. */
+  readonly imagePath: string | null;
+  readonly receivedAt: string;
+  readonly sections: readonly { readonly section: number; readonly reason: string | null }[];
 }
 
 /** A revision of the results marked final. */
@@ -499,7 +534,7 @@ export class EventStore {
       }
       const insert = this.#db.prepare(
         `INSERT INTO score_version (id, card_id, section, value, source, confidence, reason,
-           station_id, operator, created_at) VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?, ?)`,
+           station_id, operator, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       );
       card.scores.forEach((value, i) =>
         insert.run(
@@ -509,6 +544,7 @@ export class EventStore {
           value,
           card.source,
           card.confidence?.[i] ?? null,
+          card.reasons?.[i] ?? null,
           this.#ctx.stationId,
           this.#ctx.operator ?? null,
           now,
@@ -521,6 +557,51 @@ export class EventStore {
       });
     });
     return cardId;
+  }
+
+  /**
+   * Scanned cards waiting for a person: any section still undecided (null). Oldest first, with
+   * the photo and, for each undecided section, why the reader couldn't decide.
+   */
+  reviewCards(): ReviewCard[] {
+    const rows = this.#db
+      .prepare(
+        `SELECT c.number, c.day, c.lap, c.image_path, coalesce(c.received_at, c.created_at) AS received_at,
+                s.section, s.reason
+           FROM card c JOIN score_version s ON s.card_id = c.id
+          WHERE s.superseded_by IS NULL AND s.value IS NULL
+          ORDER BY c.rowid, s.section`,
+      )
+      .all() as {
+      number: number;
+      day: number;
+      lap: number;
+      image_path: string | null;
+      received_at: string;
+      section: number;
+      reason: string | null;
+    }[];
+    const out = new Map<
+      string,
+      ReviewCard & { sections: { section: number; reason: string | null }[] }
+    >();
+    for (const r of rows) {
+      const key = `${r.number}/${r.day}/${r.lap}`;
+      let c = out.get(key);
+      if (!c) {
+        c = {
+          number: r.number,
+          day: r.day,
+          lap: r.lap,
+          imagePath: r.image_path,
+          receivedAt: r.received_at,
+          sections: [],
+        };
+        out.set(key, c);
+      }
+      c.sections.push({ section: r.section, reason: r.reason });
+    }
+    return [...out.values()];
   }
 
   /** Change one section's score. The old score is kept as history, never overwritten. */
@@ -789,6 +870,70 @@ export class EventStore {
       .all() as unknown as LabelKey[];
   }
 
+  // ---- Logos ----
+
+  /** The event logo (at most one) and sponsor logos in order, without their pictures. */
+  logos(): LogoInfo[] {
+    return this.#db
+      .prepare(
+        'SELECT id, role, position, mime, length(data) AS bytes FROM logo ORDER BY role, position',
+      )
+      .all() as unknown as LogoInfo[];
+  }
+
+  /** A logo's picture. */
+  logoData(id: string): Uint8Array | null {
+    const row = this.#db.prepare('SELECT data FROM logo WHERE id = ?').get(id) as
+      { data: Uint8Array } | undefined;
+    return row ? row.data : null;
+  }
+
+  /**
+   * Set the event logo (replacing any) or add a sponsor logo. Only PNG or JPEG, checked from
+   * the picture itself, up to LOGO_MAX_BYTES; at most LOGO_MAX_SPONSORS sponsors.
+   */
+  addLogo(role: LogoRole, data: Uint8Array): LogoInfo {
+    const mime = imageType(data);
+    if (!mime) throw new StoreError('STORE_LOGO_TYPE', 'A logo must be a PNG or JPEG picture.');
+    if (data.length > LOGO_MAX_BYTES) {
+      throw new StoreError(
+        'STORE_LOGO_SIZE',
+        `That picture is ${(data.length / 1_000_000).toFixed(1)} MB. Logos can be up to 1 MB: save a smaller copy.`,
+      );
+    }
+    return this.#tx(() => {
+      if (role === 'event') {
+        this.#db.prepare("DELETE FROM logo WHERE role = 'event'").run();
+      } else if (this.logos().filter((l) => l.role === 'sponsor').length >= LOGO_MAX_SPONSORS) {
+        throw new StoreError(
+          'STORE_LOGO_COUNT',
+          `There can be up to ${LOGO_MAX_SPONSORS} sponsor logos. Remove one first.`,
+        );
+      }
+      const { next } = this.#db
+        .prepare('SELECT COALESCE(MAX(position), 0) + 1 AS next FROM logo WHERE role = ?')
+        .get(role) as { next: number };
+      const id = newId(this.#ctx);
+      this.#db
+        .prepare(
+          'INSERT INTO logo (id, role, position, mime, data, added_at) VALUES (?, ?, ?, ?, ?, ?)',
+        )
+        .run(id, role, next, mime, data, stamp(this.#ctx));
+      this.#audit('logo.add', id, { role, mime, bytes: data.length });
+      return { id, role, position: next, mime, bytes: data.length };
+    });
+  }
+
+  removeLogo(id: string): void {
+    this.#tx(() => {
+      const row = this.#db.prepare('SELECT role FROM logo WHERE id = ?').get(id) as
+        { role: LogoRole } | undefined;
+      if (!row) return;
+      this.#db.prepare('DELETE FROM logo WHERE id = ?').run(id);
+      this.#audit('logo.remove', id, { role: row.role });
+    });
+  }
+
   // ---- Results marked final ----
 
   /** The latest revision marked final, if any, and whether it has been reopened. */
@@ -922,6 +1067,21 @@ export class EventStore {
   /** Record that this event was restored from a backup file (the file name only). */
   noteRestored(from: string): void {
     this.#tx(() => this.#audit('event.restore', this.eventId, { from }));
+  }
+
+  /** Save a consistent copy of the event file at `path`, which must not exist yet. */
+  copyTo(path: string): void {
+    backupTo(this.#db, path);
+  }
+
+  /** Record that a copy was saved to move this event to another laptop (file name only). */
+  noteMovedOut(file: string): void {
+    this.#tx(() => this.#audit('event.move_out', this.eventId, { file }));
+  }
+
+  /** Record that this event came from another laptop's copy (file name only). */
+  noteMovedIn(from: string): void {
+    this.#tx(() => this.#audit('event.move_in', this.eventId, { from }));
   }
 
   /**

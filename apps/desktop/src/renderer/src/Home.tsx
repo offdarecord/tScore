@@ -1,7 +1,10 @@
 import {
+  ActionIcon,
+  Alert,
   Badge,
   Button,
   Group,
+  Menu,
   Paper,
   Stack,
   Table,
@@ -10,23 +13,41 @@ import {
   VisuallyHidden,
 } from '@mantine/core';
 import { useEffect, useState } from 'react';
-import type { AppError, AppInfo, OpenEvent, Outcome, RecentEventInfo } from '../../shared/ipc';
-import { formatDate } from './format';
+import type {
+  AppError,
+  AppInfo,
+  ManagedEventInfo,
+  OpenEvent,
+  Outcome,
+  RecentEventInfo,
+} from '../../shared/ipc';
+import { formatDate, today } from './format';
+import type { ManageAction } from './manage/ManageEvents';
+import { formatBytes, oldEvents, totalBytes } from './manage/manageLogic';
 import { ErrorAlert } from './ErrorAlert';
 
 interface Props {
   readonly info: AppInfo | null;
   readonly onNew: () => void;
   readonly onSeries: () => void;
+  /** Manage events, with these events ticked and optionally a dialog open. */
+  readonly onManage: (preselect?: string[], action?: ManageAction) => void;
   readonly onOpened: (event: OpenEvent) => void;
 }
 
 /** The start screen: no event open. New event, open one, or pick up a recent one. */
-export function Home({ info, onNew, onSeries, onOpened }: Props) {
+export function Home({ info, onNew, onSeries, onManage, onOpened }: Props) {
   const [recent, setRecent] = useState<RecentEventInfo[] | null>(null);
   const [error, setError] = useState<AppError | null>(null);
 
-  const refresh = () => void window.tscore.recentEvents().then(setRecent);
+  const [old, setOld] = useState<ManagedEventInfo[]>([]);
+
+  const refresh = () => {
+    void window.tscore.recentEvents().then(setRecent);
+    void window.tscore
+      .manageEvents()
+      .then((r) => setOld(r.ok ? oldEvents(r.value, today(), new Date()) : []));
+  };
   useEffect(refresh, []);
 
   async function opened(outcome: Promise<Outcome<OpenEvent | null>>) {
@@ -61,11 +82,37 @@ export function Home({ info, onNew, onSeries, onOpened }: Props) {
           <Button variant="default" onClick={onSeries}>
             Series points
           </Button>
+          <Button variant="default" onClick={() => onManage()}>
+            Manage events
+          </Button>
         </Group>
       </Group>
 
       {error && (
         <ErrorAlert error={error} title="The event didn't open" onClose={() => setError(null)} />
+      )}
+
+      {old.length > 0 && (
+        <Alert color="gray" title="Tidy up old events?" role="status">
+          <Group justify="space-between" wrap="wrap" gap="sm">
+            <Text size="sm">
+              {old.length === 1 ? '1 event is' : `${old.length} events are`} over a month old and
+              use {formatBytes(old.reduce((n, e) => n + totalBytes(e), 0))}.
+            </Text>
+            <Group gap="sm">
+              <Button size="xs" onClick={() => onManage(old.map((e) => e.folder))}>
+                Review in Manage events
+              </Button>
+              <Button
+                size="xs"
+                variant="default"
+                onClick={() => void window.tscore.remindTidyLater().then(() => setOld([]))}
+              >
+                Remind me later
+              </Button>
+            </Group>
+          </Group>
+        </Alert>
       )}
 
       <Paper withBorder radius="md" p="lg" component="section" aria-labelledby="recent-heading">
@@ -114,12 +161,40 @@ export function Home({ info, onNew, onSeries, onOpened }: Props) {
                           </Button>
                         </Group>
                       ) : (
-                        <Button
-                          aria-label={`Open ${r.name}`}
-                          onClick={() => void opened(window.tscore.openRecentEvent(r.folder))}
-                        >
-                          Open
-                        </Button>
+                        <Group justify="flex-end" gap="xs" wrap="nowrap">
+                          <Button
+                            aria-label={`Open ${r.name}`}
+                            onClick={() => void opened(window.tscore.openRecentEvent(r.folder))}
+                          >
+                            Open
+                          </Button>
+                          <Menu position="bottom-end" withinPortal>
+                            <Menu.Target>
+                              <ActionIcon
+                                variant="default"
+                                size="lg"
+                                aria-label={`More for ${r.name}`}
+                              >
+                                ⋯
+                              </ActionIcon>
+                            </Menu.Target>
+                            <Menu.Dropdown>
+                              <Menu.Item
+                                onClick={() => void window.tscore.showEventFolder(r.folder)}
+                              >
+                                Show in folder
+                              </Menu.Item>
+                              <Menu.Item onClick={() => onManage([r.folder], 'remove')}>
+                                Remove card scans…
+                              </Menu.Item>
+                              <Menu.Item color="red" onClick={() => onManage([r.folder], 'delete')}>
+                                Delete event…
+                              </Menu.Item>
+                              <Menu.Divider />
+                              <Menu.Item onClick={() => onManage()}>Manage events</Menu.Item>
+                            </Menu.Dropdown>
+                          </Menu>
+                        </Group>
                       )}
                     </Table.Td>
                   </Table.Tr>

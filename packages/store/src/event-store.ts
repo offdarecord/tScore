@@ -1079,6 +1079,11 @@ export class EventStore {
     this.#tx(() => this.#audit('event.move_out', this.eventId, { file }));
   }
 
+  /** Record that the card photos were shrunk to small copies (Manage events). */
+  noteScansRemoved(images: number, bytesFreed: number): void {
+    this.#tx(() => this.#audit('event.scans_removed', this.eventId, { images, bytesFreed }));
+  }
+
   /** Record that this event came from another laptop's copy (file name only). */
   noteMovedIn(from: string): void {
     this.#tx(() => this.#audit('event.move_in', this.eventId, { from }));

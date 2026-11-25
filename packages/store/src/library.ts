@@ -9,9 +9,11 @@ import {
   copyFileSync,
   existsSync,
   mkdirSync,
+  readdirSync,
   readFileSync,
   renameSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
@@ -19,6 +21,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { validateEventSetup, type EventSetup } from '@tscore/core';
 import { DamagedFileError, SetupError, StoreError } from './errors.js';
 import { EVENT_FILE, EventStore, type StoreContext } from './event-store.js';
+import { fullSizeCardPhotos, readManagedEvent, type ManagedEvent } from './manage.js';
 import { packEvent, unpackEvent } from './move.js';
 
 export interface LibraryOptions {
@@ -47,10 +50,19 @@ export interface RecentEvent {
 }
 
 const RECENT_FILE = 'recent-events.json';
+const TIDY_FILE = 'tidy-up.json';
 const STATION_FILE = 'station.json';
 const RECENT_MAX = 20;
 
 type StoredRecent = Omit<RecentEvent, 'missing'>;
+
+/** Manage events' settings on this laptop: events to keep as they are, and when to ask again. */
+export interface TidyPrefs {
+  /** Folders the desk chose to keep: never offered for tidying again. */
+  readonly keep: readonly string[];
+  /** Don't offer old events again before this (ISO), after "Remind me later". */
+  readonly remindAfter?: string;
+}
 
 export class EventLibrary {
   readonly eventsDir: string;
@@ -134,13 +146,7 @@ export class EventLibrary {
   saveForMove(file: string): { bytes: number; files: number } {
     const store = this.#current;
     if (!store) throw new StoreError('STORE_NO_EVENT', 'No event is open.');
-    store.noteMovedOut(basename(file));
-    const data = packEvent(store, this.#appVersion, this.#now());
-    const tmp = `${file}.tmp`;
-    writeFileSync(tmp, data);
-    renameSync(tmp, file);
-    const { manifest } = unpackEvent(readFileSync(file));
-    return { bytes: data.length, files: manifest.files.length };
+    return this.#pack(store, file);
   }
 
   /**
@@ -166,6 +172,155 @@ export class EventLibrary {
     }
     store.noteMovedIn(basename(file));
     return this.#use(store);
+  }
+
+  // ---- Manage events ----
+
+  /**
+   * Every event folder in the events folder, plus recent events kept elsewhere that are still
+   * there. Newest first by date.
+   */
+  manageList(): ManagedEvent[] {
+    const seen = new Set<string>();
+    const out: ManagedEvent[] = [];
+    const add = (folder: string) => {
+      const key = folderKey(folder);
+      if (seen.has(key)) return;
+      seen.add(key);
+      const info = readManagedEvent(resolve(folder));
+      if (info) out.push(info);
+    };
+    let names: string[] = [];
+    try {
+      names = readdirSync(this.eventsDir);
+    } catch {
+      // No events folder yet.
+    }
+    for (const n of names) {
+      const folder = join(this.eventsDir, n);
+      if (statSync(folder, { throwIfNoEntry: false })?.isDirectory()) add(folder);
+    }
+    for (const r of this.#readRecent()) add(r.folder);
+    return out.sort((a, b) => (b.firstDate ?? '').localeCompare(a.firstDate ?? ''));
+  }
+
+  /** True if `folder` is the open event. */
+  isOpen(folder: string): boolean {
+    return this.#current !== null && folderKey(this.#current.folder) === folderKey(folder);
+  }
+
+  /**
+   * Shrink an event's card photos to small copies (`shrink` makes one from a full-size photo),
+   * keeping the event file, results and backups. Recorded in the event's audit log.
+   */
+  removeCardScans(
+    folder: string,
+    shrink: (photo: Uint8Array) => Uint8Array,
+  ): { images: number; bytesFreed: number } {
+    const info = this.#managed(folder);
+    let images = 0;
+    let bytesFreed = 0;
+    for (const file of fullSizeCardPhotos(info.folder)) {
+      const before = statSync(file).size;
+      const small = shrink(readFileSync(file));
+      if (small.length === 0 || small.length >= before) continue;
+      const tmp = `${file}.tmp`;
+      writeFileSync(tmp, small);
+      renameSync(tmp, file);
+      images++;
+      bytesFreed += before - small.length;
+    }
+    const store = EventStore.open(info.folder, this.context());
+    try {
+      store.noteScansRemoved(images, bytesFreed);
+    } finally {
+      store.close();
+    }
+    return { images, bytesFreed };
+  }
+
+  /**
+   * Check an event may be deleted: it's a known event folder, not open, and `typedCode` is its
+   * code. The app then moves the folder to the Recycle Bin and calls `forget`.
+   */
+  checkDelete(folder: string, typedCode: string): ManagedEvent {
+    const info = this.#managed(folder);
+    if (
+      typeof typedCode !== 'string' ||
+      typedCode.trim().toUpperCase() !== info.code.toUpperCase()
+    ) {
+      throw new StoreError(
+        'STORE_CONFIRM_CODE',
+        `Type the event's code, ${info.code}, to delete it.`,
+      );
+    }
+    return info;
+  }
+
+  /** Save a closed event as one file to carry elsewhere (as saveForMove), before deleting it. */
+  saveCopyOf(folder: string, file: string): { bytes: number; files: number } {
+    const info = this.#managed(folder);
+    const store = EventStore.open(info.folder, this.context());
+    try {
+      return this.#pack(store, file);
+    } finally {
+      store.close();
+    }
+  }
+
+  /** Manage events' settings on this laptop. */
+  tidyPrefs(): TidyPrefs {
+    const data = readJson<{ keep?: unknown; remindAfter?: unknown }>(
+      join(this.#settingsDir, TIDY_FILE),
+    );
+    const keep = Array.isArray(data?.keep)
+      ? data.keep.filter((k): k is string => typeof k === 'string')
+      : [];
+    return {
+      keep,
+      ...(typeof data?.remindAfter === 'string' && { remindAfter: data.remindAfter }),
+    };
+  }
+
+  /** Never offer this event for tidying again. */
+  keepEvent(folder: string): void {
+    const prefs = this.tidyPrefs();
+    const key = folderKey(folder);
+    if (prefs.keep.some((k) => folderKey(k) === key)) return;
+    writeJson(join(this.#settingsDir, TIDY_FILE), {
+      ...prefs,
+      keep: [...prefs.keep, resolve(folder)],
+    });
+  }
+
+  /** Don't offer old events again for `days` days. */
+  remindLater(days = 30): void {
+    const at = new Date(this.#now().getTime() + days * 86_400_000).toISOString();
+    writeJson(join(this.#settingsDir, TIDY_FILE), { ...this.tidyPrefs(), remindAfter: at });
+  }
+
+  /** A folder Manage events lists, and not the open event: anything else is refused. */
+  #managed(folder: string): ManagedEvent {
+    if (typeof folder !== 'string') throw new StoreError('APP_BAD_REQUEST', 'No event chosen.');
+    const key = folderKey(folder);
+    const info = this.manageList().find((e) => folderKey(e.folder) === key);
+    if (!info) {
+      throw new StoreError('STORE_NOT_MANAGED', "That folder isn't one of this laptop's events.");
+    }
+    if (this.isOpen(info.folder)) {
+      throw new StoreError('STORE_EVENT_OPEN', 'Close the event first, then tidy it up.');
+    }
+    return info;
+  }
+
+  #pack(store: EventStore, file: string): { bytes: number; files: number } {
+    store.noteMovedOut(basename(file));
+    const data = packEvent(store, this.#appVersion, this.#now());
+    const tmp = `${file}.tmp`;
+    writeFileSync(tmp, data);
+    renameSync(tmp, file);
+    const { manifest } = unpackEvent(readFileSync(file));
+    return { bytes: data.length, files: manifest.files.length };
   }
 
   /** Make a new event and open it (closing any open event). */

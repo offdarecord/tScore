@@ -253,7 +253,7 @@ function fileSize(path: string): number | null {
 }
 
 /** Errors the desk can act on come back as an Outcome; anything else is logged and summarised. */
-function attempt<T>(what: string, fn: () => T): Outcome<T> {
+export function attempt<T>(what: string, fn: () => T): Outcome<T> {
   try {
     return { ok: true, value: fn() };
   } catch (err) {
@@ -261,7 +261,7 @@ function attempt<T>(what: string, fn: () => T): Outcome<T> {
   }
 }
 
-async function attemptAsync<T>(what: string, fn: () => Promise<T>): Promise<Outcome<T>> {
+export async function attemptAsync<T>(what: string, fn: () => Promise<T>): Promise<Outcome<T>> {
   try {
     return { ok: true, value: await fn() };
   } catch (err) {

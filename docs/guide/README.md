@@ -10,7 +10,7 @@ of any screen to open the page for that screen.
    events are kept.
 2. [Before the event](before-the-event.md): event setup, the entry list, rider numbers, card
    labels and the pre-event check.
-3. [Event day](event-day.md): typing in cards, penalties, late entries, DNF and DNS, and who is
+3. [Event day](event-day.md): scanning and typing in cards, the review queue, penalties, late entries, DNF and DNS, and who is
    still on course.
 4. [Results](results.md): provisional and final results, ties, and saving a PDF or CSV.
 5. [Series points](series.md): a points tally across the rounds of a series.
@@ -19,7 +19,3 @@ of any screen to open the page for that screen.
 8. [Troubleshooting](troubleshooting.md): common problems, and how to get help.
 9. [Error codes](errors.md): what each error code means and what to do.
 10. [Glossary](glossary.md): trials and tScore words.
-
-> [!NOTE]
-> Scanning punched cards with a document camera is coming in a later version. Until then, cards
-> are typed in on **Manual entry**, which is quick with the keyboard.

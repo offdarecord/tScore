@@ -14,7 +14,8 @@
     "preview": "electron-vite preview",
     "typecheck": "tsc -p tsconfig.node.json && tsc -p tsconfig.web.json",
     "dist": "electron-vite build && electron-builder --win --x64 --publish never",
-    "test:e2e": "electron-vite build && playwright test"
+    "test:e2e": "electron-vite build && playwright test",
+    "screenshots": "electron-vite build && playwright test -c playwright.screenshots.config.ts"
   },
   "dependencies": {
     "electron-log": "^5.4.4",

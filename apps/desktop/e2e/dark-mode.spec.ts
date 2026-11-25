@@ -51,13 +51,13 @@ test('Light is the default, and Dark is kept on this laptop after a restart', as
   expect(await scheme()).toBe('dark');
 });
 
-test('Match Windows follows the Windows setting', async () => {
+test('Match Windows (Match System on a Mac) follows the system setting', async () => {
   run = await launchApp();
   ({ window } = run);
   await window.emulateMedia({ colorScheme: 'dark' });
   await window
     .getByRole('radiogroup', { name: 'Colour scheme' })
-    .getByText('Match Windows')
+    .getByText(process.platform === 'darwin' ? 'Match System' : 'Match Windows')
     .click();
   expect(await scheme()).toBe('dark');
   await window.emulateMedia({ colorScheme: 'light' });

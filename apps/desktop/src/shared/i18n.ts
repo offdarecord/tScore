@@ -34,14 +34,12 @@ const ACCENTS: Record<string, string> = {
  */
 export function pseudo(text: string): string {
   const parts = text.split(/(\{\{[^}]+\}\}|<[^>]+>)/);
+  const keep = (p: string) => p.startsWith('{{') || p.startsWith('<');
   const body = parts
-    .map((p) =>
-      p.startsWith('{{') || p.startsWith('<')
-        ? p
-        : p.replace(/[A-Za-z]/g, (ch) => ACCENTS[ch] ?? ch),
-    )
+    .map((p) => (keep(p) ? p : p.replace(/[A-Za-z]/g, (ch) => ACCENTS[ch] ?? ch)))
     .join('');
-  const letters = text.replace(/\{\{[^}]+\}\}|<[^>]+>/g, '').length;
+  // Lengthen by the wording only, not the placeholders and tags.
+  const letters = parts.filter((p) => !keep(p)).join('').length;
   return `[${body}${'·'.repeat(Math.ceil(letters * 0.35))}]`;
 }
 

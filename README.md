@@ -23,6 +23,20 @@ tScore is a Windows desktop app that:
 
 Everything works offline. Every score traces back to a card image and an audit log.
 
+## See it work
+
+<p>
+  <img src="docs/media/manual-entry.png" width="49%" alt="Manual entry: a rider's scores typed as one string of digits, with a drawing of the card filling in beside it">
+  <img src="docs/media/results.png" width="49%" alt="Results: a class ranked with lap totals, totals and counts of 0s to 5s, marked provisional while cards are missing">
+</p>
+<p>
+  <img src="docs/media/progress.png" width="49%" alt="Progress: which cards are in for every rider and lap, with overdue riders flagged">
+  <img src="docs/media/card-labels.png" width="49%" alt="Card labels: a sheet of labels with rider name, class, lap and a QR code on each">
+</p>
+
+More in [the tour](docs/tour.md). The pictures use an invented event and come from the real app
+(`npm run screenshots`).
+
 ## For developers
 
 Requirements: Windows 10/11 x64, [Node.js 24 LTS](https://nodejs.org/), Git.
@@ -34,13 +48,14 @@ npm install
 npm start
 ```
 
-| Command            | What it does                                                               |
-| ------------------ | -------------------------------------------------------------------------- |
-| `npm start`        | Run the desktop app in development mode                                    |
-| `npm test`         | Unit tests                                                                 |
-| `npm run test:e2e` | Launch the real app and click through it (Playwright, accessibility check) |
-| `npm run check`    | Lint, format check, type-check and tests (what CI runs)                    |
-| `npm run dist`     | Build the Windows installer into `apps/desktop/release/`                   |
+| Command               | What it does                                                               |
+| --------------------- | -------------------------------------------------------------------------- |
+| `npm start`           | Run the desktop app in development mode                                    |
+| `npm test`            | Unit tests                                                                 |
+| `npm run test:e2e`    | Launch the real app and click through it (Playwright, accessibility check) |
+| `npm run check`       | Lint, format check, type-check and tests (what CI runs)                    |
+| `npm run dist`        | Build the Windows installer into `apps/desktop/release/`                   |
+| `npm run screenshots` | Refresh the README and tour pictures in `docs/media/` (demo event)         |
 
 ### Layout
 

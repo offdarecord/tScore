@@ -10,5 +10,11 @@
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "jsqr": "1.4.0"
+  },
+  "devDependencies": {
+    "@tscore/core": "*"
   }
 }

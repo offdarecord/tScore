@@ -44,9 +44,14 @@ export function HelpPanel() {
   if (!topic || !page) return null;
 
   const print = () => {
+    // Paper is always light, whatever the screen's colour scheme.
+    const root = document.documentElement;
+    const scheme = root.getAttribute('data-mantine-color-scheme');
+    root.setAttribute('data-mantine-color-scheme', 'light');
     document.body.dataset['print'] = 'help';
     window.print();
     delete document.body.dataset['print'];
+    if (scheme) root.setAttribute('data-mantine-color-scheme', scheme);
   };
 
   return (

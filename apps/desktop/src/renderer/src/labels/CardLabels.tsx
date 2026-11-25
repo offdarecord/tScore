@@ -355,7 +355,7 @@ function Alignment(props: {
           </Text>
         )}
         {problem && (
-          <Text size="sm" c="#a51111" role="alert">
+          <Text size="sm" c="light-dark(#a51111, #ffa8a8)" role="alert">
             {problem}
           </Text>
         )}

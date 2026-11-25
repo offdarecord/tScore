@@ -44,3 +44,19 @@ entered after that backup was made need entering again.
 > [!TIP]
 > On a new laptop: install tScore, plug in the USB stick, and use **Restore from backup…** with
 > the newest backup on the stick.
+
+## Move an event to another laptop
+
+Use this when scoring has to carry on somewhere else: the desk laptop is failing, or another
+person is taking over.
+
+1. On **Event setup**, under **Saving and backup**, choose **Save a copy for another laptop…**
+   and save the file to a USB stick. It holds the whole event, with its card photos, in one
+   `.tscore` file. tScore checks the file once it's saved.
+2. On the other laptop, choose **Open event file…** on Home and pick the `.tscore` file.
+   tScore checks the copy is complete and undamaged, then opens it as a new event folder.
+   Nothing already on that laptop is changed.
+3. Carry on scoring **on that laptop only**. Cards entered on the first laptop after the copy
+   was saved won't be in it.
+
+Backups and saved results aren't in the file: the other laptop makes its own.

@@ -1,6 +1,14 @@
 import { Button, Kbd } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { HELP_TOPICS, type HelpTopic, type HelpTopicName } from './topics';
 
 interface HelpState {
@@ -26,6 +34,20 @@ export function HelpProvider({ children }: { children: ReactNode }) {
   const back = useCallback(() => setHistory((h) => h.slice(0, -1)), []);
   const close = useCallback(() => setHistory([]), []);
   const value = useMemo(() => ({ history, show, back, close }), [history, show, back, close]);
+  // Esc closes help from inside the panel (HelpPanel), and also from whatever opened it: the
+  // Help button or a help link keeps focus after a click, and so does nothing in particular.
+  // Anywhere else Esc stays the screen's own (Cancel, Clear).
+  const open = history.length > 0;
+  useEffect(() => {
+    if (!open) return;
+    const keys = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
+      const target = e.target as HTMLElement | null;
+      if (!target || target === document.body || target.closest('[data-help-opener]')) close();
+    };
+    document.addEventListener('keydown', keys);
+    return () => document.removeEventListener('keydown', keys);
+  }, [open, close]);
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 
@@ -45,6 +67,7 @@ export function HelpButton({ topic }: { topic: HelpTopicName }) {
       leftSection={<span aria-hidden="true">?</span>}
       rightSection={<Kbd size="xs">F1</Kbd>}
       aria-keyshortcuts="F1"
+      data-help-opener
     >
       Help
     </Button>
@@ -61,6 +84,7 @@ export function HelpLink(props: { topic: HelpTopic; children: ReactNode }) {
       px={4}
       onClick={() => help.show(props.topic)}
       leftSection={<span aria-hidden="true">?</span>}
+      data-help-opener
     >
       {props.children}
     </Button>

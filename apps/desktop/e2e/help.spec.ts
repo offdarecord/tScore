@@ -84,6 +84,22 @@ test('F1 opens help; links, Back and Contents move around the guide', async () =
   await expect(panel()).toBeHidden();
 });
 
+test("Esc closes help after clicking the Help button, but stays the form's own in a box", async () => {
+  // Clicking Help leaves focus on the button (it shows the blue focus ring): Esc closes help.
+  await helpButton().click();
+  await expect(helpButton()).toBeFocused();
+  await expect(panel()).toBeVisible();
+  await window.keyboard.press('Escape');
+  await expect(panel()).toBeHidden();
+
+  // In a box on the screen, Esc is the screen's own (here: Cancel on New event), not help's.
+  await window.getByRole('button', { name: 'New event' }).click();
+  await helpButton().click();
+  await window.getByLabel('Event name').fill('Example Club Trial');
+  await window.getByLabel('Event name').press('Escape');
+  await expect(panel()).toBeVisible();
+});
+
 test('an error message links to what to do about its code', async () => {
   await run.app.evaluate(
     ({ dialog }, picked) => {

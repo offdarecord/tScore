@@ -49,6 +49,20 @@ tScore → Uninstall.
 More in [the tour](docs/tour.md). The pictures use an invented event and come from the real app
 (`npm run screenshots`).
 
+## What you need
+
+| Item            | What                                                                                                   | Approx. cost (Nov 2026)   |
+| --------------- | ------------------------------------------------------------------------------------------------------ | ------------------------- |
+| Laptop          | Windows 10 or 11, 64-bit. A Mac version is coming.                                                     | The club's own            |
+| Document camera | A USB document camera on a rigid stand, looking straight down at the desk.                             | A$140–200                 |
+| Card labels     | Avery **L7651** / J8651 (Officeworks PPS78651): A4, 65 per sheet, 38.1 × 21.2 mm.                      | One pack does many events |
+| Printer         | Any A4 printer that takes label sheets.                                                                | The club's own            |
+| Black mat       | An A4 sheet of **matte** black EVA foam or black card, under the camera. Not shiny: glare hides holes. | A$5–10                    |
+
+The scan desk comes to about **A$150–220** on top of the laptop. No camera yet? Cards can be
+typed in on **Manual entry** instead. What to look for in a camera, and a 15-minute check when it
+arrives: [What you need](docs/guide/getting-started.md#what-you-need).
+
 ## Code signing policy
 
 Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by

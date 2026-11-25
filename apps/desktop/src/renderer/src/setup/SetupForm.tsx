@@ -18,6 +18,7 @@ import { useMemo, useRef, useState, type ReactNode } from 'react';
 import type { AppError, OpenEvent, Outcome } from '../../../shared/ipc';
 import { ComingSoonButton } from '../ComingSoonButton';
 import { RequiredMark } from '../RequiredMark';
+import { SectionsCard } from './SectionsCard';
 import {
   MAX_DAYS,
   isJunior,
@@ -369,6 +370,10 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
             ? `Total: ${draft.classes.reduce((n, c) => n + labelsFor(c, ridersByClass[c.original?.name ?? ''] ?? 0), 0)} labels for ${riders} riders. Changes after scanning starts are allowed, and logged.`
             : 'Riders are added after setup. Set laps to 0 for a class that is not scored, such as minders.'}
         </Text>
+      </Card>
+
+      <Card title="Sections and officials">
+        <SectionsCard draft={draft} update={update} errorFor={errorFor} />
       </Card>
 
       <div ref={summaryRef} tabIndex={-1} aria-live="polite">

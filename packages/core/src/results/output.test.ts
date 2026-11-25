@@ -11,6 +11,7 @@ import {
   placeLabels,
   resultsCsv,
   resultsHtml,
+  thanksFromSetup,
   tieBreakWords,
 } from './output.js';
 
@@ -203,5 +204,57 @@ describe('final results and revisions', () => {
       })),
     };
     expect(placeChanges(before, fewer).some((c) => c.endsWith('removed'))).toBe(true);
+  });
+});
+
+describe('thanking observers and officials (PDF)', () => {
+  const setup = {
+    days: [
+      {
+        day: 1,
+        section_details: [
+          { section: 1, name: 'Creek bed', observer: 'Pat Brown & Sam Lee' },
+          { section: 2, name: 'Rock step' },
+          { section: 4, observer: '<b>Alex</b>' },
+        ],
+      },
+    ],
+    officials: [{ role: 'Clerk of Course', name: 'Jo Smith' }],
+  };
+
+  it('lists sections with their names and observers, then other officials', () => {
+    const thanks = thanksFromSetup(setup);
+    expect(thanks?.sections.map((s) => s.section)).toEqual([1, 2, 4]);
+    const html = resultsHtml(report.results, {
+      gaps: [],
+      dates: '',
+      footer: '',
+      ...(thanks && { thanks }),
+    });
+    expect(html).toContain('Thanks to our observers and officials');
+    expect(html).toContain('<span>Section 1 · Creek bed</span>: Pat Brown &amp; Sam Lee');
+    expect(html).toContain('<span>Clerk of Course</span>: Jo Smith');
+    // Names are text, never markup.
+    expect(html).toContain('&lt;b&gt;Alex&lt;/b&gt;');
+    expect(html).not.toContain('<b>Alex</b>');
+  });
+
+  it('says the day for a two-day event', () => {
+    const two = {
+      ...setup,
+      days: [...setup.days, { day: 2, section_details: [{ section: 1, observer: 'Kim' }] }],
+    };
+    expect(thanksFromSetup(two)?.sections.at(-1)).toEqual({ day: 2, section: 1, observer: 'Kim' });
+  });
+
+  it('is left out when turned off, or with nobody to thank', () => {
+    expect(thanksFromSetup({ ...setup, thanks_on_results: false })).toBeUndefined();
+    expect(
+      thanksFromSetup({ days: [{ day: 1, section_details: [{ section: 1, name: 'Creek' }] }] }),
+    ).toBeUndefined();
+    expect(thanksFromSetup({ days: [{ day: 1 }] })).toBeUndefined();
+    expect(resultsHtml(report.results, { gaps: [], dates: '', footer: '' })).not.toContain(
+      'Thanks to our',
+    );
   });
 });

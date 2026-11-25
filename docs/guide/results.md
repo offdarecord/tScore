@@ -35,6 +35,9 @@ final ones say **FINAL**.
 Tick **Show junior riders' surnames as an initial** to print "Riley M." for riders in junior
 classes. It only changes saved files: results on this laptop always show full names.
 
+The PDF ends with a thank-you to the observers and officials when their names are entered in
+Event setup (see [Sections and officials](before-the-event.md#sections-and-officials)).
+
 ## Live scores on a big screen
 
 For a TV or monitor plugged into the desk laptop (HDMI), so riders and spectators can watch the

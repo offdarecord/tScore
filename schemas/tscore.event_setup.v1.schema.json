@@ -11,26 +11,51 @@
       "description": "Format identifier and major version.",
       "const": "tscore.event_setup/1"
     },
-    "event": { "$ref": "#/$defs/Event" },
-    "scoring": { "$ref": "#/$defs/Scoring" },
+    "event": {
+      "$ref": "#/$defs/Event"
+    },
+    "scoring": {
+      "$ref": "#/$defs/Scoring"
+    },
     "days": {
       "description": "Event days in order, numbered 1, 2, ...",
       "type": "array",
       "minItems": 1,
       "maxItems": 7,
-      "items": { "$ref": "#/$defs/Day" }
+      "items": {
+        "$ref": "#/$defs/Day"
+      }
     },
     "classes": {
       "type": "array",
       "minItems": 1,
-      "items": { "$ref": "#/$defs/Class" }
+      "items": {
+        "$ref": "#/$defs/Class"
+      }
     },
     "skipped_sections": {
       "description": "Sections cancelled or not scored, e.g. section 6 closed for safety after lap 2.",
       "type": "array",
-      "items": { "$ref": "#/$defs/SkippedSection" }
+      "items": {
+        "$ref": "#/$defs/SkippedSection"
+      }
     },
-    "labels": { "$ref": "#/$defs/Labels" },
+    "officials": {
+      "description": "Officials to thank on the results, besides the observers.",
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "$ref": "#/$defs/Official"
+      }
+    },
+    "thanks_on_results": {
+      "description": "Print the thank-you block for observers and officials on the results PDF, when any names are entered.",
+      "type": "boolean",
+      "default": true
+    },
+    "labels": {
+      "$ref": "#/$defs/Labels"
+    },
     "overdue_margin_minutes": {
       "description": "On the day, a rider is overdue when it has been longer than their class's average lap plus this many minutes since their last card. Overdue never marks anyone DNF.",
       "type": "integer",
@@ -50,15 +75,28 @@
           "type": "string",
           "format": "uuid"
         },
-        "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
         "code": {
           "description": "Short event code printed in every card label's QR code, e.g. SSR1. Upper-case letters, digits and hyphens only.",
           "type": "string",
           "pattern": "^[A-Z0-9][A-Z0-9-]{1,15}$"
         },
-        "club": { "type": "string", "maxLength": 120 },
-        "venue": { "type": "string", "maxLength": 120 },
-        "permit": { "type": "string", "maxLength": 60 },
+        "club": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "venue": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "permit": {
+          "type": "string",
+          "maxLength": 60
+        },
         "first_rider_number": {
           "description": "Rider numbers are generated from this number at import.",
           "type": "integer",
@@ -85,9 +123,15 @@
           "pattern": "^[a-z0-9][a-z0-9-]*$",
           "default": "default"
         },
-        "score_values": { "$ref": "#/$defs/ScoreValues" },
-        "direction": { "$ref": "#/$defs/Direction" },
-        "tie_breaks": { "$ref": "#/$defs/TieBreaks" },
+        "score_values": {
+          "$ref": "#/$defs/ScoreValues"
+        },
+        "direction": {
+          "$ref": "#/$defs/Direction"
+        },
+        "tie_breaks": {
+          "$ref": "#/$defs/TieBreaks"
+        },
         "missed_section": {
           "description": "What happens when an observer did not punch a section. 'flag' sends the card to review and is the only option in /1.",
           "const": "flag",
@@ -98,7 +142,11 @@
     "ScoreValues": {
       "description": "Allowed section scores, in the order printed on the card.",
       "type": "array",
-      "items": { "type": "integer", "minimum": 0, "maximum": 99 },
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 99
+      },
       "minItems": 2,
       "uniqueItems": true,
       "default": [0, 1, 2, 3, 5]
@@ -125,13 +173,28 @@
       "required": ["day"],
       "additionalProperties": false,
       "properties": {
-        "day": { "type": "integer", "minimum": 1, "maximum": 7 },
-        "date": { "type": "string", "format": "date" },
+        "day": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 7
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
         "start_time": {
           "description": "Lap 1 start for riders without their own start time (local time, 24-hour).",
           "type": "string",
           "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
           "default": "10:15"
+        },
+        "section_details": {
+          "description": "Optional names for the day's sections and who observed them, for the thank-you block on the results.",
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "$ref": "#/$defs/SectionDetail"
+          }
         }
       }
     },
@@ -140,7 +203,11 @@
       "required": ["name", "days"],
       "additionalProperties": false,
       "properties": {
-        "name": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
         "order": {
           "description": "Sort order for numbering and results (lower first).",
           "type": "integer",
@@ -151,7 +218,11 @@
         "aliases": {
           "description": "Other names for this class in entry-list exports, matched at import.",
           "type": "array",
-          "items": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
           "uniqueItems": true
         },
         "scored": {
@@ -171,8 +242,12 @@
         "days": {
           "description": "What this class rides on each day, keyed by day number. A day that is missing, or has 0 laps, is not ridden by this class.",
           "type": "object",
-          "propertyNames": { "pattern": "^[1-7]$" },
-          "additionalProperties": { "$ref": "#/$defs/ClassDay" }
+          "propertyNames": {
+            "pattern": "^[1-7]$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/ClassDay"
+          }
         }
       }
     },
@@ -187,7 +262,11 @@
           "minimum": 0,
           "maximum": 30
         },
-        "laps": { "type": "integer", "minimum": 0, "maximum": 10 },
+        "laps": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
         "session": {
           "type": "string",
           "enum": ["full", "am", "pm"],
@@ -200,8 +279,16 @@
       "required": ["day", "section", "from_lap"],
       "additionalProperties": false,
       "properties": {
-        "day": { "type": "integer", "minimum": 1, "maximum": 7 },
-        "section": { "type": "integer", "minimum": 1, "maximum": 30 },
+        "day": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 7
+        },
+        "section": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 30
+        },
         "from_lap": {
           "description": "First lap on which the section is not scored.",
           "type": "integer",
@@ -211,11 +298,17 @@
         "classes": {
           "description": "Classes affected. Omit for all classes.",
           "type": "array",
-          "items": { "type": "string", "minLength": 1 },
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
           "minItems": 1,
           "uniqueItems": true
         },
-        "reason": { "type": "string", "maxLength": 200 }
+        "reason": {
+          "type": "string",
+          "maxLength": 200
+        }
       }
     },
     "Labels": {
@@ -235,7 +328,50 @@
           "enum": ["auto", "row-per-rider", "packed", "by-lap"],
           "default": "auto"
         },
-        "qr": { "type": "boolean", "default": true }
+        "qr": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "SectionDetail": {
+      "type": "object",
+      "required": ["section"],
+      "additionalProperties": false,
+      "properties": {
+        "section": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 30
+        },
+        "name": {
+          "description": "A short name or place, e.g. Creek bed.",
+          "type": "string",
+          "maxLength": 40
+        },
+        "observer": {
+          "description": "Who observed it: one or more names, as the club wants them printed.",
+          "type": "string",
+          "maxLength": 120
+        }
+      }
+    },
+    "Official": {
+      "type": "object",
+      "required": ["role", "name"],
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "description": "e.g. Clerk of Course, Secretary, Results desk.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        }
       }
     }
   }

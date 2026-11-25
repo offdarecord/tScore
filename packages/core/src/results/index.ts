@@ -22,6 +22,8 @@ export {
   type LapColumn,
   type PrintOptions,
   type RevisionNote,
+  thanksFromSetup,
+  type Thanks,
 } from './output.js';
 export {
   classesFromSetup,

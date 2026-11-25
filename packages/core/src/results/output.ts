@@ -224,6 +224,66 @@ export interface PrintOptions {
   readonly footer: string;
   /** Pictures as `data:image/png;base64,…` or JPEG: the event logo by the title, sponsors at the end. */
   readonly logos?: { readonly event?: string; readonly sponsors?: readonly string[] };
+  /** Observers and officials to thank, at the end (from thanksFromSetup). */
+  readonly thanks?: Thanks;
+}
+
+/** Who to thank at the end of the results. */
+export interface Thanks {
+  /** Sections with a name or an observer, in order. `day` only for a multi-day event. */
+  readonly sections: readonly {
+    readonly day?: number;
+    readonly section: number;
+    readonly name?: string;
+    readonly observer?: string;
+  }[];
+  readonly officials: readonly { readonly role: string; readonly name: string }[];
+}
+
+/**
+ * The thank-you block's contents from the event setup, or undefined when it's turned off or
+ * no names are entered.
+ */
+export function thanksFromSetup(setup: {
+  readonly days: readonly {
+    readonly day: number;
+    readonly section_details?: readonly { section: number; name?: string; observer?: string }[];
+  }[];
+  readonly officials?: readonly { role: string; name: string }[];
+  readonly thanks_on_results?: boolean;
+}): Thanks | undefined {
+  if (setup.thanks_on_results === false) return undefined;
+  const multiDay = setup.days.length > 1;
+  const sections = setup.days.flatMap((d) =>
+    (d.section_details ?? [])
+      .filter((s) => s.name || s.observer)
+      .map((s) => ({
+        ...(multiDay && { day: d.day }),
+        section: s.section,
+        ...(s.name && { name: s.name }),
+        ...(s.observer && { observer: s.observer }),
+      })),
+  );
+  const officials = (setup.officials ?? []).filter((o) => o.role && o.name);
+  // Only section names, nobody to thank: nothing to print.
+  if (!sections.some((s) => s.observer) && officials.length === 0) return undefined;
+  return { sections, officials };
+}
+
+function thanksHtml(thanks: Thanks | undefined): string {
+  if (!thanks) return '';
+  const sections = thanks.sections
+    .map((s) => {
+      const where = `${s.day !== undefined ? `Day ${s.day} · ` : ''}Section ${s.section}${s.name ? ` · ${esc(s.name)}` : ''}`;
+      return `<li><span>${where}</span>${s.observer ? `: ${esc(s.observer)}` : ''}</li>`;
+    })
+    .join('');
+  const officials = thanks.officials
+    .map((o) => `<li><span>${esc(o.role)}</span>: ${esc(o.name)}</li>`)
+    .join('');
+  return `<div class="thanks"><h2>Thanks to our observers and officials</h2>${
+    sections ? `<ul>${sections}</ul>` : ''
+  }${officials ? `<ul>${officials}</ul>` : ''}</div>`;
 }
 
 /** Only PNG or JPEG data URIs go into the page, never anything that could run or load. */
@@ -310,6 +370,10 @@ export function resultsHtml(results: Results, opts: PrintOptions): string {
   .sponsors div { display: flex; flex-wrap: wrap; gap: 8mm; align-items: center; }
   .sponsor-logo { max-height: 14mm; max-width: 40mm; object-fit: contain; }
   tr.muted td { color: #555; }
+  .thanks { margin-top: 14px; break-inside: avoid; }
+  .thanks ul { margin: 2px 0 6px; padding: 0; list-style: none; columns: 2; column-gap: 10mm; }
+  .thanks li { break-inside: avoid; padding: 1px 0; }
+  .thanks li span { font-weight: 700; }
   footer { margin-top: 14px; color: #444; font-size: 8pt; }
 </style></head><body>
 <div class="head">${logo(opts.logos?.event, 'event-logo')}<div><h1>${esc(ev.name)}</h1>
@@ -317,6 +381,7 @@ export function resultsHtml(results: Results, opts: PrintOptions): string {
 ${provisional ? `<div class="provisional">PROVISIONAL: ${esc(gapWords(opts.gaps))} Positions may change.</div>` : ''}
 ${final ? `<div class="final"><strong>FINAL RESULTS${results.revision > 1 ? ` · REVISION ${results.revision}` : ''}</strong>${note ? `<div>Replaces revision ${note.replaces} of ${esc(note.replacedAt)}. Reason: ${esc(note.reason)}</div>${note.changes.length ? `<ul>${note.changes.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : '<div>No places changed.</div>'}` : ''}</div>` : ''}
 ${classes}
+${thanksHtml(opts.thanks)}
 ${sponsorsHtml(opts.logos?.sponsors)}
 <footer>${esc(tieBreakWords(results))} NA = No award (scored, not placed). NC = Non-competitive (counts only; scores are not published). DNF = did not finish. DNS = did not start.<br>${esc(opts.footer)}</footer>
 </body></html>`;

@@ -21,6 +21,7 @@ import {
   type Results,
   type ResultsGap,
   type RevisionNote,
+  thanksFromSetup,
 } from '@tscore/core';
 import { StoreError, type EventStore } from '@tscore/store';
 import { app, BrowserWindow, dialog, shell } from 'electron';
@@ -225,6 +226,7 @@ export async function exportResults(
   } else {
     const final = inForce(store);
     const note = final ? revisionNote(store, final.revision) : undefined;
+    const thanks = thanksFromSetup(store.setup);
     const html = resultsHtml(results, {
       gaps,
       dates: store.setup.days.flatMap((d) => (d.date ? [dateWords(d.date)] : [])).join(' – '),
@@ -234,6 +236,7 @@ export async function exportResults(
       })}.${final ? ` Marked final ${timeWords(final.markedAt)}.` : ''}`,
       ...(note && { revisionNote: note }),
       logos: logoUris(store),
+      ...(thanks && { thanks }),
     });
     writeFileSync(picked.filePath, await pdfOf(html));
   }

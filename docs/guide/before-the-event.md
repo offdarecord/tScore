@@ -22,8 +22,7 @@ event** on Home; change it later on **Event setup**.
 
 **Classes**
 
-One row per class: its name, **Sections per lap**, **Laps**, and **Session** (All day, Morning
-or Afternoon) for each day. Tick **Junior class** for junior classes: the results you share can
+One row per class: its name, and its **Sections per lap** and **Laps** for each day. Tick **Junior class** for junior classes: the results you share can
 show those riders' surnames as an initial (see
 [Saving results to share](results.md#saving-results-to-share)).
 

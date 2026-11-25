@@ -74,6 +74,7 @@ export function Series({ onBack }: { onBack: () => void }) {
         <Group align="flex-end">
           <TextInput
             label="Series name"
+            required
             placeholder="e.g. Winter Series 2027"
             value={name}
             onChange={(e) => setName(e.currentTarget.value)}
@@ -272,6 +273,7 @@ function SeriesDetail(props: {
           <Group align="flex-end">
             <TextInput
               label="Points for 1st, 2nd, 3rd …"
+              required
               description="Places past the end score 0."
               value={scale}
               onChange={(e) => setScale(e.currentTarget.value)}

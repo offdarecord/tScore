@@ -31,6 +31,7 @@ test('About shows the installed version', async () => {
   const dialog = window.getByRole('dialog', { name: 'About tScore' });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByText(`Version ${pkg.version}`)).toBeVisible();
+  await expect(dialog.getByText('by trials nerds, for trials nerds')).toBeVisible();
   await window.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
 });
@@ -39,7 +40,7 @@ test('About shows the installed version', async () => {
 async function newEvent() {
   await window.getByRole('button', { name: 'New event' }).click();
   await window.getByLabel('Event name').fill('Example Club Trial');
-  await window.getByLabel('Date', { exact: true }).fill('2027-02-06');
+  await window.getByLabel(/^Date\b/).fill('2027-02-06');
   await window.getByRole('button', { name: 'Create event' }).click();
   await expect(window.getByRole('heading', { name: 'Event setup', level: 1 })).toBeVisible();
 }

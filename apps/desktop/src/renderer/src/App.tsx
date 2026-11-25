@@ -165,6 +165,7 @@ function Shell() {
       <Modal opened={aboutOpen} onClose={about.close} title="About tScore">
         <Stack gap="xs">
           <Text>Version {info?.version ?? '…'}</Text>
+          <Text fs="italic">Artisanally AI-crafted by trials nerds, for trials nerds.</Text>
           <Text size="xs" c="dimmed">
             Electron {info?.electron} · {info?.platform} {info?.arch}
           </Text>

@@ -42,7 +42,7 @@ async function typeCard(number: number, lap: number, scores: string) {
 test('the big screen shows the class live, follows new cards, and never shows NC scores', async () => {
   await window.getByRole('button', { name: 'New event' }).click();
   await window.getByLabel('Event name').fill('Example Club Trial');
-  await window.getByLabel('Date', { exact: true }).fill(today());
+  await window.getByLabel(/^Date\b/).fill(today());
   await window.getByLabel('Lap 1 starts').fill('00:00');
   await window.getByLabel('Laps for Trial 3').fill('2');
   await window.getByRole('button', { name: 'Create event' }).click();

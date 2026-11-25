@@ -30,7 +30,7 @@ async function pick(path: string) {
 test('backups are made, copied to a second place, and restored as a new event', async () => {
   await window.getByRole('button', { name: 'New event' }).click();
   await window.getByLabel('Event name').fill('Example Club Trial');
-  await window.getByLabel('Date', { exact: true }).fill('2027-02-06');
+  await window.getByLabel(/^Date\b/).fill('2027-02-06');
   await window.getByRole('button', { name: 'Create event' }).click();
   await expect(window.getByRole('heading', { name: 'Event setup', level: 1 })).toBeVisible();
   const folder = join(run.eventsDir, '2027-02-06 ECT');
@@ -95,7 +95,7 @@ test("restoring a file that isn't a backup says so, and changes nothing", async 
 test('an event saved for another laptop opens there with its riders, as a new folder', async () => {
   await window.getByRole('button', { name: 'New event' }).click();
   await window.getByLabel('Event name').fill('Example Club Trial');
-  await window.getByLabel('Date', { exact: true }).fill('2027-02-06');
+  await window.getByLabel(/^Date\b/).fill('2027-02-06');
   await window.getByRole('button', { name: 'Create event' }).click();
   const csv = join(run.userData, 'riders.csv');
   writeFileSync(

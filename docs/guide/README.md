@@ -6,8 +6,8 @@ of any screen to open the page for that screen.
 
 ## Pages
 
-1. [Getting started](getting-started.md): install tScore, find your way around, and where your
-   events are kept.
+1. [Getting started](getting-started.md): install tScore, find your way around, where your
+   events are kept, and how to delete an old one.
 2. [Before the event](before-the-event.md): event setup, the entry list, rider numbers, card
    labels and the pre-event check.
 3. [Event day](event-day.md): typing in cards, penalties, late entries, DNF and DNS, and who is

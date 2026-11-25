@@ -95,3 +95,22 @@ Backups go in the event's `backups` folder, and to a USB stick if you choose one
 
 To move an event to another laptop, see
 [Move an event to another laptop](backups.md#move-an-event-to-another-laptop).
+
+## Manage events: tidy up old events
+
+Card photos take most of the space. After a season, **Manage events** on the home screen
+lists every event on this laptop with the space its card photos and everything else use, whether
+its results are final, and when it last reached the second backup place (USB). Tick events, then:
+
+- **Remove card scans…** shrinks each card photo to a small copy. Riders, every score, the audit
+  log, results and backups stay, and results can still be reopened. If a result is questioned
+  later, you'll only have the small copy to look at, so mark results final first.
+- **Delete event…** moves the whole event folder to the Windows **Recycle Bin**, where it can be
+  put back until the bin is emptied. Type the event's code to confirm. **Save a copy first…**
+  keeps the whole event as one file. Backups on a USB stick aren't touched.
+- **Keep** stops tScore offering that event for tidying.
+
+The event that's open can't be tidied until it's closed. When events are over a month old,
+the home screen offers them once; **Remind me later** asks again in 30 days. It never asks on an
+event day. Each recent event's **⋯** menu also has **Show in folder** and the same tidy-up
+choices.

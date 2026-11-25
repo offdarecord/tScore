@@ -142,6 +142,30 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
     fix: 'On the first laptop, choose **Save a copy for another laptop…** again, wait for "Saved and checked", then open the new copy (see [Move an event to another laptop](backups.md#move-an-event-to-another-laptop)).',
     internal: ['STORE_MOVE_FILE'],
   },
+  {
+    code: 'TS-DB-006',
+    title: 'Type the event code to delete it',
+    meaning:
+      "Deleting an event needs its code typed in, so nobody deletes the wrong one by accident. What was typed doesn't match.",
+    fix: 'Type the code shown in the message (for example `ECT`), then choose **Delete** again.',
+    internal: ['STORE_CONFIRM_CODE'],
+  },
+  {
+    code: 'TS-DB-007',
+    title: "That event can't be tidied while it's open",
+    meaning:
+      "Card scans can't be removed, and an event can't be deleted, while it's the open event.",
+    fix: 'Close the event (**← All events**), then use **Manage events** on the home screen.',
+    internal: ['STORE_EVENT_OPEN'],
+  },
+  {
+    code: 'TS-DB-008',
+    title: "That folder isn't one of this laptop's events",
+    meaning:
+      'Manage events only tidies event folders it lists: ones in `Documents\\tScore` or on the recent list. The folder may have been moved or deleted since the list was shown.',
+    fix: 'Close **Manage events** and open it again to refresh the list.',
+    internal: ['STORE_NOT_MANAGED'],
+  },
 
   // Event setup
   {

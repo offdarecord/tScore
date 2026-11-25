@@ -17,6 +17,7 @@ import { closeEvents, currentStore, eventHandlers, eventsDir } from './events';
 import { closeLiveWindow, liveWindowState, showLiveWindow, toggleLiveFullScreen } from './live';
 import { startLogging } from './logging';
 import { copySuggestion, emailSuggestion, saveSuggestion } from './suggestion';
+import { manageHandlers } from './manage';
 import { checkForUpdatesWhenSafe } from './updates';
 
 // Automated tests run the app with its own data folder, so they never touch (or get blocked by)
@@ -90,6 +91,17 @@ function registerIpc(): void {
   handle(IPC.checkTestTrial, (e) =>
     eventHandlers.checkTestTrial(BrowserWindow.fromWebContents(e.sender)),
   );
+  handle(IPC.manageEvents, () => manageHandlers.list());
+  handle(IPC.removeCardScans, (_e, folders: string[]) => manageHandlers.removeCardScans(folders));
+  handle(IPC.deleteEvents, (_e, chosen: { folder: string; code: string }[]) =>
+    manageHandlers.deleteEvents(chosen),
+  );
+  handle(IPC.saveEventCopy, (e, folder: string) =>
+    manageHandlers.saveCopy(folder, BrowserWindow.fromWebContents(e.sender)),
+  );
+  handle(IPC.showEventFolder, (_e, folder: string) => manageHandlers.showInFolder(folder));
+  handle(IPC.keepEvent, (_e, folder: string) => manageHandlers.keep(folder));
+  handle(IPC.remindTidyLater, () => manageHandlers.remindLater());
   handle(IPC.currentEvent, () => eventHandlers.current());
   handle(IPC.updateSetup, (_e, setup: Parameters<typeof eventHandlers.updateSetup>[0]) =>
     eventHandlers.updateSetup(setup),

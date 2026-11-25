@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.7.0](https://github.com/offdarecord/tScore/compare/v0.6.0...v0.7.0) (2026-11-25)
+
+### Added
+
+* **Card scanning (first version: please try it, and tell us how it goes).** Put each card on a black mat under a USB document camera. Clear cards are saved by themselves, with a photo. Anything unclear (a missed hole, two holes, a torn hole) goes to the new **Review queue** with its photo, where you pick the score. A card with a printed label is matched by its QR code; for others, type the rider number. No camera yet? **Practice card** shows how it works. ([#72](https://github.com/offdarecord/tScore/issues/72), [#73](https://github.com/offdarecord/tScore/issues/73))
+* **Live scores on a big screen.** Results → **Show live scores** opens a full-screen page on a TV or monitor plugged into the laptop. It updates as cards come in and moves through the classes by itself. ([#68](https://github.com/offdarecord/tScore/issues/68))
+* **Event and sponsor logos** on the results PDF and the big screen, chosen on Event setup. ([#69](https://github.com/offdarecord/tScore/issues/69))
+* **Series points.** Home → **Series points** adds up a series from each round's final results, with your club's points scale, best-rounds rule and tie rule. Save it as a PDF or CSV. ([#71](https://github.com/offdarecord/tScore/issues/71))
+* **Move an event to another laptop.** Event setup → **Save a copy for another laptop…** saves the whole event, card photos included, as one file; **Open event file…** on the other laptop checks it and opens it. ([#67](https://github.com/offdarecord/tScore/issues/67))
+* **Dark mode.** Light / Dark / Match Windows at the top of the screen, for dim clubrooms and early starts. Printouts stay light. ([#66](https://github.com/offdarecord/tScore/issues/66))
+* **Suggest a feature** on the About screen: a few questions, then email, copy or save your idea. No GitHub account needed, and it works offline. ([#70](https://github.com/offdarecord/tScore/issues/70))
+
+### Fixed
+
+* A card typed in for an earlier event day now gets a hand-in time on that day, not today. ([#77](https://github.com/offdarecord/tScore/issues/77))
+* Shorter, clearer help under **Leave out minders** and **Lap 1 starts**. ([#51](https://github.com/offdarecord/tScore/issues/51), [#63](https://github.com/offdarecord/tScore/issues/63))
+
+### Event files
+
+Events opened or created with 0.7.0 can't be opened by earlier versions (they can now hold logos). Update every laptop you use for an event to 0.7.0.
+
+### Good to know
+
+The installer isn't signed yet, so Windows may still say **Windows protected your PC**: choose **More info**, then **Run anyway**.
+
 ## [0.6.0](https://github.com/offdarecord/tScore/compare/v0.5.0...v0.6.0) (2026-11-24)
 
 

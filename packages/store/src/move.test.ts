@@ -105,7 +105,7 @@ describe('moving an event to another laptop', () => {
       writeFileSync(bad, zipSync(zip));
       return () => b.lib.openMoved(bad);
     };
-    const damaged = expect.objectContaining({ code: 'STORE_DAMAGED' });
+    const damaged = expect.objectContaining({ code: 'STORE_MOVE_FILE' });
 
     // A changed byte.
     const sqlite = entries['event.sqlite']!.slice();

@@ -12,10 +12,20 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from 'node:f
 import { tmpdir } from 'node:os';
 import { join, posix, relative, sep } from 'node:path';
 import { unzipSync, zipSync, type Zippable } from 'fflate';
-import { DamagedFileError } from './errors.js';
+import { StoreError } from './errors.js';
 import { EVENT_FILE, type EventStore } from './event-store.js';
 
 export const MOVE_EXTENSION = 'tscore';
+
+/** A `.tscore` file that isn't one, or isn't complete. Nothing has been changed. */
+class MoveFileError extends StoreError {
+  constructor(detail: string) {
+    super(
+      'STORE_MOVE_FILE',
+      `That file can't be opened: ${detail}. Nothing was changed. Save a new copy on the other laptop and try again.`,
+    );
+  }
+}
 export const MOVE_FORMAT = 'tscore.event_package/1';
 const MANIFEST = 'manifest.json';
 const LEFT_OUT = new Set(['backups', 'exports']);
@@ -91,34 +101,33 @@ export function unpackEvent(bytes: Uint8Array): {
   try {
     entries = unzipSync(bytes);
   } catch {
-    throw new DamagedFileError("this isn't a tScore event file, or it's damaged");
+    throw new MoveFileError("this isn't a tScore event file, or it's damaged");
   }
   const raw = entries[MANIFEST];
   let manifest: MoveManifest;
   try {
     manifest = JSON.parse(new TextDecoder().decode(raw)) as MoveManifest;
   } catch {
-    throw new DamagedFileError("this isn't a tScore event file (no list of contents)");
+    throw new MoveFileError("this isn't a tScore event file (no list of contents)");
   }
   if (manifest.format !== MOVE_FORMAT || !Array.isArray(manifest.files)) {
-    throw new DamagedFileError("this isn't a tScore event file this version can read");
+    throw new MoveFileError("this isn't a tScore event file this version can read");
   }
   const files = new Map<string, Uint8Array>();
   for (const f of manifest.files) {
-    if (!safePath(f.path))
-      throw new DamagedFileError(`it lists a file with a bad name (${f.path})`);
+    if (!safePath(f.path)) throw new MoveFileError(`it lists a file with a bad name (${f.path})`);
     const data = entries[f.path];
-    if (!data) throw new DamagedFileError(`it's incomplete: ${f.path} is missing`);
+    if (!data) throw new MoveFileError(`it's incomplete: ${f.path} is missing`);
     if (data.length !== f.bytes || sha256(data) !== f.sha256) {
-      throw new DamagedFileError(`it's damaged: ${f.path} doesn't match its checksum`);
+      throw new MoveFileError(`it's damaged: ${f.path} doesn't match its checksum`);
     }
     files.set(f.path, data);
   }
-  if (!files.has(EVENT_FILE)) throw new DamagedFileError("it's incomplete: the event is missing");
+  if (!files.has(EVENT_FILE)) throw new MoveFileError("it's incomplete: the event is missing");
   const extra = Object.keys(entries).filter(
     (p) => p !== MANIFEST && !files.has(p) && !p.endsWith('/'),
   );
-  if (extra.length) throw new DamagedFileError(`it has files it doesn't list (${extra[0]})`);
+  if (extra.length) throw new MoveFileError(`it has files it doesn't list (${extra[0]})`);
   return { manifest, files };
 }
 

@@ -38,3 +38,4 @@ playwright-report/
 
 # Built website (npm run site)
 _site/
+dist-kit/

@@ -140,3 +140,12 @@ jobs:
         run: |
           cd apps/desktop/release
           gh release upload "$TAG" tScore-Setup-*.exe tScore-Setup-*.exe.blockmap latest.yml --clobber
+
+      - name: Attach the Test trial kit to the GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          node scripts/build-test-trial.mjs dist-kit
+          gh release upload "$TAG" dist-kit/tScore-Test-Trial-*.zip --clobber

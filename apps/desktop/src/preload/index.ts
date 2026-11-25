@@ -40,6 +40,7 @@ const api: TscoreApi = {
   addPenalty: call(IPC.addPenalty),
   removePenalty: call(IPC.removePenalty),
   results: call(IPC.results),
+  checkTestTrial: call(IPC.checkTestTrial),
   exportResults: call(IPC.exportResults),
   openExport: call(IPC.openExport),
   backupStatus: call(IPC.backupStatus),

@@ -52,7 +52,8 @@ INSWAN INS-2, IPEVO DO-CAM.
    is sharp.
 3. Punched holes look clearly black, with no glare from the light.
 4. Swap cards a few times. Focus settles within about a second.
-5. In tScore, open **Scan desk**, choose the camera, and scan a card for a rider in a test event.
+5. Then rehearse a whole event with the [Test trial kit](test-trial.md): it checks what tScore
+   reads against what you punched.
 
 ## Updates
 

@@ -92,6 +92,14 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
     fix: 'Choose another folder, such as Documents, and save again.',
     internal: ['APP_SAVE_FAILED'],
   },
+  {
+    code: 'TS-APP-007',
+    title: "That isn't a Test trial answer key",
+    meaning:
+      "Check a test trial needs the `answer-key.json` file from the Test trial kit, and the file chosen isn't one.",
+    fix: 'Choose `answer-key.json` from the unzipped Test trial kit (download it from the latest release).',
+    internal: ['APP_NOT_A_KEY'],
+  },
 
   // Event files
   {

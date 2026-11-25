@@ -87,6 +87,9 @@ function registerIpc(): void {
   handle(IPC.openEventFile, (e) => eventHandlers.openFile(BrowserWindow.fromWebContents(e.sender)));
   handle(IPC.openRecentEvent, (_e, folder: string) => eventHandlers.openRecent(folder));
   handle(IPC.forgetEvent, (_e, folder: string) => eventHandlers.forget(folder));
+  handle(IPC.checkTestTrial, (e) =>
+    eventHandlers.checkTestTrial(BrowserWindow.fromWebContents(e.sender)),
+  );
   handle(IPC.currentEvent, () => eventHandlers.current());
   handle(IPC.updateSetup, (_e, setup: Parameters<typeof eventHandlers.updateSetup>[0]) =>
     eventHandlers.updateSetup(setup),

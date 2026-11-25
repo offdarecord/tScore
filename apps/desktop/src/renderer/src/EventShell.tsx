@@ -11,6 +11,7 @@ import { formatDate } from './format';
 import { ImportRiders } from './riders/ImportRiders';
 import { Riders } from './riders/Riders';
 import { BackupCard } from './setup/BackupCard';
+import { LogosCard } from './setup/LogosCard';
 import { SetupForm } from './setup/SetupForm';
 
 /** The event screens that exist so far. */
@@ -238,6 +239,7 @@ export function EventMain({ event, page, onChange, onNavigate }: Props) {
           return r;
         }}
       />
+      <LogosCard event={event} />
       <BackupCard event={event} />
     </Stack>
   );

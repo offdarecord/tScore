@@ -104,11 +104,45 @@
   right: 0;
   bottom: 0;
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
   padding: 16px 40px;
   background: light-dark(#f1f3f5, #1d2024);
   font-size: 24px;
+}
+
+.live-title {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.live-logo {
+  max-height: 72px;
+  max-width: 220px;
+  object-fit: contain;
+}
+
+.live-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.live-sponsors {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.live-sponsor {
+  max-height: 44px;
+  max-width: 140px;
+  object-fit: contain;
 }
 
 .live-tab {

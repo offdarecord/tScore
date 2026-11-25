@@ -137,13 +137,16 @@ export function LiveScores() {
     );
   }
 
-  const { results, missingCards } = data;
+  const { results, missingCards, logos } = data;
   const current = pages[index % Math.max(1, pages.length)];
   const final = results.status === 'final';
   return (
     <main className="live" onDoubleClick={() => void window.tscore.toggleLiveFullScreen()}>
       <header className="live-head">
-        <h1 className="live-event">{results.event.name}</h1>
+        <div className="live-title">
+          {logos.event && <img className="live-logo" src={logos.event} alt="" />}
+          <h1 className="live-event">{results.event.name}</h1>
+        </div>
         <p className={final ? 'live-status live-final' : 'live-status live-provisional'}>
           {final
             ? `FINAL${results.revision > 1 ? ` · REVISION ${results.revision}` : ''}`
@@ -190,14 +193,26 @@ export function LiveScores() {
           </table>
         </section>
       )}
-      <footer className="live-foot" aria-label="Classes">
-        {results.classes
-          .filter((c) => pages.some((p) => p.cls === c))
-          .map((c) => (
-            <span key={c.name} className={c === current?.cls ? 'live-tab live-tab-on' : 'live-tab'}>
-              {c.name}
-            </span>
-          ))}
+      <footer className="live-foot">
+        <div className="live-tabs" aria-label="Classes">
+          {results.classes
+            .filter((c) => pages.some((p) => p.cls === c))
+            .map((c) => (
+              <span
+                key={c.name}
+                className={c === current?.cls ? 'live-tab live-tab-on' : 'live-tab'}
+              >
+                {c.name}
+              </span>
+            ))}
+        </div>
+        {logos.sponsors.length > 0 && (
+          <div className="live-sponsors" aria-label="Sponsors">
+            {logos.sponsors.map((uri, i) => (
+              <img key={i} className="live-sponsor" src={uri} alt="" />
+            ))}
+          </div>
+        )}
       </footer>
     </main>
   );

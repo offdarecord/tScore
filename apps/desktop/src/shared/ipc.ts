@@ -49,6 +49,9 @@ export const IPC = {
   markFinal: 'results:mark-final',
   reopenResults: 'results:reopen',
   liveScores: 'live:scores',
+  logos: 'logos:list',
+  chooseLogo: 'logos:choose',
+  removeLogo: 'logos:remove',
   showLiveScores: 'live:show',
   closeLiveScores: 'live:close',
   liveWindowState: 'live:state',
@@ -236,6 +239,16 @@ export interface LiveScores {
   readonly results: Results;
   /** Expected cards not in yet. */
   readonly missingCards: number;
+  /** Data URIs. */
+  readonly logos: { readonly event?: string; readonly sponsors: readonly string[] };
+}
+
+/** A logo on Event setup, with its picture as a data URI. */
+export interface LogoView {
+  readonly id: string;
+  readonly role: 'event' | 'sponsor';
+  readonly uri: string;
+  readonly bytes: number;
 }
 
 /** Whether the big-screen window is open, and whether it found a second screen. */
@@ -454,6 +467,10 @@ export interface TscoreApi {
   >;
   /** Freeze the results as the next revision. */
   markFinal(): Promise<Outcome<ResultsView>>;
+  logos(): Promise<Outcome<LogoView[]>>;
+  /** Shows the open dialog for a PNG or JPEG. The logos after, or `null` if cancelled. */
+  chooseLogo(role: 'event' | 'sponsor'): Promise<Outcome<LogoView[] | null>>;
+  removeLogo(id: string): Promise<Outcome<LogoView[]>>;
   /** The big screen's content, or null with no event open. */
   liveScores(): Promise<Outcome<LiveScores | null>>;
   /** Open the big-screen window (full screen on a second screen if there is one). */

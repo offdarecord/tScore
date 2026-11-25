@@ -98,6 +98,24 @@ If a problem keeps happening, see [Troubleshooting](troubleshooting.md).
 
 **What to do:** Set the date for each day in **Event setup**.
 
+### TS-SET-005
+
+**That picture can't be a logo.** Logos must be PNG or JPEG pictures.
+
+**What to do:** Save the logo as a PNG or JPEG (most image programs can), then choose it again.
+
+### TS-SET-006
+
+**That logo is too big.** Logos can be up to 1 MB each, so backups and the results PDF stay small.
+
+**What to do:** Save a smaller copy (about 1000 pixels wide is plenty for print), then choose it again.
+
+### TS-SET-007
+
+**Too many sponsor logos.** The results have room for up to 8 sponsor logos.
+
+**What to do:** Remove one before adding another.
+
 ## Riders
 
 ### TS-RID-001

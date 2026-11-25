@@ -117,6 +117,14 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
     fix: 'Choose a new, empty folder, or let tScore make one in `Documents\\tScore`.',
     internal: ['STORE_FOLDER_NOT_EMPTY'],
   },
+  {
+    code: 'TS-DB-005',
+    title: "That copy of the event can't be opened",
+    meaning:
+      "The file saved to move an event to another laptop isn't complete or has been damaged (for example the USB stick was pulled out while it was saving), or it isn't a tScore event file.",
+    fix: 'On the first laptop, choose **Save a copy for another laptop…** again, wait for "Saved and checked", then open the new copy (see [Move an event to another laptop](backups.md#move-an-event-to-another-laptop)).',
+    internal: ['STORE_MOVE_FILE'],
+  },
 
   // Event setup
   {

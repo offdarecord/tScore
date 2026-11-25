@@ -106,6 +106,9 @@ function registerIpc(): void {
   handle(IPC.restoreFromBackup, (e) =>
     eventHandlers.restoreFromBackup(BrowserWindow.fromWebContents(e.sender)),
   );
+  handle(IPC.saveForMove, (e) =>
+    eventHandlers.saveForMove(BrowserWindow.fromWebContents(e.sender)),
+  );
   handle(IPC.markFinal, () => eventHandlers.markFinal());
   handle(IPC.reopenResults, (_e, reason: string) => eventHandlers.reopenResults(reason));
   handle(IPC.labels, (_e, request: LabelRequest) => eventHandlers.labels(request));

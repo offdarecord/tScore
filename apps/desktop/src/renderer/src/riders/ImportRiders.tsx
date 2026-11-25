@@ -86,7 +86,11 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
           fw={700}
           px="md"
           py={6}
-          style={{ background: '#e3f4e6', color: '#1f5f26', borderRadius: 999 }}
+          style={{
+            background: 'light-dark(#e3f4e6, #1c3b22)',
+            color: 'light-dark(#1f5f26, #8ce99a)',
+            borderRadius: 999,
+          }}
         >
           ✓ Recognised: {plan.source}
         </Text>
@@ -323,7 +327,13 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
               </List.Item>
             </List>
           </Paper>
-          <Paper radius="md" p="lg" bg="blue.0" component="section" aria-labelledby="priv-h">
+          <Paper
+            radius="md"
+            p="lg"
+            bg="light-dark(#e7f5ff, #1a3049)"
+            component="section"
+            aria-labelledby="priv-h"
+          >
             <Title order={3} id="priv-h" size="h4" mb="xs">
               Not imported
             </Title>

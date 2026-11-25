@@ -91,3 +91,42 @@ test("restoring a file that isn't a backup says so, and changes nothing", async 
   await expect(alert).toContainText('TS-DB-003');
   expect(existsSync(run.eventsDir) ? readdirSync(run.eventsDir) : []).toEqual([]);
 });
+
+test('an event saved for another laptop opens there with its riders, as a new folder', async () => {
+  await window.getByRole('button', { name: 'New event' }).click();
+  await window.getByLabel('Event name').fill('Example Club Trial');
+  await window.getByLabel('Date', { exact: true }).fill('2027-02-06');
+  await window.getByRole('button', { name: 'Create event' }).click();
+  const csv = join(run.userData, 'riders.csv');
+  writeFileSync(
+    csv,
+    'Number,Given name,Family name,Class,Club,Competition status\r\n1,Avery,Stone,Trial 3,,\r\n',
+  );
+  await pick(csv);
+  await nav()
+    .getByRole('button', { name: /Riders/ })
+    .click();
+  await window.getByRole('button', { name: 'Import from entry list…' }).click();
+  await window.getByRole('button', { name: 'Import 1 rider' }).click();
+  await expect(window.getByText('1 rider imported.')).toBeVisible();
+
+  const file = join(mkdtempSync(join(tmpdir(), 'tscore-usb-')), 'Example.tscore');
+  await run.app.evaluate(({ dialog }, saveTo) => {
+    dialog.showSaveDialog = (() =>
+      Promise.resolve({ canceled: false, filePath: saveTo })) as typeof dialog.showSaveDialog;
+  }, file);
+  await nav().getByRole('button', { name: 'Event setup' }).click();
+  const card = window.getByRole('region', { name: 'Saving and backup' });
+  await card.getByRole('button', { name: 'Save a copy for another laptop…' }).click();
+  await expect(card.getByRole('status')).toContainText(`Saved and checked: ${file}`);
+  expect(existsSync(file)).toBe(true);
+
+  // "The other laptop": a fresh copy of tScore with its own folders.
+  await run.app.close();
+  run = await launchApp();
+  ({ window } = run);
+  await pick(file);
+  await window.getByRole('button', { name: 'Open event file…' }).click();
+  await expect(nav().getByRole('button', { name: /Riders/ })).toHaveText('Riders1');
+  expect(readdirSync(run.eventsDir)).toEqual(['2027-02-06 ECT']);
+});

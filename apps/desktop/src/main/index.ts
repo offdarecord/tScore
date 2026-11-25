@@ -10,6 +10,7 @@ import {
 } from '../shared/ipc';
 import { startBackups } from './backups';
 import { closeEvents, currentStore, eventHandlers, eventsDir } from './events';
+import { closeLiveWindow, liveWindowState, showLiveWindow, toggleLiveFullScreen } from './live';
 import { startLogging } from './logging';
 import { checkForUpdatesWhenSafe } from './updates';
 
@@ -105,6 +106,9 @@ function registerIpc(): void {
   handle(IPC.restoreFromBackup, (e) =>
     eventHandlers.restoreFromBackup(BrowserWindow.fromWebContents(e.sender)),
   );
+  handle(IPC.saveForMove, (e) =>
+    eventHandlers.saveForMove(BrowserWindow.fromWebContents(e.sender)),
+  );
   handle(IPC.markFinal, () => eventHandlers.markFinal());
   handle(IPC.reopenResults, (_e, reason: string) => eventHandlers.reopenResults(reason));
   handle(IPC.labels, (_e, request: LabelRequest) => eventHandlers.labels(request));
@@ -116,7 +120,20 @@ function registerIpc(): void {
   );
   handle(IPC.setLabelOffset, (_e, offset: LabelOffset) => eventHandlers.setLabelOffset(offset));
   handle(IPC.course, (_e, day?: number) => eventHandlers.course(day));
+  handle(IPC.liveScores, () => eventHandlers.liveScores());
+  handle(IPC.logos, () => eventHandlers.logos());
+  handle(IPC.chooseLogo, (e, role: 'event' | 'sponsor') =>
+    eventHandlers.chooseLogo(role, BrowserWindow.fromWebContents(e.sender)),
+  );
+  handle(IPC.removeLogo, (_e, id: string) => eventHandlers.removeLogo(id));
+  handle(IPC.showLiveScores, () => showLiveWindow(desk, RENDERER_DEV_URL));
+  handle(IPC.closeLiveScores, () => closeLiveWindow());
+  handle(IPC.liveWindowState, () => liveWindowState());
+  handle(IPC.toggleLiveFullScreen, () => toggleLiveFullScreen());
 }
+
+/** The desk window (the big screen is another window, see live.ts). */
+let desk: BrowserWindow | null = null;
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -138,7 +155,13 @@ function createWindow(): void {
     },
   });
 
+  desk = win;
   win.once('ready-to-show', () => win.show());
+  // The big screen goes when the desk does, so closing the desk still quits tScore.
+  win.on('closed', () => {
+    desk = null;
+    closeLiveWindow();
+  });
 
   // No remote content: external links open in the user's browser, never in the app.
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -166,7 +189,7 @@ if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
   app.on('second-instance', () => {
-    const [win] = BrowserWindow.getAllWindows();
+    const win = desk;
     if (win) {
       if (win.isMinimized()) win.restore();
       win.focus();

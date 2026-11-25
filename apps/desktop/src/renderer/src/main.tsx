@@ -3,6 +3,7 @@ import { MantineProvider } from '@mantine/core';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
+import { LiveScores } from './live/LiveScores';
 import { cssVariablesResolver, theme } from './theme';
 
 const root = document.getElementById('root');
@@ -15,7 +16,8 @@ createRoot(root).render(
       defaultColorScheme="light"
       cssVariablesResolver={cssVariablesResolver}
     >
-      <App />
+      {/* The big-screen window opens the same page at #live. */}
+      {window.location.hash === '#live' ? <LiveScores /> : <App />}
     </MantineProvider>
   </StrictMode>,
 );

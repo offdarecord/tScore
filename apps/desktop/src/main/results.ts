@@ -24,7 +24,7 @@ import {
 } from '@tscore/core';
 import { StoreError, type EventStore } from '@tscore/store';
 import { app, BrowserWindow, dialog, shell } from 'electron';
-import type { ExportKind, ResultsView } from '../shared/ipc';
+import type { ExportKind, LiveScores, ResultsView } from '../shared/ipc';
 
 /** The last file saved, the only one "Open" may open. */
 let lastExport: string | null = null;
@@ -97,6 +97,38 @@ export function resultsView(store: EventStore): ResultsView {
     }),
     nextRevision: next,
     ...(note && { changes: note.changes }),
+  };
+}
+
+/** The event's logos as data URIs, for the PDF and the big screen. */
+export function logoUris(store: EventStore): { event?: string; sponsors: string[] } {
+  const uri = (id: string, mime: string) => {
+    const data = store.logoData(id);
+    return data ? `data:${mime};base64,${Buffer.from(data).toString('base64')}` : undefined;
+  };
+  const all = store.logos();
+  const event = all.find((l) => l.role === 'event');
+  const eventUri = event && uri(event.id, event.mime);
+  return {
+    ...(eventUri && { event: eventUri }),
+    sponsors: all.flatMap((l) => {
+      const u = l.role === 'sponsor' ? uri(l.id, l.mime) : undefined;
+      return u ? [u] : [];
+    }),
+  };
+}
+
+/**
+ * For the big screen, which is public: built from the same payload as the PDF, with the
+ * publish rules always applied (junior surnames as an initial; NC scores already left out).
+ */
+export function liveScores(store: EventStore): LiveScores {
+  const { results, gaps } = report(store, true);
+  const missing = gaps.filter((g) => g.kind === 'missing_card');
+  return {
+    results,
+    missingCards: new Set(missing.map((g) => `${g.number}/${g.day}/${g.lap}`)).size,
+    logos: logoUris(store),
   };
 }
 
@@ -201,6 +233,7 @@ export async function exportResults(
         timeStyle: 'short',
       })}.${final ? ` Marked final ${timeWords(final.markedAt)}.` : ''}`,
       ...(note && { revisionNote: note }),
+      logos: logoUris(store),
     });
     writeFileSync(picked.filePath, await pdfOf(html));
   }

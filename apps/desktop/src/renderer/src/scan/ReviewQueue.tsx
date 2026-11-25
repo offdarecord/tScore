@@ -16,9 +16,12 @@ const REASONS: Record<string, string> = {
 export function ReviewQueue({
   event,
   scoreValues,
+  onManualEntry,
 }: {
   event: OpenEvent;
   scoreValues?: readonly number[];
+  /** Go to Manual entry, for a card that's easier typed in than decided here. */
+  onManualEntry?: () => void;
 }) {
   const [items, setItems] = useState<ReviewItem[] | null>(null);
   const [values, setValues] = useState<readonly number[]>(scoreValues ?? [0, 1, 2, 3, 5]);
@@ -62,6 +65,14 @@ export function ReviewQueue({
             onError={setError}
           />
         ))
+      )}
+      {onManualEntry && (
+        <Group gap="sm">
+          <Text c="dimmed">Card can&apos;t be read at all? Type it in by hand.</Text>
+          <Button variant="default" onClick={onManualEntry}>
+            Go to Manual entry
+          </Button>
+        </Group>
       )}
     </Stack>
   );

@@ -181,7 +181,9 @@ function NavLink(props: { label: string; current: boolean; count?: number; onCli
 export function EventMain({ event, page, onChange, onNavigate }: Props) {
   if (page.name === 'manual') return <ManualEntry event={event} />;
   if (page.name === 'scan') return <ScanDesk event={event} />;
-  if (page.name === 'review') return <ReviewQueue event={event} />;
+  if (page.name === 'review') {
+    return <ReviewQueue event={event} onManualEntry={() => onNavigate({ name: 'manual' })} />;
+  }
   if (page.name === 'labels') return <CardLabels event={event} />;
   if (page.name === 'check') {
     return (

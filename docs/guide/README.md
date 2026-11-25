@@ -6,7 +6,7 @@ of any screen to open the page for that screen.
 
 ## Pages
 
-1. [Getting started](getting-started.md): install tScore, find your way around, and where your
+1. [Getting started](getting-started.md): what you need, install tScore, find your way around, and where your
    events are kept.
 2. [Before the event](before-the-event.md): event setup, the entry list, rider numbers, card
    labels and the pre-event check.

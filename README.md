@@ -6,7 +6,8 @@
 
 **Free, open-source scoring for motorcycle trials, built for club volunteers at venues with no internet.**
 
-> **Status: pre-alpha.** tScore is in early development and not yet ready for events.
+> **Status: early version.** tScore is new and still growing: try it at home before you use it
+> at an event.
 > Follow progress in [Releases](https://github.com/offdarecord/tScore/releases) and the
 > [changelog](CHANGELOG.md).
 

@@ -21,6 +21,7 @@ import {
   type EntryStatus,
 } from '@tscore/core';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type {
   AppError,
   EntryListFile,
@@ -31,21 +32,21 @@ import type {
 } from '../../../shared/ipc';
 import { ErrorAlert } from '../ErrorAlert';
 
-export const COMPETITION_STATUS_LABEL: Record<CompetitionStatus, string> = {
-  competitive: 'Competitive',
-  no_award: 'No award',
-  non_competitive: 'Non-competitive (NC)',
-};
-const COMPETITION_STATUS_SHORT: Record<CompetitionStatus, string> = {
-  competitive: '',
-  no_award: 'NA',
-  non_competitive: 'NC',
-};
-const STATUS_LABEL: Record<EntryStatus, string> = {
-  riding: 'Riding',
-  dns: 'Did not start',
-  dnf: 'Did not finish',
-};
+export const COMPETITION_STATUS_LABEL = {
+  competitive: 'riders.competitive',
+  no_award: 'riders.noAward',
+  non_competitive: 'riders.nonCompetitive',
+} as const satisfies Record<CompetitionStatus, string>;
+export const COMPETITION_STATUS_SHORT = {
+  competitive: null,
+  no_award: 'riders.na',
+  non_competitive: 'riders.nc',
+} as const satisfies Record<CompetitionStatus, string | null>;
+const STATUS_LABEL = {
+  riding: 'riders.riding',
+  dns: 'riders.dns',
+  dnf: 'riders.dnf',
+} as const satisfies Record<EntryStatus, string>;
 
 export const riderName = (r: Pick<RiderInfo, 'riders'>) =>
   r.riders.map((p) => `${p.givenName} ${p.familyName}`.trim()).join(' & ');
@@ -66,6 +67,12 @@ interface Props {
  * their class, competition status or riding status.
  */
 export function Riders({ event, notice, onImport, onLabels, onEventChange }: Props) {
+  const { t } = useTranslation();
+  /** NA or NC beside a rider's name ('' when competitive). */
+  const short = (c: CompetitionStatus) => {
+    const key = COMPETITION_STATUS_SHORT[c];
+    return key ? t(key) : '';
+  };
   const [riders, setRiders] = useState<RiderInfo[] | null>(null);
   const [find, setFind] = useState('');
   const [editing, setEditing] = useState<RiderInfo | null>(null);
@@ -95,18 +102,17 @@ export function Riders({ event, notice, onImport, onLabels, onEventChange }: Pro
     <Stack gap="lg" maw={1100}>
       <Group justify="space-between" wrap="wrap" align="flex-start">
         <div>
-          <Title order={2}>Riders</Title>
+          <Title order={2}>{t('riders.title')}</Title>
           <Text c="dimmed">
-            {count === 1 ? '1 rider.' : `${count} riders.`} Change a name, machine, class or
-            competition status, or mark DNS or DNF. Every change is logged.
+            {t('riders.count', { count })} {t('riders.intro')}
           </Text>
         </div>
         <Group gap="sm">
           <Button variant={count ? 'default' : 'filled'} onClick={() => void choose()}>
-            Import from entry list…
+            {t('riders.import')}
           </Button>
           <Button variant="default" onClick={() => setAdding(true)}>
-            Late entry…
+            {t('riders.late')}
           </Button>
         </Group>
       </Group>
@@ -117,28 +123,22 @@ export function Riders({ event, notice, onImport, onLabels, onEventChange }: Pro
         </Alert>
       )}
       {error && (
-        <ErrorAlert
-          error={error}
-          title="The entry list wasn't read"
-          onClose={() => setError(null)}
-        />
+        <ErrorAlert error={error} title={t('riders.notRead')} onClose={() => setError(null)} />
       )}
       {added && (
         <Alert
           color="green"
           role="status"
-          title={`Rider ${added.number} added: ${added.name}`}
+          title={t('riders.added', { number: added.number, name: added.name })}
           withCloseButton
-          closeButtonLabel="Dismiss"
+          closeButtonLabel={t('riders.dismiss')}
           onClose={() => setAdded(null)}
         >
           <Group justify="space-between" wrap="wrap" gap="sm">
-            <span>
-              Print their card labels: on Card labels, choose “Only labels not printed yet”.
-            </span>
+            <span>{t('riders.printNew')}</span>
             {onLabels && (
               <Button variant="default" size="xs" onClick={onLabels}>
-                Go to Card labels
+                {t('riders.goToLabels')}
               </Button>
             )}
           </Group>
@@ -148,27 +148,23 @@ export function Riders({ event, notice, onImport, onLabels, onEventChange }: Pro
         <Alert
           color="yellow"
           role="status"
-          title={`Reprint rider ${reprint}'s labels`}
+          title={t('riders.reprint', { number: reprint })}
           withCloseButton
-          closeButtonLabel="Dismiss"
+          closeButtonLabel={t('riders.dismiss')}
           onClose={() => setReprint(null)}
         >
-          Their card labels were printed with the old name. On Card labels, choose “One rider
-          (reprint)” and rider {reprint}.
+          {t('riders.reprintHelp', { number: reprint })}
         </Alert>
       )}
 
-      <Paper withBorder radius="md" p="lg" component="section" aria-label="Rider list">
+      <Paper withBorder radius="md" p="lg" component="section" aria-label={t('riders.list')}>
         {riders === null ? null : count === 0 ? (
-          <Text c="dimmed">
-            No riders yet. Import the entry list: tScore reads Entryplace and Ridernet exports as
-            they come, and the tScore rider list for anything else.
-          </Text>
+          <Text c="dimmed">{t('riders.none')}</Text>
         ) : (
           <Stack gap="sm">
             <TextInput
-              label="Find"
-              placeholder="number or name"
+              label={t('riders.find')}
+              placeholder={t('riders.findPlaceholder')}
               value={find}
               onChange={(e) => setFind(e.currentTarget.value)}
               maw={320}
@@ -177,14 +173,14 @@ export function Riders({ event, notice, onImport, onLabels, onEventChange }: Pro
               <Table verticalSpacing="xs" striped>
                 <Table.Thead>
                   <Table.Tr>
-                    <Table.Th>No.</Table.Th>
-                    <Table.Th>Name</Table.Th>
-                    <Table.Th>Class</Table.Th>
-                    <Table.Th>Club</Table.Th>
-                    <Table.Th>Machine</Table.Th>
-                    <Table.Th>DNS / DNF</Table.Th>
+                    <Table.Th>{t('riders.number')}</Table.Th>
+                    <Table.Th>{t('riders.name')}</Table.Th>
+                    <Table.Th>{t('riders.class')}</Table.Th>
+                    <Table.Th>{t('riders.club')}</Table.Th>
+                    <Table.Th>{t('riders.machine')}</Table.Th>
+                    <Table.Th>{t('riders.dnsDnf')}</Table.Th>
                     <Table.Th>
-                      <VisuallyHidden>Actions</VisuallyHidden>
+                      <VisuallyHidden>{t('riders.actions')}</VisuallyHidden>
                     </Table.Th>
                   </Table.Tr>
                 </Table.Thead>
@@ -194,13 +190,13 @@ export function Riders({ event, notice, onImport, onLabels, onEventChange }: Pro
                       <Table.Td fw={700}>{r.number}</Table.Td>
                       <Table.Td>
                         {riderName(r)}{' '}
-                        {COMPETITION_STATUS_SHORT[r.competitionStatus] && (
+                        {short(r.competitionStatus) && (
                           <Badge
                             variant="light"
                             color="gray"
-                            title={COMPETITION_STATUS_LABEL[r.competitionStatus]}
+                            title={t(COMPETITION_STATUS_LABEL[r.competitionStatus])}
                           >
-                            {COMPETITION_STATUS_SHORT[r.competitionStatus]}
+                            {short(r.competitionStatus)}
                           </Badge>
                         )}
                       </Table.Td>
@@ -215,15 +211,15 @@ export function Riders({ event, notice, onImport, onLabels, onEventChange }: Pro
                       </Table.Td>
                       <Table.Td>{r.club ?? ''}</Table.Td>
                       <Table.Td>{r.machine ?? ''}</Table.Td>
-                      <Table.Td>{r.status === 'riding' ? '' : STATUS_LABEL[r.status]}</Table.Td>
+                      <Table.Td>{r.status === 'riding' ? '' : t(STATUS_LABEL[r.status])}</Table.Td>
                       <Table.Td ta="right">
                         <Button
                           variant="default"
                           size="xs"
-                          aria-label={`Change rider ${r.number}`}
+                          aria-label={t('riders.changeRider', { number: r.number })}
                           onClick={() => setEditing(r)}
                         >
-                          Change
+                          {t('riders.change')}
                         </Button>
                       </Table.Td>
                     </Table.Tr>
@@ -231,7 +227,7 @@ export function Riders({ event, notice, onImport, onLabels, onEventChange }: Pro
                 </Table.Tbody>
               </Table>
             </Table.ScrollContainer>
-            {shown.length === 0 && <Text c="dimmed">No rider matches “{find}”.</Text>}
+            {shown.length === 0 && <Text c="dimmed">{t('riders.noMatch', { find })}</Text>}
           </Stack>
         )}
       </Paper>
@@ -274,6 +270,7 @@ function RiderDialog(props: {
   /** `renamed`: a name was corrected, so printed labels may need reprinting. */
   onSaved: (riders: RiderInfo[], renamed: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const { rider } = props;
   const [names, setNames] = useState(rider.riders.map((p) => ({ ...p })));
   const [club, setClub] = useState(rider.club ?? '');
@@ -323,22 +320,32 @@ function RiderDialog(props: {
     <Modal
       opened
       onClose={props.onClose}
-      title={`Rider ${rider.number}: ${riderName(rider)}`}
-      closeButtonProps={{ 'aria-label': 'Close' }}
+      title={t('riders.dialogTitle', { number: rider.number, name: riderName(rider) })}
+      closeButtonProps={{ 'aria-label': t('riders.close') }}
     >
       <Stack gap="md">
         {names.map((p, i) => (
           <Group key={i} grow align="flex-start" wrap="nowrap">
             <TextInput
               label={
-                sidecar ? (i === 0 ? 'Driver first name' : 'Passenger first name') : 'First name'
+                sidecar
+                  ? i === 0
+                    ? t('riders.driverFirst')
+                    : t('riders.passengerFirst')
+                  : t('riders.first')
               }
               value={p.givenName}
               maxLength={NAME_MAX}
               onChange={(e) => setName(i, 'givenName', e.currentTarget.value)}
             />
             <TextInput
-              label={sidecar ? (i === 0 ? 'Driver surname' : 'Passenger surname') : 'Surname'}
+              label={
+                sidecar
+                  ? i === 0
+                    ? t('riders.driverSurname')
+                    : t('riders.passengerSurname')
+                  : t('riders.surname')
+              }
               value={p.familyName}
               maxLength={NAME_MAX}
               onChange={(e) => setName(i, 'familyName', e.currentTarget.value)}
@@ -347,63 +354,63 @@ function RiderDialog(props: {
         ))}
         {nameless && (
           <Text c="light-dark(#a51111, #ffa8a8)" size="sm" role="alert">
-            A rider needs a first name or a surname.
+            {t('riders.nameless')}
           </Text>
         )}
         <TextInput
-          label="Club"
+          label={t('riders.club')}
           value={club}
           maxLength={CLUB_MAX}
           onChange={(e) => setClub(e.currentTarget.value)}
         />
         <TextInput
-          label="Machine"
-          placeholder="e.g. Beta Evo 300"
+          label={t('riders.machine')}
+          placeholder={t('riders.machinePlaceholder')}
           value={machine}
           maxLength={MACHINE_MAX}
           onChange={(e) => setMachine(e.currentTarget.value)}
         />
         <NativeSelect
-          label="Class"
+          label={t('riders.class')}
           value={first}
           onChange={(e) => setFirst(e.currentTarget.value)}
           data={props.classes.map((c) => c)}
         />
         <NativeSelect
-          label="Second class"
-          description="Only for a rider whose scores also count in another class."
+          label={t('riders.secondClass')}
+          description={t('riders.secondClassHelp')}
           value={second}
           onChange={(e) => setSecond(e.currentTarget.value)}
           data={[
-            { value: '', label: 'None' },
+            { value: '', label: t('riders.noSecond') },
             ...props.classes.filter((c) => c !== first).map((c) => ({ value: c, label: c })),
           ]}
         />
         <NativeSelect
-          label="Competition status"
+          label={t('riders.competitionStatus')}
           value={competitionStatus}
           onChange={(e) => setCompetitionStatus(e.currentTarget.value as CompetitionStatus)}
-          data={(Object.keys(COMPETITION_STATUS_LABEL) as CompetitionStatus[]).map((t) => ({
-            value: t,
-            label: COMPETITION_STATUS_LABEL[t],
+          data={(Object.keys(COMPETITION_STATUS_LABEL) as CompetitionStatus[]).map((c) => ({
+            value: c,
+            label: t(COMPETITION_STATUS_LABEL[c]),
           }))}
         />
         <NativeSelect
-          label="Riding status"
+          label={t('riders.ridingStatus')}
           value={status}
           onChange={(e) => setStatus(e.currentTarget.value as EntryStatus)}
           data={(Object.keys(STATUS_LABEL) as EntryStatus[]).map((s) => ({
             value: s,
-            label: STATUS_LABEL[s],
+            label: t(STATUS_LABEL[s]),
           }))}
         />
         {error && <ErrorAlert error={error} withHelp={false} />}
         <Group justify="flex-end">
           <Button variant="default" onClick={props.onClose}>
-            Cancel
+            {t('riders.cancel')}
           </Button>
           <Button disabled={!changed || nameless} onClick={() => void save()}>
-            Save
+            {t('riders.save')}
           </Button>
         </Group>
       </Stack>
@@ -421,6 +428,7 @@ function LateEntryDialog(props: {
   onClose: () => void;
   onAdded: (number: number, riders: RiderInfo[]) => void;
 }) {
+  const { t } = useTranslation();
   const classes = props.event.setup.classes.filter((c) => c.scored !== false).map((c) => c.name);
   const next =
     props.riders.length > 0
@@ -444,9 +452,9 @@ function LateEntryDialog(props: {
   const wanted = Number(number.trim());
   const numberProblem =
     !/^\d{1,4}$/.test(number.trim()) || wanted < 1
-      ? 'A rider number is a whole number from 1 to 9999.'
+      ? t('riders.numberProblem')
       : props.riders.some((r) => r.number === wanted)
-        ? `Rider number ${wanted} is already taken. The next free number is ${next}.`
+        ? t('riders.taken', { number: wanted, next })
         : null;
   const first = people[0];
   const fullName = first ? `${first.givenName} ${first.familyName}`.trim().toLowerCase() : '';
@@ -482,14 +490,14 @@ function LateEntryDialog(props: {
     <Modal
       opened
       onClose={props.onClose}
-      title="Late entry"
-      closeButtonProps={{ 'aria-label': 'Close' }}
+      title={t('riders.lateTitle')}
+      closeButtonProps={{ 'aria-label': t('riders.close') }}
     >
       <Stack gap="md">
         <TextInput
-          label="Rider number"
+          label={t('riders.riderNumber')}
           required
-          description={`The next free number is ${next}. Numbers already given never change.`}
+          description={t('riders.nextFree', { next })}
           inputMode="numeric"
           value={number}
           onChange={(e) => setNumber(e.currentTarget.value)}
@@ -497,7 +505,7 @@ function LateEntryDialog(props: {
           maw={260}
         />
         <NativeSelect
-          label="Class"
+          label={t('riders.class')}
           value={className}
           onChange={(e) => setClassName(e.currentTarget.value)}
           data={classes}
@@ -506,7 +514,11 @@ function LateEntryDialog(props: {
           <Group key={i} grow align="flex-start" wrap="nowrap">
             <TextInput
               label={
-                sidecar ? (i === 0 ? 'Driver first name' : 'Passenger first name') : 'First name'
+                sidecar
+                  ? i === 0
+                    ? t('riders.driverFirst')
+                    : t('riders.passengerFirst')
+                  : t('riders.first')
               }
               required
               value={names[i]?.givenName ?? ''}
@@ -514,7 +526,13 @@ function LateEntryDialog(props: {
               onChange={(e) => setName(i, 'givenName', e.currentTarget.value)}
             />
             <TextInput
-              label={sidecar ? (i === 0 ? 'Driver surname' : 'Passenger surname') : 'Surname'}
+              label={
+                sidecar
+                  ? i === 0
+                    ? t('riders.driverSurname')
+                    : t('riders.passengerSurname')
+                  : t('riders.surname')
+              }
               required
               value={names[i]?.familyName ?? ''}
               maxLength={NAME_MAX}
@@ -524,44 +542,43 @@ function LateEntryDialog(props: {
         ))}
         {sameName && (
           <Text c="light-dark(#7a3500, #ffc078)" size="sm" role="status">
-            Rider {sameName.number} already has this name. If it&apos;s the same person riding a
-            second class, use Change on rider {sameName.number} instead.
+            {t('riders.sameName', { number: sameName.number })}
           </Text>
         )}
         <TextInput
-          label="Club"
+          label={t('riders.club')}
           required
           value={club}
           maxLength={CLUB_MAX}
           onChange={(e) => setClub(e.currentTarget.value)}
         />
         <TextInput
-          label="Machine"
-          placeholder="e.g. Beta Evo 300"
+          label={t('riders.machine')}
+          placeholder={t('riders.machinePlaceholder')}
           value={machine}
           maxLength={MACHINE_MAX}
           onChange={(e) => setMachine(e.currentTarget.value)}
         />
         <NativeSelect
-          label="Competition status"
+          label={t('riders.competitionStatus')}
           value={competitionStatus}
           onChange={(e) => setCompetitionStatus(e.currentTarget.value as CompetitionStatus)}
-          data={(Object.keys(COMPETITION_STATUS_LABEL) as CompetitionStatus[]).map((t) => ({
-            value: t,
-            label: COMPETITION_STATUS_LABEL[t],
+          data={(Object.keys(COMPETITION_STATUS_LABEL) as CompetitionStatus[]).map((c) => ({
+            value: c,
+            label: t(COMPETITION_STATUS_LABEL[c]),
           }))}
         />
         {error && <ErrorAlert error={error} withHelp={false} />}
         <Group justify="flex-end">
           <Button variant="default" onClick={props.onClose}>
-            Cancel
+            {t('riders.cancel')}
           </Button>
           <Button
             loading={busy}
             disabled={nameless || !tidyText(club) || numberProblem !== null || !className}
             onClick={() => void save()}
           >
-            Add rider
+            {t('riders.addRider')}
           </Button>
         </Group>
       </Stack>

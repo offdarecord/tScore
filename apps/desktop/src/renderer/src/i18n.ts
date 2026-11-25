@@ -2,12 +2,17 @@ import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { messagesFor, pickLanguage } from '../../shared/i18n';
 
+const inBrowser = typeof window !== 'undefined';
+
 /**
  * The screens' language: the one the main process passed in the page's address (`?lang=`), from
- * the laptop's language setting, else the browser's. English when there's no translation.
+ * the laptop's language setting, else the browser's. English when there's no translation, and
+ * in unit tests (no window).
  */
 export const language = pickLanguage(
-  new URLSearchParams(window.location.search).get('lang') ?? navigator.language,
+  inBrowser
+    ? (new URLSearchParams(window.location.search).get('lang') ?? navigator.language)
+    : 'en',
 );
 
 void i18next.use(initReactI18next).init({
@@ -20,6 +25,6 @@ void i18next.use(initReactI18next).init({
 });
 
 /** Mac or Windows, for the few words that differ ("Match Windows" or "Match System"). */
-export const isMac = /Mac/i.test(navigator.userAgent);
+export const isMac = inBrowser && /Mac/i.test(navigator.userAgent);
 
 export default i18next;

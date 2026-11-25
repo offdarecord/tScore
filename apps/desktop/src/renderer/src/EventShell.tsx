@@ -1,5 +1,6 @@
 import { Button, Stack, Text } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
+import i18next from './i18n';
 import type { EntryListFile, OpenEvent } from '../../shared/ipc';
 import { ManualEntry } from './cards/ManualEntry';
 import { PreEventCheck } from './check/PreEventCheck';
@@ -225,7 +226,7 @@ export function EventMain({ event, page, onChange, onNavigate }: Props) {
           onChange(next);
           onNavigate({
             name: 'riders',
-            notice: `${count} ${count === 1 ? 'rider' : 'riders'} imported.`,
+            notice: i18next.t('riders.imported', { count }),
           });
         }}
       />

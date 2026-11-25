@@ -12,10 +12,16 @@ import {
   Text,
   Title,
 } from '@mantine/core';
-import { planImport, type ImportChoices, type MatchedBy } from '@tscore/core';
+import {
+  planImport,
+  type CompetitionStatus,
+  type ImportChoices,
+  type MatchedBy,
+} from '@tscore/core';
 import { useEffect, useMemo, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import type { AppError, EntryListFile, OpenEvent, RiderInfo } from '../../../shared/ipc';
-import { riderName } from './Riders';
+import { COMPETITION_STATUS_SHORT, riderName } from './Riders';
 import { ErrorAlert } from '../ErrorAlert';
 
 interface Props {
@@ -25,20 +31,29 @@ interface Props {
   readonly onImported: (event: OpenEvent, count: number) => void;
 }
 
-const HOW: Record<MatchedBy, string> = {
-  name: 'Same name',
-  event_alias: 'Saved for this event',
-  preset: 'Known name',
-  tidy: 'Name tidied',
-  chosen: 'You chose',
-  left_out: 'Left out',
-  unknown: '',
-};
-
-const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+const HOW = {
+  name: 'import.howName',
+  event_alias: 'import.howEventAlias',
+  preset: 'import.howPreset',
+  tidy: 'import.howTidy',
+  chosen: 'import.howChosen',
+  left_out: 'import.howLeftOut',
+  unknown: null,
+} as const satisfies Record<MatchedBy, string | null>;
 
 /** Check what an entry list will add before anything is saved. */
 export function ImportRiders({ event, file, onCancel, onImported }: Props) {
+  const { t } = useTranslation();
+  /** How a class name was matched, in words ('' when it wasn't). */
+  const how = (by: MatchedBy) => {
+    const key = HOW[by];
+    return key ? t(key) : '';
+  };
+  /** NA or NC ('' when competitive). */
+  const short = (c: CompetitionStatus) => {
+    const key = COMPETITION_STATUS_SHORT[c];
+    return key ? t(key) : '';
+  };
   const [existing, setExisting] = useState<RiderInfo[] | null>(null);
   const [classes, setClasses] = useState<Record<string, string | null>>({});
   const [dontKeep, setDontKeep] = useState<string[]>([]);
@@ -79,7 +94,7 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
     <Stack gap="lg" maw={1200}>
       <Group justify="space-between" wrap="wrap">
         <div>
-          <Title order={2}>Import riders</Title>
+          <Title order={2}>{t('import.title')}</Title>
           <Text c="dimmed">{file.fileName}</Text>
         </div>
         <Text
@@ -92,7 +107,7 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
             borderRadius: 999,
           }}
         >
-          ✓ Recognised: {plan.source}
+          {t('import.recognised', { source: plan.source })}
         </Text>
       </Group>
 
@@ -100,20 +115,21 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
         <Stack gap="lg" style={{ flex: '999 1 560px', minWidth: 0 }}>
           <Paper withBorder radius="md" p="lg" component="section" aria-labelledby="classes-h">
             <Title order={3} id="classes-h" size="h4" mb="sm">
-              Classes
+              {t('import.classes')}
             </Title>
             <Text>
-              <strong>
-                {auto.length} of {plan.classes.length} class names
-              </strong>{' '}
-              matched automatically.{' '}
+              <Trans
+                i18nKey="import.matched"
+                values={{ auto: auto.length, total: plan.classes.length }}
+                components={{ strong: <strong /> }}
+              />{' '}
               {auto.length > 0 && (
                 <Button
                   variant="subtle"
                   size="compact-sm"
                   onClick={() => setShowMatches((s) => !s)}
                 >
-                  {showMatches ? 'Hide matches' : 'Show matches'}
+                  {showMatches ? t('import.hideMatches') : t('import.showMatches')}
                 </Button>
               )}
             </Text>
@@ -122,10 +138,10 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
                 <Table>
                   <Table.Thead>
                     <Table.Tr>
-                      <Table.Th>In the entry list</Table.Th>
-                      <Table.Th>Riders</Table.Th>
-                      <Table.Th>Event class</Table.Th>
-                      <Table.Th>How</Table.Th>
+                      <Table.Th>{t('import.inList')}</Table.Th>
+                      <Table.Th>{t('import.riders')}</Table.Th>
+                      <Table.Th>{t('import.eventClass')}</Table.Th>
+                      <Table.Th>{t('import.how')}</Table.Th>
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>
@@ -134,7 +150,7 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
                         <Table.Td>{c.raw}</Table.Td>
                         <Table.Td>{c.riders}</Table.Td>
                         <Table.Td>{c.className}</Table.Td>
-                        <Table.Td>{HOW[c.by]}</Table.Td>
+                        <Table.Td>{how(c.by)}</Table.Td>
                       </Table.Tr>
                     ))}
                   </Table.Tbody>
@@ -155,12 +171,16 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
                 }}
               >
                 <Text mb="xs">
-                  {plural(c.riders, 'rider')} entered <strong>“{c.raw}”</strong>, which isn't a
-                  class in this event. Which class do they ride?
+                  <Trans
+                    i18nKey="import.question"
+                    count={c.riders}
+                    values={{ raw: c.raw }}
+                    components={{ strong: <strong /> }}
+                  />
                 </Text>
                 <Group align="flex-end" gap="lg" wrap="wrap">
                   <NativeSelect
-                    label={`Event class for ${c.raw}`}
+                    label={t('import.classFor', { raw: c.raw })}
                     value={c.by === 'left_out' ? '__out' : (c.className ?? '')}
                     onChange={(e) => {
                       const v = e.currentTarget.value;
@@ -171,15 +191,15 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
                       });
                     }}
                     data={[
-                      { value: '', label: 'Choose a class…' },
+                      { value: '', label: t('import.chooseClass') },
                       ...eventClasses.map((n) => ({ value: n, label: n })),
-                      { value: '__out', label: 'Leave these riders out' },
+                      { value: '__out', label: t('import.leaveOut') },
                     ]}
                     miw={260}
                   />
                   {c.by === 'chosen' && (
                     <Checkbox
-                      label="Keep for future events (saved in this event's setup)"
+                      label={t('import.keepAlias')}
                       checked={!dontKeep.includes(c.raw)}
                       onChange={(e) => {
                         const keep = e.currentTarget.checked;
@@ -195,26 +215,31 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
           {plan.duplicates.length > 0 && (
             <Paper withBorder radius="md" p="lg" component="section" aria-labelledby="dup-h">
               <Title order={3} id="dup-h" size="h4" mb="xs">
-                Entered more than once
+                {t('import.duplicates')}
               </Title>
               <Text c="dimmed" mb="sm">
-                Often a double entry that was never cleaned up. Sometimes a rider really does ride
-                for a second class.
+                {t('import.duplicatesHelp')}
               </Text>
               <Stack gap="md">
                 {plan.duplicates.map((d) => {
-                  const options = d.classes.map((c) => ({ value: c, label: `Only ${c}` }));
+                  const options = d.classes.map((c) => ({
+                    value: c,
+                    label: t('import.only', { class: c }),
+                  }));
                   const [a, b] = d.classes;
                   if (d.classes.length === 2 && a && b) {
                     options.push({
                       value: `${a}\n${b}`,
-                      label: `${a}, with ${b} as a second class`,
+                      label: t('import.withSecond', { a, b }),
                     });
                   }
                   return (
                     <Radio.Group
                       key={d.key}
-                      label={`${d.name} is entered in ${d.classes.join(' and ')}`}
+                      label={t('import.enteredIn', {
+                        name: d.name,
+                        classes: d.classes.join(t('import.and')),
+                      })}
                       value={d.chosen?.join('\n') ?? ''}
                       onChange={(v) => setDuplicates((m) => ({ ...m, [d.key]: v.split('\n') }))}
                     >
@@ -232,16 +257,16 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
 
           <Paper withBorder radius="md" p="lg" component="section" aria-labelledby="num-h">
             <Title order={3} id="num-h" size="h4" mb="xs">
-              Rider numbers
+              {t('import.numbers')}
             </Title>
             {plan.entries.length === 0 ? (
-              <Text c="dimmed">No new riders to add.</Text>
+              <Text c="dimmed">{t('import.noNew')}</Text>
             ) : (
               <>
                 <Text mb="sm">
                   {plan.numbering === 'from_file'
-                    ? `Numbers from the file (${first}–${last}).`
-                    : `Numbers ${first}–${last}, in class order, then by surname.`}
+                    ? t('import.fromFile', { first, last })
+                    : t('import.generated', { first, last })}
                 </Text>
                 {plan.notes.map((n) => (
                   <Alert key={n} color="yellow" mb="sm">
@@ -249,13 +274,13 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
                   </Alert>
                 ))}
                 <Table.ScrollContainer minWidth={480}>
-                  <Table striped verticalSpacing={4} aria-label="New riders">
+                  <Table striped verticalSpacing={4} aria-label={t('import.newRiders')}>
                     <Table.Thead>
                       <Table.Tr>
-                        <Table.Th>No.</Table.Th>
-                        <Table.Th>Name</Table.Th>
-                        <Table.Th>Class</Table.Th>
-                        <Table.Th>Competition status</Table.Th>
+                        <Table.Th>{t('import.number')}</Table.Th>
+                        <Table.Th>{t('import.name')}</Table.Th>
+                        <Table.Th>{t('import.class')}</Table.Th>
+                        <Table.Th>{t('import.competitionStatus')}</Table.Th>
                       </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
@@ -264,13 +289,7 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
                           <Table.Td fw={700}>{e.number}</Table.Td>
                           <Table.Td>{riderName(e)}</Table.Td>
                           <Table.Td>{e.classes.join(' + ')}</Table.Td>
-                          <Table.Td>
-                            {e.competitionStatus === 'non_competitive'
-                              ? 'NC'
-                              : e.competitionStatus === 'no_award'
-                                ? 'NA'
-                                : ''}
-                          </Table.Td>
+                          <Table.Td>{short(e.competitionStatus)}</Table.Td>
                         </Table.Tr>
                       ))}
                     </Table.Tbody>
@@ -281,20 +300,20 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
           </Paper>
 
           {error && (
-            <ErrorAlert error={error} title="Nothing was imported" onClose={() => setError(null)} />
+            <ErrorAlert error={error} title={t('import.nothing')} onClose={() => setError(null)} />
           )}
           <Group>
             <Button disabled={!plan.ready || busy} loading={busy} onClick={() => void doImport()}>
               {plan.entries.length > 0
-                ? `Import ${plural(plan.entries.length, 'rider')}`
-                : 'Import'}
+                ? t('import.importN', { count: plan.entries.length })
+                : t('import.importNone')}
             </Button>
             <Button variant="default" onClick={onCancel}>
-              Cancel
+              {t('import.cancel')}
             </Button>
             {!plan.ready && plan.entries.length > 0 && (
               <Text c="dimmed" size="sm">
-                Answer the questions above first.
+                {t('import.answerFirst')}
               </Text>
             )}
           </Group>
@@ -303,27 +322,27 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
         <Stack gap="lg" style={{ flex: '1 1 280px', maxWidth: 380 }}>
           <Paper withBorder radius="md" p="lg" component="section" aria-labelledby="file-h">
             <Title order={3} id="file-h" size="h4" mb="xs">
-              From this file
+              {t('import.fromThis')}
             </Title>
             <List spacing={4}>
-              <List.Item>{plural(plan.rowsRead, 'row')} read</List.Item>
+              <List.Item>{t('import.rows', { count: plan.rowsRead })}</List.Item>
               {plan.skipped.map((s) => (
                 <List.Item key={s.reason}>
-                  {s.count} {s.reason} skipped
+                  {t('import.skipped', { count: s.count, reason: s.reason })}
                 </List.Item>
               ))}
               {plan.merged > 0 && (
-                <List.Item>
-                  {plural(plan.merged, 'repeated entry', 'repeated entries')} merged
-                </List.Item>
+                <List.Item>{t('import.merged', { count: plan.merged })}</List.Item>
               )}
               {plan.alreadyEntered > 0 && (
-                <List.Item>
-                  {plural(plan.alreadyEntered, 'rider')} already in this event, left as they are
-                </List.Item>
+                <List.Item>{t('import.already', { count: plan.alreadyEntered })}</List.Item>
               )}
               <List.Item>
-                <strong>{plural(plan.entries.length, 'rider')}</strong> to import
+                <Trans
+                  i18nKey="import.toImport"
+                  count={plan.entries.length}
+                  components={{ strong: <strong /> }}
+                />
               </List.Item>
             </List>
           </Paper>
@@ -335,13 +354,9 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
             aria-labelledby="priv-h"
           >
             <Title order={3} id="priv-h" size="h4" mb="xs">
-              Not imported
+              {t('import.notImported')}
             </Title>
-            <Text>
-              Dates of birth, addresses, phone numbers, medical and emergency details stay in the
-              entry system. tScore keeps only the name, class, club, machine, licence number and
-              competition status.
-            </Text>
+            <Text>{t('import.privacy')}</Text>
           </Paper>
         </Stack>
       </Group>

@@ -12,6 +12,7 @@ import {
   type EventSetupTypes,
   type ValidationIssue,
 } from '@tscore/core';
+import i18next from '../i18n';
 
 type Class = EventSetupTypes.Class;
 type Session = 'full' | 'am' | 'pm';
@@ -248,56 +249,58 @@ export interface Problem {
 export function problems(draft: Draft, base: EventSetup): Problem[] {
   const out: Problem[] = [];
   const add = (field: string, message: string) => out.push({ field, message });
+  const t = i18next.t;
 
-  if (!draft.name.trim()) add('event.name', 'Give the event a name.');
-  if (!isEventCode(draft.code.trim()))
-    add(
-      'event.code',
-      'The event code needs 2 to 16 capital letters, digits or hyphens, e.g. SSR3.',
-    );
+  if (!draft.name.trim()) add('event.name', t('setupProblems.name'));
+  if (!isEventCode(draft.code.trim())) add('event.code', t('setupProblems.code'));
   const first = whole(draft.firstNumber);
   if (!(first >= 1 && first <= 9999))
-    add('event.first_rider_number', 'First rider number: a whole number from 1 to 9999.');
+    add('event.first_rider_number', t('setupProblems.firstNumber'));
   const margin = whole(draft.overdueMargin);
-  if (!(margin >= 5 && margin <= 240))
-    add('overdue_margin_minutes', 'Overdue after: a whole number of minutes from 5 to 240.');
+  if (!(margin >= 5 && margin <= 240)) add('overdue_margin_minutes', t('setupProblems.overdue'));
   draft.days.forEach((d, i) => {
     if (!d.date)
-      add(`days[${i}].date`, `Choose the date${draft.days.length > 1 ? ` of day ${i + 1}` : ''}.`);
+      add(
+        `days[${i}].date`,
+        draft.days.length > 1
+          ? t('setupProblems.dayDate', { day: i + 1 })
+          : t('setupProblems.date'),
+      );
     if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(d.startTime))
-      add(`days[${i}].start_time`, 'Lap 1 start: a time such as 10:15.');
+      add(`days[${i}].start_time`, t('setupProblems.start'));
   });
-  if (draft.classes.length === 0) add('classes', 'Add at least one class.');
+  if (draft.classes.length === 0) add('classes', t('setupProblems.noClasses'));
   const seen = new Set<string>();
   draft.classes.forEach((c, i) => {
     const name = c.name.trim();
-    const label = name || `Class ${i + 1}`;
-    if (!name) add(`classes[${i}].name`, `${label} needs a name.`);
-    else if (seen.has(name.toLowerCase())) add(`classes[${i}].name`, `${name} is listed twice.`);
+    const label = name || t('setupProblems.classN', { n: i + 1 });
+    if (!name) add(`classes[${i}].name`, t('setupProblems.className', { label }));
+    else if (seen.has(name.toLowerCase()))
+      add(`classes[${i}].name`, t('setupProblems.twice', { name }));
     seen.add(name.toLowerCase());
     c.days.forEach((d, j) => {
-      const day = draft.days.length > 1 ? ` on day ${j + 1}` : '';
+      const day = draft.days.length > 1 ? t('setupProblems.onDay', { day: j + 1 }) : '';
       const laps = whole(d.laps);
       const sections = whole(d.sections);
       if (!(laps >= 0 && laps <= 10))
-        add(`classes[${i}].days.${j + 1}.laps`, `${label}: laps${day} must be 0 to 10.`);
+        add(`classes[${i}].days.${j + 1}.laps`, t('setupProblems.laps', { label, day }));
       else if (laps > 0 && !(sections >= 1))
         add(
           `classes[${i}].days.${j + 1}.sections`,
-          `${label} rides ${laps} laps${day} but has no sections. Enter the sections, or set laps to 0.`,
+          t('setupProblems.noSections', { label, laps, day }),
         );
       else if (laps > 0 && sections > 16)
         add(
           `classes[${i}].days.${j + 1}.sections`,
-          `${label} has ${sections} sections${day}, but the regional card has only 16 rows. Use 16 or fewer.`,
+          t('setupProblems.tooMany', { label, sections, day }),
         );
     });
   });
   draft.officials.forEach((o, i) => {
     const role = o.role.trim();
     const name = o.name.trim();
-    if (name && !role) add(`officials[${i}].role`, `Say what ${name} did, e.g. Clerk of Course.`);
-    if (role && !name) add(`officials[${i}].name`, `Give the ${role}'s name, or remove the row.`);
+    if (name && !role) add(`officials[${i}].role`, t('setupProblems.role', { name }));
+    if (role && !name) add(`officials[${i}].name`, t('setupProblems.officialName', { role }));
   });
   if (out.length) return out;
 

@@ -1,5 +1,6 @@
 import { Button, CloseButton, Group, Paper, Stack, Text, Title } from '@mantine/core';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { AppError, LogoView, OpenEvent, Outcome } from '../../../shared/ipc';
 import { ErrorAlert } from '../ErrorAlert';
 
@@ -7,6 +8,7 @@ const MAX_SPONSORS = 8;
 
 /** Event setup's "Logos": the event logo and sponsor logos for the results PDF and big screen. */
 export function LogosCard({ event }: { event: OpenEvent }) {
+  const { t } = useTranslation();
   const [logos, setLogos] = useState<LogoView[] | null>(null);
   const [error, setError] = useState<AppError | null>(null);
 
@@ -33,43 +35,43 @@ export function LogosCard({ event }: { event: OpenEvent }) {
       <Stack gap="md">
         <div>
           <Title order={2} size="h3" id="logos-heading">
-            Logos
+            {t('logos.title')}
           </Title>
           <Text size="sm" c="dimmed">
-            On the results PDF and the big screen. PNG or JPEG, up to 1 MB each.
+            {t('logos.help')}
           </Text>
         </div>
         {error && <ErrorAlert error={error} onClose={() => setError(null)} />}
         <div>
-          <Text fw={600}>Event logo</Text>
+          <Text fw={600}>{t('logos.event')}</Text>
           {eventLogo ? (
             <Logo
               logo={eventLogo}
-              name="event logo"
+              name={t('logos.eventName')}
               onRemove={(id) => void run(window.tscore.removeLogo(id))}
             />
           ) : (
-            <Text size="sm">None.</Text>
+            <Text size="sm">{t('logos.none')}</Text>
           )}
           <Button
             mt="xs"
             variant="default"
             onClick={() => void run(window.tscore.chooseLogo('event'))}
           >
-            {eventLogo ? 'Change event logo…' : 'Choose event logo…'}
+            {eventLogo ? t('logos.change') : t('logos.choose')}
           </Button>
         </div>
         <div>
-          <Text fw={600}>Sponsor logos</Text>
+          <Text fw={600}>{t('logos.sponsors')}</Text>
           {sponsors.length === 0 ? (
-            <Text size="sm">None.</Text>
+            <Text size="sm">{t('logos.none')}</Text>
           ) : (
             <Group gap="md" mt={4}>
               {sponsors.map((s, i) => (
                 <Logo
                   key={s.id}
                   logo={s}
-                  name={`sponsor logo ${i + 1}`}
+                  name={t('logos.sponsorName', { n: i + 1 })}
                   onRemove={(id) => void run(window.tscore.removeLogo(id))}
                 />
               ))}
@@ -81,11 +83,11 @@ export function LogosCard({ event }: { event: OpenEvent }) {
             disabled={sponsors.length >= MAX_SPONSORS}
             onClick={() => void run(window.tscore.chooseLogo('sponsor'))}
           >
-            Add sponsor logo…
+            {t('logos.addSponsor')}
           </Button>
           {sponsors.length >= MAX_SPONSORS && (
             <Text size="sm" c="dimmed">
-              Up to {MAX_SPONSORS}. Remove one to add another.
+              {t('logos.max', { max: MAX_SPONSORS })}
             </Text>
           )}
         </div>
@@ -95,6 +97,7 @@ export function LogosCard({ event }: { event: OpenEvent }) {
 }
 
 function Logo(props: { logo: LogoView; name: string; onRemove: (id: string) => void }) {
+  const { t } = useTranslation();
   return (
     <Group gap={4} align="flex-start" mt={4}>
       <img
@@ -111,7 +114,7 @@ function Logo(props: { logo: LogoView; name: string; onRemove: (id: string) => v
         }}
       />
       <CloseButton
-        aria-label={`Remove ${props.name}`}
+        aria-label={t('logos.remove', { name: props.name })}
         onClick={() => props.onRemove(props.logo.id)}
       />
     </Group>

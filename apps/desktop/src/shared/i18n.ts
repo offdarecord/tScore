@@ -23,9 +23,14 @@ export function pickLanguage(requested: string | null | undefined): string {
   return base in LANGUAGES ? base : 'en';
 }
 
+/** Every letter has an accented look-alike, so no plain English survives in pseudo text. */
 const ACCENTS: Record<string, string> = {
-  a: 'á', e: 'é', i: 'í', o: 'ö', u: 'ü', y: 'ý', c: 'ç', n: 'ñ', s: 'š', z: 'ž',
-  A: 'Å', E: 'É', I: 'Í', O: 'Ö', U: 'Ü', Y: 'Ý', C: 'Ç', N: 'Ñ', S: 'Š', Z: 'Ž',
+  a: 'á', b: 'ƀ', c: 'ç', d: 'ď', e: 'é', f: 'ƒ', g: 'ĝ', h: 'ĥ', i: 'í', j: 'ĵ', k: 'ķ',
+  l: 'ĺ', m: 'ṁ', n: 'ñ', o: 'ö', p: 'ṗ', q: 'ʠ', r: 'ŕ', s: 'š', t: 'ţ', u: 'ü', v: 'ṽ',
+  w: 'ŵ', x: 'ẋ', y: 'ý', z: 'ž',
+  A: 'Å', B: 'Ɓ', C: 'Ç', D: 'Ď', E: 'É', F: 'Ƒ', G: 'Ĝ', H: 'Ĥ', I: 'Í', J: 'Ĵ', K: 'Ķ',
+  L: 'Ĺ', M: 'Ṁ', N: 'Ñ', O: 'Ö', P: 'Ṗ', Q: 'Ǫ', R: 'Ŕ', S: 'Š', T: 'Ţ', U: 'Ü', V: 'Ṽ',
+  W: 'Ŵ', X: 'Ẋ', Y: 'Ý', Z: 'Ž',
 }; // prettier-ignore
 
 /**

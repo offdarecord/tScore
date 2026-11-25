@@ -1,4 +1,5 @@
 import { Button, Checkbox, Group, Stack, Table, Text, TextInput, Title } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import {
   newOfficial,
   sectionsOnDay,
@@ -21,6 +22,7 @@ const EMPTY: DraftSection = { name: '', observer: '' };
  * officials, to thank them by name on the results PDF. Names here are kept out of the logs.
  */
 export function SectionsCard({ draft, update, errorFor }: Props) {
+  const { t } = useTranslation();
   const days = draft.days.length;
 
   const setSection = (day: number, index: number, change: Partial<DraftSection>) =>
@@ -39,28 +41,25 @@ export function SectionsCard({ draft, update, errorFor }: Props) {
 
   return (
     <Stack gap="lg">
-      <Text c="dimmed">
-        Optional. Name the sections and who observed them, and list other officials, to thank them
-        by name at the end of the results.
-      </Text>
+      <Text c="dimmed">{t('sections.intro')}</Text>
       {draft.days.map((d, day) => {
         const count = sectionsOnDay(draft, day);
         if (count === 0) return null;
-        const on = days > 1 ? ` on day ${day + 1}` : '';
+        const on = days > 1 ? t('sections.onDay', { day: day + 1 }) : '';
         return (
           <div key={day}>
             {days > 1 && (
               <Title order={3} size="h4" mb="xs">
-                Day {day + 1}
+                {t('sections.day', { day: day + 1 })}
               </Title>
             )}
             <Table.ScrollContainer minWidth={640}>
               <Table verticalSpacing={6}>
                 <Table.Thead>
                   <Table.Tr>
-                    <Table.Th w={90}>Section</Table.Th>
-                    <Table.Th>Name or place</Table.Th>
-                    <Table.Th>Observer(s)</Table.Th>
+                    <Table.Th w={90}>{t('sections.section')}</Table.Th>
+                    <Table.Th>{t('sections.name')}</Table.Th>
+                    <Table.Th>{t('sections.observers')}</Table.Th>
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
@@ -71,8 +70,8 @@ export function SectionsCard({ draft, update, errorFor }: Props) {
                         <Table.Td fw={700}>{k + 1}</Table.Td>
                         <Table.Td>
                           <TextInput
-                            aria-label={`Name of section ${k + 1}${on}`}
-                            placeholder="e.g. Creek bed"
+                            aria-label={t('sections.nameOf', { n: k + 1, on })}
+                            placeholder={t('sections.namePlaceholder')}
                             maxLength={40}
                             value={s.name}
                             onChange={(e) => setSection(day, k, { name: e.currentTarget.value })}
@@ -80,8 +79,8 @@ export function SectionsCard({ draft, update, errorFor }: Props) {
                         </Table.Td>
                         <Table.Td>
                           <TextInput
-                            aria-label={`Observer of section ${k + 1}${on}`}
-                            placeholder="e.g. Pat Brown & Sam Lee"
+                            aria-label={t('sections.observerOf', { n: k + 1, on })}
+                            placeholder={t('sections.observerPlaceholder')}
                             maxLength={120}
                             value={s.observer}
                             onChange={(e) =>
@@ -101,14 +100,14 @@ export function SectionsCard({ draft, update, errorFor }: Props) {
 
       <div>
         <Title order={3} size="h4" mb="xs">
-          Other officials
+          {t('sections.officials')}
         </Title>
         <Stack gap="xs">
           {draft.officials.map((o, i) => (
             <Group key={o.key} align="flex-start" wrap="wrap" gap="sm">
               <TextInput
-                aria-label={`Role of official ${i + 1}`}
-                placeholder="e.g. Clerk of Course"
+                aria-label={t('sections.roleOf', { n: i + 1 })}
+                placeholder={t('sections.rolePlaceholder')}
                 maxLength={60}
                 value={o.role}
                 onChange={(e) => setOfficial(i, { role: e.currentTarget.value })}
@@ -116,8 +115,8 @@ export function SectionsCard({ draft, update, errorFor }: Props) {
                 w={240}
               />
               <TextInput
-                aria-label={`Name of official ${i + 1}`}
-                placeholder="Name"
+                aria-label={t('sections.nameOfOfficial', { n: i + 1 })}
+                placeholder={t('sections.officialPlaceholder')}
                 maxLength={120}
                 value={o.name}
                 onChange={(e) => setOfficial(i, { name: e.currentTarget.value })}
@@ -127,10 +126,10 @@ export function SectionsCard({ draft, update, errorFor }: Props) {
               <Button
                 variant="subtle"
                 color="red"
-                aria-label={`Remove official ${i + 1}`}
+                aria-label={t('sections.removeOfficial', { n: i + 1 })}
                 onClick={() => update({ officials: draft.officials.filter((_, j) => j !== i) })}
               >
-                Remove
+                {t('sections.remove')}
               </Button>
             </Group>
           ))}
@@ -139,15 +138,15 @@ export function SectionsCard({ draft, update, errorFor }: Props) {
               variant="default"
               onClick={() => update({ officials: [...draft.officials, newOfficial()] })}
             >
-              Add an official
+              {t('sections.add')}
             </Button>
           </Group>
         </Stack>
       </div>
 
       <Checkbox
-        label="Thank the observers and officials at the end of the results PDF"
-        description="Only when any names are entered."
+        label={t('sections.thanks')}
+        description={t('sections.thanksHelp')}
         checked={draft.thanks}
         onChange={(e) => update({ thanks: e.currentTarget.checked })}
       />

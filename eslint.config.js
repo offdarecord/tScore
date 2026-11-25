@@ -16,6 +16,13 @@ const TRANSLATED = [
   'ErrorAlert.tsx',
   'help/Help.tsx',
   'help/HelpPanel.tsx',
+  'setup/SetupForm.tsx',
+  'setup/SectionsCard.tsx',
+  'setup/BackupCard.tsx',
+  'setup/LogosCard.tsx',
+  'riders/Riders.tsx',
+  'riders/ImportRiders.tsx',
+  'riders/RiderPicker.tsx',
 ];
 
 export default tseslint.config(

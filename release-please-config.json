@@ -27,8 +27,7 @@
         { "type": "build", "section": "Build", "hidden": true },
         { "type": "ci", "section": "CI", "hidden": true },
         { "type": "chore", "section": "Chores", "hidden": true }
-      ],
-      "release-as": "0.7.1"
+      ]
     }
   }
 }

@@ -1,0 +1,87 @@
+name: Dependency watch
+
+# Two kinds of security update the vulnerability scanners can't see (docs/maintainers/
+# security-checks.md). Once a week:
+# - Electron: a new major, tScore's major about to lose (or past) security support, or a newer
+#   release of tScore's major not merged yet. Chromium and Node fixes arrive only this way.
+# - SheetJS (xlsx): installed from its own site, not npm, so Dependabot and npm audit can't
+#   track it.
+# Each keeps one open issue, updated in place, and closed when there's nothing left to do.
+on:
+  schedule:
+    - cron: '23 21 * * 0' # Mondays 08:23 Melbourne time (AEDT)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  electron:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Check Electron releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          node scripts/electron-support.mjs --report > electron.json
+          cat electron.json
+          title_prefix="Electron watch"
+          open=$(gh issue list --state open --search "\"$title_prefix\" in:title" --json number --jq '.[0].number // empty')
+          count=$(node -e 'console.log(require("./electron.json").findings.length)')
+          if [ "$count" = "0" ]; then
+            if [ -n "$open" ]; then
+              gh issue close "$open" --comment "Electron is up to date and supported. Nothing left to do."
+            fi
+            exit 0
+          fi
+          node -e '
+            const r = require("./electron.json");
+            const urgent = r.findings.some((f) => f.urgent);
+            const lines = r.findings.map((f) => `- ${f.urgent ? "**Urgent:** " : ""}${f.text}`);
+            console.log(`${urgent ? "Urgent: " : ""}Electron watch: ${r.findings.map((f) => f.kind).join(", ")}`);
+            require("fs").writeFileSync("body.md", [
+              `tScore is on Electron **${r.installed}**. Electron fixes security problems only in its three newest majors: now **${r.oldestSupported}–${r.latestMajor}**.`,
+              "",
+              ...lines,
+              "",
+              "Release notes: https://releases.electronjs.org/ · How to upgrade: docs/maintainers/security-checks.md",
+              "",
+              "_Checked by the weekly Dependency watch. This issue is updated in place and closed when nothing is left to do._",
+            ].join("\n"));
+          ' > title.txt
+          if [ -n "$open" ]; then
+            gh issue edit "$open" --title "$(cat title.txt)" --body-file body.md
+          else
+            gh issue create --title "$(cat title.txt)" --label dependencies --body-file body.md
+          fi
+
+  sheetjs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check SheetJS releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          installed=$(grep -oE 'xlsx-[0-9]+\.[0-9]+\.[0-9]+\.tgz' packages/store/package.json | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+          latest=$(curl -fsS 'https://git.sheetjs.com/api/v1/repos/sheetjs/sheetjs/tags?limit=1' | jq -r '.[0].name' | sed 's/^v//')
+          echo "installed=$installed latest=$latest"
+          if [ "$latest" = "$installed" ]; then exit 0; fi
+          if gh issue list --state open --search "\"SheetJS $latest\" in:title" --json number --jq 'length' | grep -qv '^0$'; then
+            echo "An issue is already open."
+            exit 0
+          fi
+          gh issue create --label dependencies --title "SheetJS $latest is out (tScore uses $installed)" --body "SheetJS (\`xlsx\`, which reads Ridernet's .xls exports) has released **$latest**. tScore installs it from SheetJS's own site, so Dependabot and npm audit don't track it.
+
+          1. Read the changes and any security notes: https://git.sheetjs.com/sheetjs/sheetjs/src/branch/master/CHANGELOG.md
+          2. Change the URL in \`packages/store/package.json\` to \`https://cdn.sheetjs.com/xlsx-$latest/xlsx-$latest.tgz\` and run \`npm install\`.
+          3. Run the import tests (\`npm test\`, \`npm run test:e2e\`).
+
+          _Opened by the weekly Dependency watch._"

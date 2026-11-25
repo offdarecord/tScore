@@ -1,0 +1,4 @@
+{
+  "_about": "High or critical npm audit advisories that are known not to reach users. Each needs the advisory id (GHSA-…), the reason, and an expiry date (YYYY-MM-DD) after which CI fails again. See docs/maintainers/security-checks.md.",
+  "exceptions": []
+}

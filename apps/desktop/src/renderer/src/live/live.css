@@ -1,0 +1,123 @@
+/* The big screen: large type and high contrast, read from across the room. */
+.live {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 28px 40px 96px;
+  background: light-dark(#ffffff, #121417);
+  color: light-dark(#111418, #f1f3f5);
+  font-size: 34px;
+  cursor: default;
+  user-select: none;
+}
+
+.live-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+  border-bottom: 4px solid currentColor;
+  padding-bottom: 12px;
+}
+
+.live-event {
+  margin: 0;
+  font-size: 48px;
+  font-weight: 800;
+}
+
+.live-status {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  padding: 4px 16px;
+  border-radius: 8px;
+}
+
+.live-provisional {
+  background: light-dark(#fff0de, #3f2a10);
+  color: light-dark(#6b2e00, #ffc078);
+}
+
+.live-final {
+  background: light-dark(#e3f4e6, #1c3b22);
+  color: light-dark(#123b17, #b2f2bb);
+}
+
+.live-wait {
+  font-size: 36px;
+}
+
+.live-class {
+  margin: 20px 0 8px;
+  font-size: 44px;
+  font-weight: 800;
+}
+
+.live-page {
+  font-size: 30px;
+  font-weight: 600;
+}
+
+.live-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.live-table th {
+  text-align: left;
+  font-size: 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 12px;
+  border-bottom: 2px solid currentColor;
+}
+
+.live-table td {
+  height: 62px;
+  padding: 0 12px;
+  border-bottom: 1px solid light-dark(#ced4da, #3a3f44);
+  white-space: nowrap;
+}
+
+.live-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.live-name {
+  width: 100%;
+  font-weight: 700;
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.live-total {
+  font-weight: 800;
+  font-size: 40px;
+}
+
+.live-foot {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 16px 40px;
+  background: light-dark(#f1f3f5, #1d2024);
+  font-size: 24px;
+}
+
+.live-tab {
+  padding: 4px 14px;
+  border-radius: 6px;
+}
+
+.live-tab-on {
+  background: light-dark(#111418, #f1f3f5);
+  color: light-dark(#ffffff, #111418);
+  font-weight: 800;
+}

@@ -1,0 +1,50 @@
+name: Website
+
+# The project website on GitHub Pages (https://offdarecord.github.io/tScore/): site/ plus the
+# README pictures and banner, built by scripts/build-site.mjs. Runs when they change and after
+# each release. Needs Settings → Pages → Source: GitHub Actions; until then the deploy job fails
+# harmlessly and nothing is published.
+on:
+  push:
+    branches: [main]
+    paths:
+      - site/**
+      - docs/media/**
+      - assets/tscore-banner.jpg
+      - scripts/build-site.mjs
+      - .github/workflows/pages.yml
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - run: node scripts/build-site.mjs
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

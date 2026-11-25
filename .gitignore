@@ -35,3 +35,6 @@ Thumbs.db
 # Playwright end-to-end output
 test-results/
 playwright-report/
+
+# Built website (npm run site)
+_site/

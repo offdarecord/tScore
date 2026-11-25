@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>tScore Test trial: rehearse the day at home</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      body {
+        font:
+          15px/1.5 'Segoe UI',
+          system-ui,
+          sans-serif;
+        color: #14181d;
+        background: #fff;
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 24px 16px 48px;
+      }
+      h1 {
+        font-size: 26px;
+        margin: 0 0 4px;
+      }
+      .sub {
+        color: #4f5a66;
+        margin: 0 0 18px;
+      }
+      .test {
+        display: inline-block;
+        background: #fff1e0;
+        color: #7a3500;
+        font-weight: 700;
+        padding: 2px 10px;
+        border-radius: 6px;
+      }
+      ol {
+        padding-left: 22px;
+      }
+      li {
+        margin: 0 0 10px;
+      }
+      li b {
+        display: block;
+      }
+      .time {
+        color: #4f5a66;
+        font-size: 13px;
+      }
+      code,
+      kbd {
+        font-family: Consolas, monospace;
+        background: #f3f5f7;
+        padding: 0 4px;
+        border-radius: 4px;
+      }
+      .box {
+        border: 1px solid #d9dfe5;
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin: 16px 0;
+      }
+      @media print {
+        body {
+          padding: 0;
+          font-size: 12.5px;
+        }
+        li {
+          margin-bottom: 6px;
+        }
+        .box {
+          margin: 10px 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Test trial: rehearse the day at home</h1>
+    <p class="sub">
+      <span class="test">TEST TRIAL</span> &nbsp;For tScore {{VERSION}}. About an hour. Invented
+      riders only: nothing here is a real event.
+    </p>
+
+    <p>
+      This kit takes you through a whole event with {{RIDERS}} invented riders, {{LAPS}} laps of
+      {{SECTIONS}} sections: import the entries, print labels, scan {{CARDS}} practice cards, and
+      mark results final. At the end tScore checks what it read against the answer key, so you know
+      your laptop, camera and printer are ready before a real event.
+    </p>
+
+    <div class="box">
+      <b>You need:</b> tScore installed, the document camera and black mat, an A4 printer, light
+      card (or plain paper), scissors, and a card punch or a black marker. Labels (Avery L7651) are
+      optional: plain paper works for a test.
+    </div>
+
+    <ol>
+      <li>
+        <b>Make the event</b> <span class="time">5 minutes</span> In tScore, choose
+        <b>New event</b>. Name it <code>{{EVENT_NAME}}</code> and give it the code
+        <code>{{EVENT_CODE}}</code>. In <b>Classes</b>, set <b>Trial 2</b>, <b>Trial 3</b> and
+        <b>Trial 4</b> to {{SECTIONS}} sections per lap and {{LAPS}} laps. Choose
+        <b>Create event</b>.
+      </li>
+      <li>
+        <b>Import the entries</b> <span class="time">2 minutes</span> On <b>Riders</b>, choose
+        <b>Import from entry list…</b> and pick <code>entry-list.xlsx</code> from this kit. It's in
+        the Entryplace format, so this tests the real import. Check the preview, then import
+        {{RIDERS}} riders.
+      </li>
+      <li>
+        <b>Print the labels</b> <span class="time">5 minutes</span> On <b>Card labels</b>, print the
+        labels on Avery L7651 sheets, or on plain paper and cut them out.
+      </li>
+      <li>
+        <b>Print and cut the practice cards</b> <span class="time">15 minutes</span> Print
+        <code>practice-cards.pdf</code> at <b>100% (actual size)</b>, not "fit to page", on light
+        card if you can. Measure the 100 mm line on any page: if it's not 100 mm, the printer scaled
+        it, and the cards won't read the same as real ones. Cut out the {{CARDS}} cards along their
+        outlines.
+      </li>
+      <li>
+        <b>Punch the scores</b> <span class="time">15 minutes</span> Under each page's cards is what
+        to punch on them. For each section, punch the hole for its score, or fill that circle in
+        solidly with a black marker. Stick each rider's lap label on the card it names.
+      </li>
+      <li>
+        <b>Scan the cards</b> <span class="time">10 minutes</span> On <b>Scan desk</b>, choose the
+        camera and put each card on the black mat. Clear cards save themselves; anything unclear
+        goes to the <b>Review queue</b>. Decide those there, just as on the day.
+      </li>
+      <li>
+        <b>Results</b> <span class="time">5 minutes</span> On <b>Results</b>, choose
+        <b>Check a test trial…</b> and pick <code>answer-key.json</code> from this kit. tScore says
+        how many cards it read correctly, and names any wrong cells, with what to look at (glare,
+        focus, framing, or the punch itself). Then mark the results final and save the PDF and CSV,
+        to see the whole day through.
+      </li>
+    </ol>
+
+    <div class="box">
+      <b>If cards are read wrongly:</b> check the light (no glare on the card), the camera height
+      (the whole card in view, with a margin), and that focus settles before the card is read. Fix
+      one thing, rescan the cards that were wrong (edit them on <b>Manual entry</b> or scan again),
+      and check again.
+    </div>
+
+    <p class="sub">
+      When you're done, delete the event from <b>Manage events</b> on the home screen. Questions:
+      see the tScore user guide, or tell the maintainers at github.com/offdarecord/tScore/issues.
+    </p>
+  </body>
+</html>

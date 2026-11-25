@@ -21,6 +21,9 @@ import {
   type ImportChoices,
   type SeriesRules,
   publicErrorCode,
+  checkTestTrial,
+  isTestTrialKey,
+  type TestTrialCheck,
 } from '@tscore/core';
 import {
   EventLibrary,
@@ -601,6 +604,45 @@ export const eventHandlers = {
       pending = { eventId: store.eventId, list };
       log.info('entry list read', { source: list.presetId, rows: list.rows.length });
       return { fileName: basename(file), list };
+    });
+  },
+
+  /** Check a Test trial rehearsal against the kit's answer key (#81). */
+  async checkTestTrial(win: BrowserWindow | null): Promise<Outcome<TestTrialCheck | null>> {
+    const options: Electron.OpenDialogOptions = {
+      title: 'Choose the Test trial answer key',
+      properties: ['openFile'],
+      filters: [{ name: 'Test trial answer key', extensions: ['json'] }],
+    };
+    const picked = win
+      ? await dialog.showOpenDialog(win, options)
+      : await dialog.showOpenDialog(options);
+    const file = picked.filePaths[0];
+    if (picked.canceled || !file) return { ok: true, value: null };
+    return attempt('checking the test trial', () => {
+      const store = openStore();
+      let key: unknown;
+      try {
+        if (statSync(file).size > 1_000_000) throw new Error('too big');
+        key = JSON.parse(readFileSync(file, 'utf8'));
+      } catch {
+        key = undefined;
+      }
+      if (!isTestTrialKey(key)) {
+        throw new StoreError('APP_NOT_A_KEY', "That file isn't a Test trial answer key.");
+      }
+      const riders = store.entries().map((e) => ({
+        number: e.number,
+        givenName: e.riders[0]?.givenName ?? '',
+        familyName: e.riders[0]?.familyName ?? '',
+      }));
+      const result = checkTestTrial(key, riders, store.cardLog());
+      log.info('test trial checked', {
+        eventId: store.eventId,
+        cards: result.cards,
+        right: result.right,
+      });
+      return result;
     });
   },
 

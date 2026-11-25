@@ -18,4 +18,5 @@ of any screen to open the page for that screen.
 7. [Event-day checklist](checklist.md): one page to print and take to the venue.
 8. [Troubleshooting](troubleshooting.md): common problems, and how to get help.
 9. [Error codes](errors.md): what each error code means and what to do.
-10. [Glossary](glossary.md): trials and tScore words.
+10. [Try a test trial](test-trial.md): rehearse the whole day at home with the Test trial kit.
+11. [Glossary](glossary.md): trials and tScore words.

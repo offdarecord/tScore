@@ -46,6 +46,12 @@ If a problem keeps happening, see [Troubleshooting](troubleshooting.md).
 
 **What to do:** Choose another folder, such as Documents, and save again.
 
+### TS-APP-007
+
+**That isn't a Test trial answer key.** Check a test trial needs the `answer-key.json` file from the Test trial kit, and the file chosen isn't one.
+
+**What to do:** Choose `answer-key.json` from the unzipped Test trial kit (download it from the latest release).
+
 ## Event files
 
 ### TS-DB-001

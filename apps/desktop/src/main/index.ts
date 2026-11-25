@@ -88,6 +88,9 @@ function registerIpc(): void {
   handle(IPC.openEventFile, (e) => eventHandlers.openFile(BrowserWindow.fromWebContents(e.sender)));
   handle(IPC.openRecentEvent, (_e, folder: string) => eventHandlers.openRecent(folder));
   handle(IPC.forgetEvent, (_e, folder: string) => eventHandlers.forget(folder));
+  handle(IPC.checkTestTrial, (e) =>
+    eventHandlers.checkTestTrial(BrowserWindow.fromWebContents(e.sender)),
+  );
   handle(IPC.manageEvents, () => manageHandlers.list());
   handle(IPC.removeCardScans, (_e, folders: string[]) => manageHandlers.removeCardScans(folders));
   handle(IPC.deleteEvents, (_e, chosen: { folder: string; code: string }[]) =>

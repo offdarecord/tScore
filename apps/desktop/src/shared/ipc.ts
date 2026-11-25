@@ -17,6 +17,7 @@ import type {
   SeriesRules,
   SeriesTally,
   ValidationIssue,
+  TestTrialCheck,
 } from '@tscore/core';
 
 export const IPC = {
@@ -60,6 +61,7 @@ export const IPC = {
   addPenalty: 'penalties:add',
   removePenalty: 'penalties:remove',
   results: 'results:view',
+  checkTestTrial: 'results:check-test-trial',
   exportResults: 'results:export',
   openExport: 'results:open-export',
   backupStatus: 'backup:status',
@@ -612,6 +614,8 @@ export interface TscoreApi {
   decideScores(decision: DecideScores): Promise<Outcome<ReviewItem[]>>;
   removePenalty(id: string): Promise<Outcome<CardDesk>>;
   results(): Promise<Outcome<ResultsView>>;
+  /** Shows the open dialog for a Test trial answer key, then checks the event against it. */
+  checkTestTrial(): Promise<Outcome<TestTrialCheck | null>>;
   /** Shows the save dialog, then saves. The saved path, or `null` if the desk cancels. */
   exportResults(kind: ExportKind, juniorInitials: boolean): Promise<Outcome<string | null>>;
   /** Open the file just saved. */

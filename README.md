@@ -61,7 +61,8 @@ More in [the tour](docs/tour.md). The pictures use an invented event and come fr
 
 The scan desk comes to about **A$150–220** on top of the laptop. No camera yet? Cards can be
 typed in on **Manual entry** instead. What to look for in a camera, and a 15-minute check when it
-arrives: [What you need](docs/guide/getting-started.md#what-you-need).
+arrives: [What you need](docs/guide/getting-started.md#what-you-need). To rehearse a whole event at
+home first, download the [Test trial kit](docs/guide/test-trial.md) from the latest release.
 
 ## Code signing policy
 

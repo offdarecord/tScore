@@ -33,6 +33,7 @@ import type {
 } from '../../../shared/ipc';
 import { ErrorAlert } from '../ErrorAlert';
 import { LiveScreenButton } from '../live/LiveScreenButton';
+import { isTestTrialEvent, TestTrialCheckButton } from './TestTrialCheck';
 
 type ClassResults = ResultsTypes.ClassResults;
 
@@ -88,6 +89,7 @@ export function Results({ event }: { readonly event: OpenEvent }) {
           <Text c="dimmed">Worked out from every card in so far. Updates as cards are saved.</Text>
         </div>
         <Group gap="sm" align="flex-start">
+          {isTestTrialEvent(event.setup.event.name) && <TestTrialCheckButton onError={setError} />}
           <LiveScreenButton />
           <Button
             onClick={() => void save('pdf')}

@@ -35,6 +35,11 @@ export const theme = createTheme({
     InputWrapper: {
       defaultProps: { inputWrapperOrder: ['label', 'input', 'description', 'error'] },
     },
+    // A light alert's title in its own colour (green 3.8:1 on pale green, yellow worse) is too
+    // faint: titles use the text colour, and the alert's colour stays in its background and icon.
+    Alert: {
+      styles: { title: { color: 'var(--mantine-color-text)' } },
+    },
   },
   other: {
     /** Scan desk: rider number and result are at least 48 px (ADR 0009). */

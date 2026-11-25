@@ -78,7 +78,7 @@ test('screens for the README and the feature tour', async () => {
 
   await window.getByRole('button', { name: 'New event' }).click();
   await window.getByLabel('Event name').fill('Hilltop Club Trial');
-  await window.getByLabel('Date', { exact: true }).fill(today());
+  await window.getByLabel(/^Date\b/).fill(today());
   await window.getByLabel('Lap 1 starts').fill('08:30');
   for (const cls of ['Trial 1', 'Trial 2', 'Trial 3', 'Juniors']) {
     await window.getByLabel(`Laps for ${cls}`, { exact: true }).fill('2');

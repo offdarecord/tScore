@@ -161,6 +161,7 @@ export function CardLabels({ event }: { readonly event: OpenEvent }) {
               {which === 'rider' && (
                 <NumberInput
                   label="Rider number"
+                  required
                   min={1}
                   max={9999}
                   allowDecimal={false}

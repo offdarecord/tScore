@@ -425,6 +425,7 @@ function FinalPanel(props: { view: ResultsView; onChange: (view: ResultsView) =>
             </Text>
             <Textarea
               label="Why are the results being reopened?"
+              required
               placeholder="e.g. Rider 12, lap 3 section 6: observer card misread, 3 not 5"
               autosize
               minRows={2}

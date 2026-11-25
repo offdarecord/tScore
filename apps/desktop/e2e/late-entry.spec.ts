@@ -23,7 +23,7 @@ const nav = () => window.getByRole('navigation', { name: 'Event' });
 async function eventWithTwoRiders() {
   await window.getByRole('button', { name: 'New event' }).click();
   await window.getByLabel('Event name').fill('Example Club Trial');
-  await window.getByLabel('Date', { exact: true }).fill('2027-02-06');
+  await window.getByLabel(/^Date\b/).fill('2027-02-06');
   await window.getByRole('button', { name: 'Create event' }).click();
   await expect(window.getByRole('heading', { name: 'Event setup', level: 1 })).toBeVisible();
   const csv = join(run.userData, 'riders.csv');
@@ -67,6 +67,10 @@ test('a late entry gets the next free number, and nobody else moves', async () =
   await dialog.getByLabel('First name').fill('Gray');
   await dialog.getByLabel('Surname').fill('Lake');
   await dialog.getByLabel('Machine').fill('Example 250');
+  // Club is required: Add rider waits for it.
+  await expect(dialog.getByRole('button', { name: 'Add rider' })).toBeDisabled();
+  await dialog.getByLabel('Club').fill('Example MCC');
+  await expect(dialog.getByLabel('Club')).toHaveAttribute('required', '');
 
   // A sidecar class asks for the passenger too.
   await dialog.getByLabel('Class').selectOption('Sidecar');

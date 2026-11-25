@@ -35,7 +35,7 @@ const at = (minutes: number) => `${p(start.getHours())}:${p(minutes)}`;
 async function eventEarlier() {
   await window.getByRole('button', { name: 'New event' }).click();
   await window.getByLabel('Event name').fill('Example Club Trial');
-  await window.getByLabel('Date', { exact: true }).fill(eventDate);
+  await window.getByLabel(/^Date\b/).fill(eventDate);
   await window.getByLabel('Lap 1 starts').fill(at(0));
   await window.getByLabel('Laps for Trial 3').fill('2');
   await window.getByRole('button', { name: 'Create event' }).click();

@@ -21,7 +21,7 @@ async function fillNewEvent(page: Page, name = 'Example Club Trial', date = '202
   await page.getByRole('button', { name: 'New event' }).click();
   await expect(page.getByRole('heading', { name: 'New event', level: 1 })).toBeVisible();
   await page.getByLabel('Event name').fill(name);
-  await page.getByLabel('Date', { exact: true }).fill(date);
+  await page.getByLabel(/^Date\b/).fill(date);
 }
 
 const eventFile = (code: string, date = '2027-02-06') =>
@@ -43,7 +43,7 @@ test('a new event is set up, saved in its own folder, and opened', async () => {
 
 test('says what to fix, in plain words, and saves nothing until it is fixed', async () => {
   await window.getByRole('button', { name: 'New event' }).click();
-  await window.getByLabel('Date', { exact: true }).fill('');
+  await window.getByLabel(/^Date\b/).fill('');
   await window.getByLabel('Sections per lap for Trial 1').fill('17');
   // Card limits show as soon as they're typed.
   await expect(window.getByText('the regional card has only 16 rows')).toBeVisible();
@@ -57,7 +57,7 @@ test('says what to fix, in plain words, and saves nothing until it is fixed', as
   expect(existsSync(run.eventsDir)).toBe(false);
 
   await window.getByLabel('Event name').fill('Winter Round 2');
-  await window.getByLabel('Date', { exact: true }).fill('2027-06-13');
+  await window.getByLabel(/^Date\b/).fill('2027-06-13');
   await window.getByLabel('Sections per lap for Trial 1').fill('12');
   await window.getByRole('button', { name: 'Create event' }).click();
   await expect(window.getByRole('heading', { name: 'Event setup', level: 1 })).toBeVisible();

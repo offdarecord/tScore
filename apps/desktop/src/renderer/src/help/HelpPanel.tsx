@@ -13,6 +13,8 @@ import {
 } from '@mantine/core';
 import type { Token, Tokens } from 'marked';
 import { Fragment, useEffect, useRef, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import i18next from '../i18n';
 import { CONTENTS, GUIDE, guideImage } from './guide';
 import { useHelp } from './Help';
 import { calloutOf, resolveLink, type Callout, type GuidePage } from './markdown';
@@ -27,6 +29,7 @@ const domId = (anchor: string) => `help-${anchor}`;
  * guide; **Back** returns; **Print** prints just this page (the event-day checklist fits on A4).
  */
 export function HelpPanel() {
+  const { t } = useTranslation();
   const help = useHelp();
   const topic = help.history.at(-1);
   const scroller = useRef<HTMLDivElement>(null);
@@ -58,7 +61,7 @@ export function HelpPanel() {
     <div
       className="help-panel"
       role="region"
-      aria-label="Help"
+      aria-label={t('help.panel')}
       style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
       // Esc closes help only from inside it: screens use Esc for their own Cancel.
       onKeyDown={(e) => {
@@ -80,7 +83,7 @@ export function HelpPanel() {
             disabled={help.history.length < 2}
             onClick={help.back}
           >
-            ← Back
+            {t('help.back')}
           </Button>
           <Button
             variant="subtle"
@@ -88,7 +91,7 @@ export function HelpPanel() {
             size="compact-md"
             onClick={() => help.show({ page: CONTENTS })}
           >
-            Contents
+            {t('help.contents')}
           </Button>
           <Button
             variant="subtle"
@@ -96,12 +99,12 @@ export function HelpPanel() {
             size="compact-md"
             onClick={() => help.show(HELP_TOPICS.checklist)}
           >
-            Checklist
+            {t('help.checklist')}
           </Button>
         </Group>
         <Group gap="xs">
           <Button variant="subtle" color="dark" size="compact-md" onClick={print}>
-            Print
+            {t('help.print')}
           </Button>
           <Button
             variant="subtle"
@@ -114,7 +117,7 @@ export function HelpPanel() {
               </Text>
             }
           >
-            Close
+            {t('help.close')}
           </Button>
         </Group>
       </Group>
@@ -147,13 +150,13 @@ const CALLOUT_COLOUR: Record<Callout, string> = {
   WARNING: 'orange',
   CAUTION: 'red',
 };
-const CALLOUT_TITLE: Record<Callout, string> = {
-  NOTE: 'Note',
-  TIP: 'Tip',
-  IMPORTANT: 'Important',
-  WARNING: 'Warning',
-  CAUTION: 'Caution',
-};
+const CALLOUT_TITLE = {
+  NOTE: 'help.note',
+  TIP: 'help.tip',
+  IMPORTANT: 'help.important',
+  WARNING: 'help.warning',
+  CAUTION: 'help.caution',
+} as const satisfies Record<Callout, string>;
 
 function Block({ page, token }: { page: GuidePage; token: Token }): ReactNode {
   switch (token.type) {
@@ -244,7 +247,11 @@ function Block({ page, token }: { page: GuidePage; token: Token }): ReactNode {
         );
       }
       return (
-        <Alert color={CALLOUT_COLOUR[callout.kind]} title={CALLOUT_TITLE[callout.kind]} mb="sm">
+        <Alert
+          color={CALLOUT_COLOUR[callout.kind]}
+          title={i18next.t(CALLOUT_TITLE[callout.kind])}
+          mb="sm"
+        >
           <Blocks page={page} tokens={callout.body} />
         </Alert>
       );

@@ -2,8 +2,21 @@
 import js from '@eslint/js';
 import prettier from 'eslint-config-prettier';
 import reactHooks from 'eslint-plugin-react-hooks';
+import i18next from 'eslint-plugin-i18next';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
+
+/** Renderer files whose wording is all in locales/en.json (#64). */
+const TRANSLATED = [
+  'App.tsx',
+  'Home.tsx',
+  'EventShell.tsx',
+  'ColorSchemeSwitch.tsx',
+  'ComingSoonButton.tsx',
+  'ErrorAlert.tsx',
+  'help/Help.tsx',
+  'help/HelpPanel.tsx',
+];
 
 export default tseslint.config(
   {
@@ -50,6 +63,33 @@ export default tseslint.config(
     },
     plugins: { 'react-hooks': reactHooks },
     rules: reactHooks.configs.recommended.rules,
+  },
+  // Screens' wording comes from locales/en.json, never written straight into the markup (#64).
+  // The list grows as screens are converted; when every screen is, it becomes the whole renderer.
+  {
+    files: TRANSLATED.map((f) => `apps/desktop/src/renderer/src/${f}`),
+    plugins: { i18next },
+    rules: {
+      'i18next/no-literal-string': [
+        'error',
+        {
+          mode: 'jsx-only',
+          'jsx-attributes': {
+            include: [
+              'label',
+              'title',
+              'placeholder',
+              'description',
+              'alt',
+              'aria-label',
+              'aria-description',
+            ],
+          },
+          // Symbols, numbers and separators aren't words, nor are code values such as 'dark'.
+          words: { exclude: ['^[\\s\\W\\d]*$', '^[a-z][a-z0-9_-]*$'] },
+        },
+      ],
+    },
   },
   prettier,
 );

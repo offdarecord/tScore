@@ -41,6 +41,7 @@
     "@types/node": "^24.0.0",
     "eslint": "^10.15.0",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-i18next": "6.1.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "fast-check": "^4.11.0",
     "globals": "^17.14.0",

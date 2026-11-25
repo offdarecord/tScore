@@ -10,6 +10,7 @@
  */
 import { join } from 'node:path';
 import { app, BrowserWindow, screen, shell } from 'electron';
+import { uiLanguage } from './locale';
 import type { LiveWindowState } from '../shared/ipc';
 
 let live: BrowserWindow | null = null;
@@ -58,8 +59,15 @@ export function showLiveWindow(desk: BrowserWindow | null, rendererUrl: string |
     live = null;
     onSecondScreen = false;
   });
-  if (rendererUrl && !app.isPackaged) void live.loadURL(`${rendererUrl}#live`);
-  else void live.loadFile(join(__dirname, '../renderer/index.html'), { hash: 'live' });
+  const lang = uiLanguage();
+  if (rendererUrl && !app.isPackaged) {
+    void live.loadURL(`${rendererUrl}?lang=${encodeURIComponent(lang)}#live`);
+  } else {
+    void live.loadFile(join(__dirname, '../renderer/index.html'), {
+      query: { lang },
+      hash: 'live',
+    });
+  }
   return liveWindowState();
 }
 

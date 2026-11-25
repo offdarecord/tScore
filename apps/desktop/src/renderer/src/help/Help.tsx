@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import { HELP_TOPICS, type HelpTopic, type HelpTopicName } from './topics';
 
 interface HelpState {
@@ -56,6 +57,7 @@ export function HelpProvider({ children }: { children: ReactNode }) {
  * F1 does the same from anywhere.
  */
 export function HelpButton({ topic }: { topic: HelpTopicName }) {
+  const { t } = useTranslation();
   const help = useHelp();
   const open = () => help.show(HELP_TOPICS[topic]);
   // `[]`: no tags ignored, so F1 works while typing in a box too.
@@ -69,7 +71,7 @@ export function HelpButton({ topic }: { topic: HelpTopicName }) {
       aria-keyshortcuts="F1"
       data-help-opener
     >
-      Help
+      {t('help.button')}
     </Button>
   );
 }

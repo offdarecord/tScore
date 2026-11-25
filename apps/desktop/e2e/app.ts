@@ -18,6 +18,8 @@ export interface Launched {
  */
 export async function launchApp(
   from?: Pick<Launched, 'eventsDir' | 'userData'>,
+  /** Extra environment, e.g. TSCORE_TEST_LOCALE for the pseudo-language. */
+  env: Record<string, string> = {},
 ): Promise<Launched> {
   const root = join(__dirname, '..');
   const userData = from?.userData ?? mkdtempSync(join(tmpdir(), 'tscore-e2e-'));
@@ -33,6 +35,7 @@ export async function launchApp(
       ELECTRON_RENDERER_URL: '',
       TSCORE_TEST_USER_DATA: userData,
       TSCORE_TEST_EVENTS_DIR: eventsDir,
+      ...env,
     },
   });
   const window = await app.firstWindow();

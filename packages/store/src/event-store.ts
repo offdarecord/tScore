@@ -924,6 +924,21 @@ export class EventStore {
     this.#tx(() => this.#audit('event.restore', this.eventId, { from }));
   }
 
+  /** Save a consistent copy of the event file at `path`, which must not exist yet. */
+  copyTo(path: string): void {
+    backupTo(this.#db, path);
+  }
+
+  /** Record that a copy was saved to move this event to another laptop (file name only). */
+  noteMovedOut(file: string): void {
+    this.#tx(() => this.#audit('event.move_out', this.eventId, { file }));
+  }
+
+  /** Record that this event came from another laptop's copy (file name only). */
+  noteMovedIn(from: string): void {
+    this.#tx(() => this.#audit('event.move_in', this.eventId, { from }));
+  }
+
   /**
    * Save a consistent copy of the event file in `backups/` and return its path. Keeps the
    * newest `keep` automatic backups; named ones (label other than "auto") are never pruned.

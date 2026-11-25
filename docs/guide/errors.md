@@ -66,6 +66,12 @@ If a problem keeps happening, see [Troubleshooting](troubleshooting.md).
 
 **What to do:** Choose a new, empty folder, or let tScore make one in `Documents\tScore`.
 
+### TS-DB-005
+
+**That copy of the event can't be opened.** The file saved to move an event to another laptop isn't complete or has been damaged (for example the USB stick was pulled out while it was saving), or it isn't a tScore event file.
+
+**What to do:** On the first laptop, choose **Save a copy for another laptop…** again, wait for "Saved and checked", then open the new copy (see [Move an event to another laptop](backups.md#move-an-event-to-another-laptop)).
+
 ## Event setup
 
 ### TS-SET-001

@@ -47,4 +47,5 @@ button, and nothing is lost if the laptop goes flat.
 Backups go in the event's `backups` folder, and to a USB stick if you choose one. See
 [Backups and restore](backups.md).
 
-To move an event to another laptop, copy its whole folder, then use **Open event file…** there.
+To move an event to another laptop, see
+[Move an event to another laptop](backups.md#move-an-event-to-another-laptop).

@@ -30,6 +30,8 @@
     "gen:errors": "node scripts/gen-errors.mjs",
     "gen:suggestion": "node scripts/gen-suggestion.mjs",
     "check:errors": "node scripts/gen-errors.mjs --check",
+    "check:audit": "node scripts/audit.mjs",
+    "check:electron": "node scripts/electron-support.mjs",
     "check": "npm run check:schemas && npm run check:errors && npm run lint && npm run format:check && npm run typecheck && npm test",
     "test:e2e": "npm run test:e2e -w apps/desktop"
   },

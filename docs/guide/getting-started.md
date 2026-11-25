@@ -11,6 +11,49 @@
 Install and try tScore at home, with internet, well before the event. On the day it needs no
 internet at all.
 
+## What you need
+
+| Item            | What                                                                                                                                                                 | Approx. cost (Nov 2026)   |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| Laptop          | Windows 10 or 11, 64-bit. A Mac version is coming.                                                                                                                   | The club's own            |
+| Document camera | A USB document camera on a rigid stand, looking straight down at the desk (see below).                                                                               | A$140–200                 |
+| Card labels     | Avery **L7651** / J8651 (Officeworks PPS78651): A4, 65 per sheet, 38.1 × 21.2 mm. Printed at 100% (actual size).                                                     | One pack does many events |
+| Printer         | Any A4 printer that takes label sheets.                                                                                                                              | The club's own            |
+| Black mat       | An A4 sheet of **matte** black EVA foam or black card, under the camera. Punched holes show black against it, so tScore can read them. Not shiny: glare hides holes. | A$5–10                    |
+
+The scan desk comes to about **A$150–220** on top of the laptop. The camera is only for the
+**Scan desk**: without one, type cards in on **Manual entry**.
+
+### Choosing a document camera
+
+We're still trying cameras at real events before recommending particular models. For now, any
+camera that meets these needs should work:
+
+- **Plug and play over USB:** it shows up in the Windows Camera app with no driver, app, account
+  or internet.
+- **On a rigid stand**, looking straight down from about 25–40 cm, seeing at least one whole card
+  plus a margin (about 10 × 18 cm). Handheld, clip-on and gooseneck cameras wobble and don't work.
+- **Full HD (1920 × 1080) video or better**, at 15 frames per second or more. 8 MP models give
+  extra margin.
+- **A built-in adjustable LED light**, or a small USB LED bar beside it: tents are dim or patchy.
+- **Focus that settles** quickly and doesn't keep hunting between cards.
+- **Powered from the laptop's USB**, with no mains adapter.
+
+Avoid sheet-feed scanners (wet, muddy, punched cards jam them), Wi-Fi or phone-app cameras, and
+HDMI-only presenters.
+
+Being tried, not yet recommended: INSWAN INS-1 (built-in light), IPEVO V4K (add a USB LED),
+INSWAN INS-2, IPEVO DO-CAM.
+
+### When the camera arrives: a 15-minute check
+
+1. Plug it in. It appears in the Windows **Camera** app with nothing to install.
+2. Put a card on the black mat. The whole card is in view, with a margin, and the label's QR code
+   is sharp.
+3. Punched holes look clearly black, with no glare from the light.
+4. Swap cards a few times. Focus settles within about a second.
+5. In tScore, open **Scan desk**, choose the camera, and scan a card for a rider in a test event.
+
 ## Updates
 
 When the laptop is online and no event is open, tScore checks for a new version as it starts.

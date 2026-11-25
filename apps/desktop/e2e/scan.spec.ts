@@ -88,6 +88,10 @@ test('a clear card is saved by itself; an unclear one goes to review and is deci
   await item.getByRole('button', { name: 'Save scores' }).click();
   await expect(window.getByText('Nothing to review.')).toBeVisible();
 
+  // The link at the bottom goes to Manual entry.
+  await window.getByRole('button', { name: 'Go to Manual entry' }).click();
+  await expect(window.getByRole('heading', { name: 'Manual entry', level: 2 })).toBeVisible();
+
   // Both laps count in the results now.
   await nav().getByRole('button', { name: 'Results' }).click();
   await expect(window.getByText('PROVISIONAL')).toHaveCount(0);

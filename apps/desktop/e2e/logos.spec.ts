@@ -55,7 +55,9 @@ test('the event and sponsor logos are chosen on Event setup and shown on the big
   writeFileSync(fake, 'not a picture');
   await pick(fake);
   await card.getByRole('button', { name: 'Add sponsor logo…' }).click();
-  await expect(card.getByRole('alert')).toContainText('A logo must be a PNG or JPEG picture. (TS-SET-005)');
+  await expect(card.getByRole('alert')).toContainText(
+    'A logo must be a PNG or JPEG picture. (TS-SET-005)',
+  );
 
   await window.mouse.move(700, 20);
   const axe = await new AxeBuilder({ page: window })

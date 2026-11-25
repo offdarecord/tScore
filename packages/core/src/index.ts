@@ -35,6 +35,9 @@ export * from './labels/index.js';
 // Series points across the rounds of a series (issue #14).
 export * from './series.js';
 
+// Suggest a feature: one list of questions for the app, the public page and the issue form.
+export * from './suggestion.js';
+
 // The error catalogue (ADR 0012; docs/guide/errors.md).
 export * from './errors.js';
 

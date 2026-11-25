@@ -40,6 +40,12 @@ If a problem keeps happening, see [Troubleshooting](troubleshooting.md).
 
 **What to do:** The file is saved. Open it from its folder, or install a program for that kind of file (a PDF reader for PDFs).
 
+### TS-APP-006
+
+**Couldn't save the file.** Windows wouldn't let tScore write the file there (the folder may be read-only, full or gone).
+
+**What to do:** Choose another folder, such as Documents, and save again.
+
 ## Event files
 
 ### TS-DB-001

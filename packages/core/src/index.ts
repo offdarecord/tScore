@@ -32,6 +32,9 @@ export * from './import/index.js';
 // Card labels (architecture §8.1; templates in presets/label-templates/).
 export * from './labels/index.js';
 
+// Suggest a feature: one list of questions for the app, the public page and the issue form.
+export * from './suggestion.js';
+
 // The error catalogue (ADR 0012; docs/guide/errors.md).
 export * from './errors.js';
 

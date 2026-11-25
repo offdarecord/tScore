@@ -19,6 +19,9 @@ import type {
 
 export const IPC = {
   appInfo: 'app:info',
+  emailSuggestion: 'suggest:email',
+  copySuggestion: 'suggest:copy',
+  saveSuggestion: 'suggest:save',
   recentEvents: 'events:recent',
   createEvent: 'events:create',
   openEventFile: 'events:open-file',
@@ -225,12 +228,20 @@ export interface ResultsView {
   readonly changes?: readonly string[];
 }
 
+/** How a suggestion left tScore (never sent by tScore itself). */
+export interface SuggestionSent {
+  readonly via: 'email' | 'email-and-clipboard' | 'clipboard' | 'file' | 'none';
+  readonly file?: string;
+}
+
 export interface AppInfo {
   readonly name: string;
   readonly version: string;
   readonly electron: string;
   readonly platform: string;
   readonly arch: string;
+  /** e.g. "Windows 11 Home (10.0.26200)", for feature suggestions. */
+  readonly os: string;
   /** Where new events are saved. */
   readonly eventsDir: string;
 }
@@ -384,6 +395,11 @@ export type Outcome<T> =
 
 export interface TscoreApi {
   getAppInfo(): Promise<AppInfo>;
+  /** Opens the mail app with the suggestion (via the clipboard if it's long). */
+  emailSuggestion(text: string): Promise<Outcome<SuggestionSent>>;
+  copySuggestion(text: string): Promise<Outcome<SuggestionSent>>;
+  /** Shows the save dialog, then saves the suggestion as a text file. */
+  saveSuggestion(text: string): Promise<Outcome<SuggestionSent>>;
   recentEvents(): Promise<RecentEventInfo[]>;
   createEvent(setup: EventSetup): Promise<Outcome<OpenEvent>>;
   /** Shows the open dialog. `null` if the desk cancels. */

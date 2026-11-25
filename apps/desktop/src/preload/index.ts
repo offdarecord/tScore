@@ -8,6 +8,9 @@ const call =
 
 const api: TscoreApi = {
   getAppInfo: call(IPC.appInfo),
+  emailSuggestion: call(IPC.emailSuggestion),
+  copySuggestion: call(IPC.copySuggestion),
+  saveSuggestion: call(IPC.saveSuggestion),
   recentEvents: call(IPC.recentEvents),
   createEvent: call(IPC.createEvent),
   openEventFile: call(IPC.openEventFile),

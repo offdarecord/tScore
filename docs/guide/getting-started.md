@@ -25,6 +25,8 @@ It downloads it and installs it the next time tScore closes. It never updates du
   entry, Progress, Still on course, Results). **← All events** goes back to Home.
 - **Help** (or **F1**) at the top opens this guide beside the screen you're on.
 - Grey buttons that say "Coming in a later version" are features not built yet.
+- **About → Suggest a feature** asks a few questions about an idea, then lets you email, copy
+  or save it. It works without internet.
 
 ## Your first event
 

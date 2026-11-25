@@ -10,3 +10,5 @@ CHANGELOG.md
 LICENSE
 test-results
 playwright-report
+docs/suggest-a-feature.md
+.github/ISSUE_TEMPLATE/feature_request.yml

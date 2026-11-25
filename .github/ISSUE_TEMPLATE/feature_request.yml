@@ -1,20 +1,88 @@
+# Generated from packages/core/src/suggestion.ts by `npm run gen:suggestion`.
 name: Idea or feature request
 description: Suggest something that would help your club
 labels: [enhancement]
 body:
-  - type: textarea
-    id: problem
+  - type: markdown
     attributes:
-      label: What problem would this solve?
-      description: Describe what happens today at your events and what's hard about it.
+      value: "No GitHub account? Use **About → Suggest a feature** in tScore, or email the same questions to tscoreapp@outlook.com. Please don't post riders' names or details."
+  - type: input
+    id: summary
+    attributes:
+      label: 'In a few words, what would you like?'
+    validations:
+      required: true
+  - type: dropdown
+    id: role
+    attributes:
+      label: 'What do you do at events?'
+      options:
+        - 'Results desk'
+        - 'Club secretary'
+        - 'Clerk of Course'
+        - 'Observer'
+        - 'Rider'
+        - 'Other'
     validations:
       required: true
   - type: textarea
-    id: idea
+    id: today
     attributes:
-      label: What would you like tScore to do?
+      label: 'What happens today, and what''s hard about it?'
+      description: 'How do you get round it now?'
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 'What would you like tScore to do instead?'
+    validations:
+      required: false
+  - type: textarea
+    id: success
+    attributes:
+      label: 'How would you know it''s working?'
+      description: 'Describe the moment at an event when it pays off.'
+    validations:
+      required: true
+  - type: textarea
+    id: not
+    attributes:
+      label: 'What should it not do?'
+      description: 'Anything that would make it worse, or that''s out of scope.'
+    validations:
+      required: false
+  - type: dropdown
+    id: when
+    attributes:
+      label: 'When does it matter?'
+      options:
+        - 'Before the event'
+        - 'On the day'
+        - 'After the event (results and publishing)'
+    validations:
+      required: false
+  - type: dropdown
+    id: value
+    attributes:
+      label: 'How much would it help?'
+      options:
+        - 'Nice to have'
+        - 'Saves time every event'
+        - 'We can''t run our event without it'
+    validations:
+      required: false
+  - type: textarea
+    id: example
+    attributes:
+      label: 'Example or picture'
+      description: 'Describe it, or attach a photo of a paper form or a screenshot to your email or issue. Please hide riders'' names and details.'
+    validations:
+      required: false
   - type: input
-    id: who
+    id: contact
     attributes:
-      label: Who would use it?
-      placeholder: e.g. results desk, club secretary, Clerk of Course
+      label: 'Can we contact you about it?'
+      description: 'Name and club. Removed before anything is made public.'
+    validations:
+      required: false

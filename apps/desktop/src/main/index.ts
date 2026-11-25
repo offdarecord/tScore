@@ -1,3 +1,4 @@
+import os from 'node:os';
 import { join } from 'node:path';
 import { app, BrowserWindow, ipcMain, shell, type IpcMainInvokeEvent } from 'electron';
 import log from 'electron-log/main';
@@ -11,6 +12,7 @@ import {
 import { startBackups } from './backups';
 import { closeEvents, currentStore, eventHandlers, eventsDir } from './events';
 import { startLogging } from './logging';
+import { copySuggestion, emailSuggestion, saveSuggestion } from './suggestion';
 import { checkForUpdatesWhenSafe } from './updates';
 
 // Automated tests run the app with its own data folder, so they never touch (or get blocked by)
@@ -53,8 +55,14 @@ function registerIpc(): void {
     electron: process.versions.electron,
     platform: process.platform,
     arch: process.arch,
+    os: `${os.version()} (${os.release()})`,
     eventsDir: eventsDir(),
   }));
+  handle(IPC.emailSuggestion, (_e, text: string) => emailSuggestion(text));
+  handle(IPC.copySuggestion, (_e, text: string) => copySuggestion(text));
+  handle(IPC.saveSuggestion, (e, text: string) =>
+    saveSuggestion(text, BrowserWindow.fromWebContents(e.sender)),
+  );
   handle(IPC.recentEvents, () => eventHandlers.recent());
   handle(IPC.createEvent, (_e, setup: Parameters<typeof eventHandlers.create>[0]) =>
     eventHandlers.create(setup),

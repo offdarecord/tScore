@@ -17,12 +17,32 @@ import { ErrorAlert } from '../ErrorAlert';
 type Filter = 'all' | 'missing' | 'overdue';
 
 const LAP_LOOK: Record<CourseLap['kind'], { bg: string; fg: string; title: string }> = {
-  in: { bg: '#e3f4e6', fg: '#1f5f26', title: 'Card in' },
-  due: { bg: '#f8f9fa', fg: '#111418', title: 'Not in yet' },
-  overdue: { bg: '#fdeaea', fg: '#a51111', title: 'Overdue' },
-  dnf: { bg: '#e9ecef', fg: '#343a40', title: 'Did not finish' },
-  dns: { bg: '#e9ecef', fg: '#343a40', title: 'Did not start' },
-  not_ridden: { bg: '#dee2e6', fg: '#343a40', title: 'Not ridden by this class' },
+  in: { bg: 'light-dark(#e3f4e6, #1c3b22)', fg: 'light-dark(#1f5f26, #8ce99a)', title: 'Card in' },
+  due: {
+    bg: 'light-dark(#f8f9fa, #25282c)',
+    fg: 'light-dark(#111418, #e9ecef)',
+    title: 'Not in yet',
+  },
+  overdue: {
+    bg: 'light-dark(#fdeaea, #431c1c)',
+    fg: 'light-dark(#a51111, #ffa8a8)',
+    title: 'Overdue',
+  },
+  dnf: {
+    bg: 'light-dark(#e9ecef, #2e3236)',
+    fg: 'light-dark(#343a40, #dee2e6)',
+    title: 'Did not finish',
+  },
+  dns: {
+    bg: 'light-dark(#e9ecef, #2e3236)',
+    fg: 'light-dark(#343a40, #dee2e6)',
+    title: 'Did not start',
+  },
+  not_ridden: {
+    bg: 'light-dark(#dee2e6, #3a3f44)',
+    fg: 'light-dark(#343a40, #dee2e6)',
+    title: 'Not ridden by this class',
+  },
 };
 
 function lapText(l: CourseLap): string {
@@ -79,13 +99,17 @@ export function Progress(props: { event: OpenEvent; onStillOnCourse: () => void 
 
       <Group gap="md" wrap="wrap" align="stretch">
         <Stat label="Cards in" value={`${view.counts.cardsIn}`} of={view.counts.cardsExpected} />
-        <Stat label="Overdue" value={String(view.counts.overdue)} colour="#a51111" />
+        <Stat
+          label="Overdue"
+          value={String(view.counts.overdue)}
+          colour="light-dark(#a51111, #ffa8a8)"
+        />
         <UnstyledButton
           onClick={props.onStillOnCourse}
           style={{
             flex: '1 1 170px',
-            background: view.counts.out ? '#b02525' : '#e3f4e6',
-            color: view.counts.out ? '#fff' : '#1f5f26',
+            background: view.counts.out ? '#b02525' : 'light-dark(#e3f4e6, #1c3b22)',
+            color: view.counts.out ? '#fff' : 'light-dark(#1f5f26, #8ce99a)',
             borderRadius: 12,
             padding: '12px 18px',
           }}
@@ -106,7 +130,10 @@ export function Progress(props: { event: OpenEvent; onStillOnCourse: () => void 
           aria-label="Overdue riders"
           radius="md"
           p="md"
-          style={{ background: '#fdeaea', color: '#7a0d0d' }}
+          style={{
+            background: 'light-dark(#fdeaea, #431c1c)',
+            color: 'light-dark(#7a0d0d, #ffa8a8)',
+          }}
         >
           <Text fw={700} mb={6}>
             Overdue: no card for more than {view.marginMinutes} minutes past their class&apos;s
@@ -120,7 +147,7 @@ export function Progress(props: { event: OpenEvent; onStillOnCourse: () => void 
                 wrap="wrap"
                 gap="sm"
                 py={8}
-                style={{ borderTop: '1px solid #f3c4c4' }}
+                style={{ borderTop: '1px solid light-dark(#f3c4c4, #6b2a2a)' }}
               >
                 <Text>
                   <strong>Rider {r.number}</strong> ({r.name}, {r.className}): no lap{' '}

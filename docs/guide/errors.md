@@ -72,6 +72,12 @@ If a problem keeps happening, see [Troubleshooting](troubleshooting.md).
 
 **What to do:** Choose a new, empty folder, or let tScore make one in `Documents\tScore`.
 
+### TS-DB-005
+
+**That copy of the event can't be opened.** The file saved to move an event to another laptop isn't complete or has been damaged (for example the USB stick was pulled out while it was saving), or it isn't a tScore event file.
+
+**What to do:** On the first laptop, choose **Save a copy for another laptop…** again, wait for "Saved and checked", then open the new copy (see [Move an event to another laptop](backups.md#move-an-event-to-another-laptop)).
+
 ## Event setup
 
 ### TS-SET-001
@@ -97,6 +103,24 @@ If a problem keeps happening, see [Troubleshooting](troubleshooting.md).
 **A day has no date.** Every day of the event needs a date before results can be worked out.
 
 **What to do:** Set the date for each day in **Event setup**.
+
+### TS-SET-005
+
+**That picture can't be a logo.** Logos must be PNG or JPEG pictures.
+
+**What to do:** Save the logo as a PNG or JPEG (most image programs can), then choose it again.
+
+### TS-SET-006
+
+**That logo is too big.** Logos can be up to 1 MB each, so backups and the results PDF stay small.
+
+**What to do:** Save a smaller copy (about 1000 pixels wide is plenty for print), then choose it again.
+
+### TS-SET-007
+
+**Too many sponsor logos.** The results have room for up to 8 sponsor logos.
+
+**What to do:** Remove one before adding another.
 
 ## Riders
 

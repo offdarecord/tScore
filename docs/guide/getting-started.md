@@ -24,6 +24,9 @@ It downloads it and installs it the next time tScore closes. It never updates du
   the event** (Pre-event check, Event setup, Riders, Card labels), then **On the day** (Manual
   entry, Progress, Still on course, Results). **← All events** goes back to Home.
 - **Help** (or **F1**) at the top opens this guide beside the screen you're on.
+- **Light / Dark / Match Windows** at the top sets the colours. Light is clearest in daylight;
+  Dark is easier on the eyes in a dim clubroom or trailer. The choice stays on this laptop.
+  Printouts, PDFs and labels are always light.
 - Grey buttons that say "Coming in a later version" are features not built yet.
 - **About → Suggest a feature** asks a few questions about an idea, then lets you email, copy
   or save it. It works without internet.
@@ -46,4 +49,5 @@ button, and nothing is lost if the laptop goes flat.
 Backups go in the event's `backups` folder, and to a USB stick if you choose one. See
 [Backups and restore](backups.md).
 
-To move an event to another laptop, copy its whole folder, then use **Open event file…** there.
+To move an event to another laptop, see
+[Move an event to another laptop](backups.md#move-an-event-to-another-laptop).

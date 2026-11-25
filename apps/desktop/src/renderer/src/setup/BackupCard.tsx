@@ -18,6 +18,7 @@ export function BackupCard({ event }: { event: OpenEvent }) {
   const [status, setStatus] = useState<BackupStatus | null>(null);
   const [error, setError] = useState<AppError | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  const [moved, setMoved] = useState<string | null>(null);
 
   useEffect(() => {
     void window.tscore.backupStatus().then((r) => {
@@ -26,9 +27,24 @@ export function BackupCard({ event }: { event: OpenEvent }) {
     });
   }, [event]);
 
+  async function saveForMove() {
+    setError(null);
+    setNote(null);
+    setMoved(null);
+    const r = await window.tscore.saveForMove();
+    if (!r.ok) setError(r.error);
+    else if (r.value) {
+      const mb = (r.value.bytes / 1_000_000).toFixed(1);
+      setMoved(
+        `Saved and checked: ${r.value.file} (${mb} MB). On the other laptop, choose Open event file… on Home and pick this file.`,
+      );
+    }
+  }
+
   async function run(call: Promise<Outcome<BackupStatus | null>>, done: string) {
     setError(null);
     setNote(null);
+    setMoved(null);
     const r = await call;
     if (!r.ok) setError(r.error);
     else if (r.value) {
@@ -113,6 +129,24 @@ export function BackupCard({ event }: { event: OpenEvent }) {
               No second copy
             </Button>
           )}
+        </Group>
+        <div>
+          <Text fw={600}>Move to another laptop</Text>
+          <Text>
+            Saves the whole event, card photos included, as one file to copy to a USB stick. The
+            other laptop checks it&apos;s complete as it opens it. Then carry on scoring on that
+            laptop only.
+          </Text>
+        </div>
+        {moved && (
+          <Text size="sm" role="status" style={{ wordBreak: 'break-all' }}>
+            {moved}
+          </Text>
+        )}
+        <Group gap="sm">
+          <Button variant="default" onClick={() => void saveForMove()}>
+            Save a copy for another laptop…
+          </Button>
         </Group>
       </Stack>
     </Paper>

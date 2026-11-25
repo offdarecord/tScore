@@ -104,3 +104,49 @@ test('a clear card is saved by itself; an unclear one goes to review and is deci
   await nav().getByRole('button', { name: 'Results' }).click();
   await expect(window.getByText('PROVISIONAL')).toHaveCount(0);
 });
+
+test('a card is saved once, even while the save is slow', async () => {
+  // The card still on the mat must not be read and saved again while its save is going (it
+  // would say "already in").
+  await window.getByRole('button', { name: 'New event' }).click();
+  await window.getByLabel('Event name').fill('Example Club Trial');
+  await window.getByLabel(/^Date\b/).fill('2027-02-06');
+  await window.getByRole('button', { name: 'Create event' }).click();
+  const csv = join(run.userData, 'riders.csv');
+  writeFileSync(
+    csv,
+    [
+      'Number,Given name,Family name,Class,Club,Competition status',
+      ...Array.from({ length: 12 }, (_, i) => `${i + 1},Rider,Number${i + 1},Trial 2,Example MCC,`),
+    ].join('\r\n'),
+  );
+  await run.app.evaluate(({ dialog }, picked) => {
+    dialog.showOpenDialog = (() =>
+      Promise.resolve({ canceled: false, filePaths: [picked] })) as typeof dialog.showOpenDialog;
+  }, csv);
+  await nav()
+    .getByRole('button', { name: /Riders/ })
+    .click();
+  await window.getByRole('button', { name: 'Import from entry list…' }).click();
+  await window.getByRole('button', { name: 'Import 12 riders' }).click();
+
+  // Make every scan save take a second, longer than the quarter second between reads.
+  await run.app.evaluate(({ ipcMain }) => {
+    const handlers = (
+      ipcMain as unknown as { _invokeHandlers: Map<string, (...a: unknown[]) => unknown> }
+    )._invokeHandlers;
+    const real = handlers.get('scan:save');
+    if (!real) throw new Error('no scan:save handler');
+    handlers.set('scan:save', async (...a: unknown[]) => {
+      await new Promise((r) => setTimeout(r, 1_000));
+      return real(...a);
+    });
+  });
+
+  await nav().getByRole('button', { name: 'Scan desk' }).click();
+  await window.getByRole('button', { name: 'Practice card', exact: true }).click();
+  const lastCard = window.getByRole('log', { name: 'Last card' });
+  await expect(lastCard).toContainText('Saved rider 1 lap 1:', { timeout: 10_000 });
+  await window.waitForTimeout(1_500);
+  await expect(window.getByText(/is already in/)).toHaveCount(0);
+});

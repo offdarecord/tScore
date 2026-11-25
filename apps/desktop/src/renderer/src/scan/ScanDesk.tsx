@@ -81,6 +81,8 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
   // After a card is dealt with, wait for it to be lifted off before reading the next.
   const waitingForLift = useRef(false);
   const busy = useRef(false);
+  // A save in flight: Enter pressed twice, or a second read, mustn't save the card again.
+  const saving = useRef(false);
   const deskRef = useRef<CardDesk | null>(null);
   const typedRef = useRef('');
   const typed =
@@ -171,18 +173,24 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
   }, [source]);
 
   const save = useCallback(async (s: Shown) => {
-    if (s.verdict.kind === 'problem') return;
-    const image = s.image ? new Uint8Array(await s.image.arrayBuffer()) : new Uint8Array();
+    if (s.verdict.kind === 'problem' || saving.current) return;
+    saving.current = true;
     const v = s.verdict;
-    const r = await window.tscore.saveScan({
-      number: s.id.number,
-      day: s.id.day,
-      lap: s.id.lap,
-      scores: v.scores,
-      confidence: v.confidence,
-      reasons: v.kind === 'review' ? v.reasons : v.scores.map(() => null),
-      image,
-    });
+    let r: Awaited<ReturnType<typeof window.tscore.saveScan>>;
+    try {
+      const image = s.image ? new Uint8Array(await s.image.arrayBuffer()) : new Uint8Array();
+      r = await window.tscore.saveScan({
+        number: s.id.number,
+        day: s.id.day,
+        lap: s.id.lap,
+        scores: v.scores,
+        confidence: v.confidence,
+        reasons: v.kind === 'review' ? v.reasons : v.scores.map(() => null),
+        image,
+      });
+    } finally {
+      saving.current = false;
+    }
     if (!r.ok) {
       setError(r.error);
       beep(false);
@@ -265,6 +273,9 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
           beep(false);
           return;
         }
+        // Taken: wait for lift-off now, not when the save finishes, or the next read (every
+        // quarter second) sees the same card and saves it again.
+        waitingForLift.current = true;
         got.canvas.toBlob(
           (blob) => {
             const withImage = { ...shownNow, image: blob };
@@ -274,7 +285,6 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
               setStatus(
                 'Needs a look: press Enter to send it to the Review queue, or Esc to read it again.',
               );
-              waitingForLift.current = true;
             }
           },
           'image/jpeg',

@@ -62,6 +62,10 @@ git -C <repo> diff --stat <previous-tag>..origin/main -- schemas/ packages/core/
   ("Events created with this version can't be opened by versions before X.Y.Z" when true).
 - Hidden sections (`docs`, `chore`, `ci`, `build`, `test`, `refactor`) don't appear; that's
   intended.
+- If a screen shown in `docs/media/` changed (see `docs/tour.md`), refresh the pictures first:
+  run `npm run screenshots` (after 11:00 local time), look at each changed picture, and open a
+  `docs:` pull request with them. The script fails rather than save a picture showing anything
+  from this computer.
 
 ## 5. Rewrite the notes for volunteers
 

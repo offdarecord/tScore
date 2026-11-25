@@ -595,3 +595,35 @@ describe('results marked final', () => {
     expect(code(() => again.setStatus(1, 'dns'))).toBe('STORE_RESULTS_FINAL');
   });
 });
+
+describe('the review queue', () => {
+  it('lists scanned cards with undecided sections, with why, until a person decides them', () => {
+    const store = newEvent();
+    store.addEntry(rider(1));
+    store.recordCard({
+      number: 1,
+      day: 1,
+      lap: 1,
+      scores: [0, null, 1, null],
+      source: 'scan',
+      confidence: [0.9, 0.1, 0.8, 0],
+      reasons: [null, 'LOW_CONF', null, 'NO_PUNCH'],
+      imagePath: 'cards/1-1-1-x.jpg',
+    });
+    expect(store.reviewCards()).toEqual([
+      expect.objectContaining({
+        number: 1,
+        lap: 1,
+        imagePath: 'cards/1-1-1-x.jpg',
+        sections: [
+          { section: 2, reason: 'LOW_CONF' },
+          { section: 4, reason: 'NO_PUNCH' },
+        ],
+      }),
+    ]);
+    store.correctScore({ number: 1, day: 1, lap: 1, section: 2, value: 1, source: 'review' });
+    store.correctScore({ number: 1, day: 1, lap: 1, section: 4, value: 0, source: 'review' });
+    expect(store.reviewCards()).toEqual([]);
+    expect(store.cardLog()[0]?.scores).toEqual([0, 1, 1, 0]);
+  });
+});

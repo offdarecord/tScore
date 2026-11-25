@@ -3,9 +3,34 @@
 Run the [Pre-event check](before-the-event.md#pre-event-check) when you arrive. Then, as riders
 hand in their cards, enter each one. The screens under **On the day** are for this.
 
-> [!NOTE]
-> Scanning cards with a document camera (the **Scan desk** and **Review queue**) comes in a later
-> version. Until then, type cards in on **Manual entry**.
+## Scan desk
+
+Read cards with a USB document camera pointing down at a matte black mat.
+
+1. On **Scan desk**, choose the camera. tScore remembers it on this laptop.
+2. Put a card on the mat, upright, roughly in the middle. Hold still for a moment.
+3. tScore reads the card. A card with a printed label is matched to the rider by the label's
+   QR code. For a card with no label, type the rider number first: the lap is the next one not
+   in yet.
+4. **A clear card is saved by itself**, with a high beep, and shown under **Last card**.
+   **A card that needs a look** (a missed hole, two holes in a row, or a torn one) gets a low
+   beep. Press **Enter** to send it to the Review queue with its photo, or **Esc** to read it
+   again (for example after straightening it).
+5. Lift the card off, and put the next one on.
+
+A correction punched as every value except the right one is read as that value. tScore never
+guesses: anything unclear goes to a person. A card already in, an unknown rider or a lap the
+class doesn't ride is refused with the reason; use **Manual entry** for those.
+
+To try it without a camera, choose **Practice card**: it puts a test card for the first rider on
+the list "under the camera". **Practice card with an unclear row** shows what happens when a
+card needs a look.
+
+## Review queue
+
+Scanned cards with a score the reader couldn't decide wait here with their photo. For each,
+check the photo (or the card itself), pick the score for each section listed, and choose
+**Save scores**. Results stay provisional until the queue is empty.
 
 ## Manual entry
 

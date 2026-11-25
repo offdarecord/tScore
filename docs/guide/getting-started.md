@@ -21,8 +21,8 @@ It downloads it and installs it the next time tScore closes. It never updates du
 - **Home** lists your recent events. From here: **New event**, **Open event file…** and
   **Restore from backup…**.
 - With an event open, the list on the left has the screens in the order you need them: **Before
-  the event** (Pre-event check, Event setup, Riders, Card labels), then **On the day** (Manual
-  entry, Progress, Still on course, Results). **← All events** goes back to Home.
+  the event** (Pre-event check, Event setup, Riders, Card labels), then **On the day** (Scan
+  desk, Manual entry, Review queue, Progress, Still on course, Results). **← All events** goes back to Home.
 - **Help** (or **F1**) at the top opens this guide beside the screen you're on.
 - Grey buttons that say "Coming in a later version" are features not built yet.
 

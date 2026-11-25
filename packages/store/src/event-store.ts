@@ -60,6 +60,8 @@ export interface RecordCard {
   readonly source: ScoreSource;
   /** Per section, the reader's confidence from 0 to 1, when scanned. */
   readonly confidence?: readonly (number | null)[];
+  /** Per section, why it's undecided when scanned (e.g. NO_PUNCH), for the review queue. */
+  readonly reasons?: readonly (string | null)[];
   /** The card photo, relative to the event folder (e.g. `cards/12-1-2.jpg`). */
   readonly imagePath?: string;
   /**
@@ -89,6 +91,17 @@ export interface CardSummary {
   readonly source: ScoreSource;
   /** Any score changed since. */
   readonly edited: boolean;
+}
+
+/** A scanned card with sections still to decide (the review queue). */
+export interface ReviewCard {
+  readonly number: number;
+  readonly day: number;
+  readonly lap: number;
+  /** The card photo, relative to the event folder. */
+  readonly imagePath: string | null;
+  readonly receivedAt: string;
+  readonly sections: readonly { readonly section: number; readonly reason: string | null }[];
 }
 
 /** A revision of the results marked final. */
@@ -499,7 +512,7 @@ export class EventStore {
       }
       const insert = this.#db.prepare(
         `INSERT INTO score_version (id, card_id, section, value, source, confidence, reason,
-           station_id, operator, created_at) VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?, ?)`,
+           station_id, operator, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       );
       card.scores.forEach((value, i) =>
         insert.run(
@@ -509,6 +522,7 @@ export class EventStore {
           value,
           card.source,
           card.confidence?.[i] ?? null,
+          card.reasons?.[i] ?? null,
           this.#ctx.stationId,
           this.#ctx.operator ?? null,
           now,
@@ -521,6 +535,51 @@ export class EventStore {
       });
     });
     return cardId;
+  }
+
+  /**
+   * Scanned cards waiting for a person: any section still undecided (null). Oldest first, with
+   * the photo and, for each undecided section, why the reader couldn't decide.
+   */
+  reviewCards(): ReviewCard[] {
+    const rows = this.#db
+      .prepare(
+        `SELECT c.number, c.day, c.lap, c.image_path, coalesce(c.received_at, c.created_at) AS received_at,
+                s.section, s.reason
+           FROM card c JOIN score_version s ON s.card_id = c.id
+          WHERE s.superseded_by IS NULL AND s.value IS NULL
+          ORDER BY c.rowid, s.section`,
+      )
+      .all() as {
+      number: number;
+      day: number;
+      lap: number;
+      image_path: string | null;
+      received_at: string;
+      section: number;
+      reason: string | null;
+    }[];
+    const out = new Map<
+      string,
+      ReviewCard & { sections: { section: number; reason: string | null }[] }
+    >();
+    for (const r of rows) {
+      const key = `${r.number}/${r.day}/${r.lap}`;
+      let c = out.get(key);
+      if (!c) {
+        c = {
+          number: r.number,
+          day: r.day,
+          lap: r.lap,
+          imagePath: r.image_path,
+          receivedAt: r.received_at,
+          sections: [],
+        };
+        out.set(key, c);
+      }
+      c.sections.push({ section: r.section, reason: r.reason });
+    }
+    return [...out.values()];
   }
 
   /** Change one section's score. The old score is kept as history, never overwritten. */

@@ -182,7 +182,7 @@ export function Riders({ event, notice, onImport, onLabels, onEventChange }: Pro
                     <Table.Th>Class</Table.Th>
                     <Table.Th>Club</Table.Th>
                     <Table.Th>Machine</Table.Th>
-                    <Table.Th>Status</Table.Th>
+                    <Table.Th>DNS / DNF</Table.Th>
                     <Table.Th>
                       <VisuallyHidden>Actions</VisuallyHidden>
                     </Table.Th>

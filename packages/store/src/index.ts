@@ -15,6 +15,7 @@ export {
   type LabelKey,
   type PenaltyRecord,
   type RecordCard,
+  type ReviewCard,
   type ScoreSource,
   type ScoreVersion,
   type StoreContext,

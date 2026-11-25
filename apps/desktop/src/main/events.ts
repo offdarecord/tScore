@@ -2,7 +2,7 @@
  * Events in the main process: the one EventLibrary, and the IPC handlers the event screens use.
  * The renderer never touches files; it asks for these and shows the outcome.
  */
-import { readFileSync, statSync } from 'node:fs';
+import { readFileSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, extname, join } from 'node:path';
 import {
   CARD_PROFILE_ROWS,
@@ -35,6 +35,9 @@ import log from 'electron-log/main';
 import type {
   AppError,
   CardDesk,
+  DecideScores,
+  ReviewItem,
+  SaveScan,
   DeskRider,
   EntryListFile,
   BackupStatus,
@@ -129,6 +132,25 @@ function ridersOf(store: EventStore): RiderInfo[] {
 }
 
 const isText = (v: unknown): v is string | null => v === null || typeof v === 'string';
+
+function reviewItems(store: EventStore): ReviewItem[] {
+  const riders = new Map(ridersOf(store).map((r) => [r.number, r]));
+  const current = new Map(store.cardLog().map((c) => [`${c.number}/${c.day}/${c.lap}`, c.scores]));
+  return store.reviewCards().map((c) => {
+    const r = riders.get(c.number);
+    return {
+      number: c.number,
+      day: c.day,
+      lap: c.lap,
+      name: r ? r.riders.map((p) => `${p.givenName} ${p.familyName}`).join(' & ') : '',
+      className: r?.classes[0] ?? '',
+      imagePath: c.imagePath,
+      receivedAt: c.receivedAt,
+      scores: current.get(`${c.number}/${c.day}/${c.lap}`) ?? [],
+      sections: c.sections,
+    };
+  });
+}
 
 function logoViews(store: EventStore): LogoView[] {
   return store.logos().flatMap((l) => {
@@ -589,6 +611,106 @@ export const eventHandlers = {
         log.info('card typed', { eventId: store.eventId, ...where });
       }
       return cardDesk(store);
+    });
+  },
+
+  saveScan(scan: SaveScan): Outcome<CardDesk> {
+    return attempt('saving a scanned card', () => {
+      const store = openStore();
+      const okScores =
+        Array.isArray(scan?.scores) && scan.scores.every((s) => s === null || isWhole(s, 0));
+      const image = scan?.image;
+      const jpeg =
+        image instanceof Uint8Array &&
+        image.length > 3 &&
+        image.length <= 8_000_000 &&
+        image[0] === 0xff &&
+        image[1] === 0xd8;
+      if (
+        !isWhole(scan?.number) ||
+        !isWhole(scan.day) ||
+        !isWhole(scan.lap) ||
+        !okScores ||
+        !jpeg
+      ) {
+        throw new StoreError('APP_BAD_REQUEST', 'That scan is incomplete.');
+      }
+      const words = (xs: unknown) =>
+        Array.isArray(xs) ? xs.map((x) => (typeof x === 'string' ? x.slice(0, 20) : null)) : [];
+      const nums = (xs: unknown) =>
+        Array.isArray(xs)
+          ? xs.map((x) => (typeof x === 'number' && x >= 0 && x <= 1 ? x : null))
+          : [];
+      const stampNow = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
+      const name = `${scan.number}-${scan.day}-${scan.lap}-${stampNow}.jpg`;
+      const imagePath = `cards/${name}`;
+      writeFileSync(join(store.folder, 'cards', name), image);
+      store.recordCard({
+        number: scan.number,
+        day: scan.day,
+        lap: scan.lap,
+        scores: scan.scores,
+        source: 'scan',
+        confidence: nums(scan.confidence),
+        reasons: words(scan.reasons),
+        imagePath,
+      });
+      const undecided = scan.scores.filter((s) => s === null).length;
+      log.info('card scanned', {
+        eventId: store.eventId,
+        number: scan.number,
+        day: scan.day,
+        lap: scan.lap,
+        undecided,
+      });
+      return cardDesk(store);
+    });
+  },
+
+  reviewQueue(): Outcome<ReviewItem[]> {
+    return attempt('listing cards to review', () => reviewItems(openStore()));
+  },
+
+  cardImage(path: string): Outcome<string> {
+    return attempt('opening the card photo', () => {
+      const store = openStore();
+      // Only photos in this event's cards folder.
+      if (typeof path !== 'string' || !/^cards\/[\w.-]+\.jpg$/.test(path)) {
+        throw new StoreError('APP_BAD_REQUEST', "That isn't a card photo.");
+      }
+      const data = readFileSync(join(store.folder, path));
+      return `data:image/jpeg;base64,${data.toString('base64')}`;
+    });
+  },
+
+  decideScores(d: DecideScores): Outcome<ReviewItem[]> {
+    return attempt('saving the decided scores', () => {
+      const store = openStore();
+      if (
+        !isWhole(d?.number) ||
+        !isWhole(d.day) ||
+        !isWhole(d.lap) ||
+        !Array.isArray(d.scores) ||
+        !d.scores.every((s) => isWhole(s?.section) && isWhole(s.value, 0))
+      ) {
+        throw new StoreError('APP_BAD_REQUEST', 'Choose a score for each section.');
+      }
+      for (const s of d.scores) {
+        store.correctScore({
+          number: d.number,
+          day: d.day,
+          lap: d.lap,
+          section: s.section,
+          value: s.value,
+          source: 'review',
+        });
+      }
+      log.info('scan reviewed', {
+        eventId: store.eventId,
+        number: d.number,
+        sections: d.scores.length,
+      });
+      return reviewItems(store);
     });
   },
 

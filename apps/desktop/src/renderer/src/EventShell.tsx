@@ -5,8 +5,9 @@ import { PreEventCheck } from './check/PreEventCheck';
 import { OnCourse } from './course/OnCourse';
 import { Progress } from './course/Progress';
 import { CardLabels } from './labels/CardLabels';
-import { ComingSoonButton } from './ComingSoonButton';
 import { Results } from './results/Results';
+import { ReviewQueue } from './scan/ReviewQueue';
+import { ScanDesk } from './scan/ScanDesk';
 import { formatDate } from './format';
 import { ImportRiders } from './riders/ImportRiders';
 import { Riders } from './riders/Riders';
@@ -21,7 +22,9 @@ export type EventPage =
   | { readonly name: 'import'; readonly file: EntryListFile }
   | { readonly name: 'check' }
   | { readonly name: 'labels' }
+  | { readonly name: 'scan' }
   | { readonly name: 'manual' }
+  | { readonly name: 'review' }
   | { readonly name: 'progress' }
   | { readonly name: 'course' }
   | { readonly name: 'results' };
@@ -32,10 +35,6 @@ interface Props {
   readonly onChange: (event: OpenEvent) => void;
   readonly onNavigate: (page: EventPage) => void;
 }
-
-/** Screens that aren't built yet, in the order of the agreed mock-ups. */
-const SCAN_DESK = 'Scan desk';
-const REVIEW_QUEUE = 'Review queue';
 
 /** The event's side navigation, for the AppShell navbar. */
 export function EventNav(props: {
@@ -87,13 +86,21 @@ export function EventNav(props: {
       </NavGroup>
       <NavHeading>On the day</NavHeading>
       <NavGroup>
-        <NavLater label={SCAN_DESK} />
+        <NavLink
+          label="Scan desk"
+          current={page.name === 'scan'}
+          onClick={() => onNavigate({ name: 'scan' })}
+        />
         <NavLink
           label="Manual entry"
           current={page.name === 'manual'}
           onClick={() => onNavigate({ name: 'manual' })}
         />
-        <NavLater label={REVIEW_QUEUE} />
+        <NavLink
+          label="Review queue"
+          current={page.name === 'review'}
+          onClick={() => onNavigate({ name: 'review' })}
+        />
         <NavLink
           label="Progress"
           current={page.name === 'progress'}
@@ -170,17 +177,11 @@ function NavLink(props: { label: string; current: boolean; count?: number; onCli
   );
 }
 
-function NavLater({ label }: { label: string }) {
-  return (
-    <ComingSoonButton variant="subtle" color="gray" justify="flex-start">
-      {label}
-    </ComingSoonButton>
-  );
-}
-
 /** The open event's main area. */
 export function EventMain({ event, page, onChange, onNavigate }: Props) {
   if (page.name === 'manual') return <ManualEntry event={event} />;
+  if (page.name === 'scan') return <ScanDesk event={event} />;
+  if (page.name === 'review') return <ReviewQueue event={event} />;
   if (page.name === 'labels') return <CardLabels event={event} />;
   if (page.name === 'check') {
     return (

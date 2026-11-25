@@ -22,6 +22,7 @@ export const HELP_TOPICS = {
   progress: { page: 'event-day', anchor: 'progress' },
   course: { page: 'event-day', anchor: 'still-on-course' },
   results: { page: 'results' },
+  series: { page: 'series' },
   checklist: { page: 'checklist' },
   errors: { page: 'errors' },
 } as const satisfies Record<string, HelpTopic>;

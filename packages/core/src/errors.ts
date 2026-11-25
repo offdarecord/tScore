@@ -31,6 +31,7 @@ export const ERROR_AREAS = [
   { area: 'CARD', name: 'Cards and scores' },
   { area: 'RES', name: 'Results and penalties' },
   { area: 'LBL', name: 'Card labels' },
+  { area: 'SER', name: 'Series points' },
 ] as const;
 
 const LOGS = '`%APPDATA%\\tScore\\logs`';
@@ -424,6 +425,22 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
     meaning: 'With the settings chosen, there are no riders to print labels for.',
     fix: 'Check the riders are entered and the classes or numbers chosen include them.',
     internal: ['APP_NO_LABELS'],
+  },
+
+  // Series points
+  {
+    code: 'TS-SER-001',
+    title: 'The series needs a name',
+    meaning: 'A series is saved under its name, so it needs one.',
+    fix: 'Type a name, for example "Winter Series 2027", then save again.',
+    internal: ['STORE_SERIES_NAME'],
+  },
+  {
+    code: 'TS-SER-002',
+    title: "That series isn't on this laptop any more",
+    meaning: 'The series file was deleted or moved while the screen was open.',
+    fix: 'Go back to **Series points** and choose it again, or make it again.',
+    internal: ['APP_NO_SERIES'],
   },
 ];
 

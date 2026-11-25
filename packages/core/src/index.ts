@@ -32,6 +32,9 @@ export * from './import/index.js';
 // Card labels (architecture §8.1; templates in presets/label-templates/).
 export * from './labels/index.js';
 
+// Series points across the rounds of a series (issue #14).
+export * from './series.js';
+
 // Suggest a feature: one list of questions for the app, the public page and the issue form.
 export * from './suggestion.js';
 

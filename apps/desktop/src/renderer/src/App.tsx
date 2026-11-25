@@ -10,11 +10,15 @@ import { HelpButton, HelpProvider, useHelp } from './help/Help';
 import { HelpPanel } from './help/HelpPanel';
 import type { HelpTopicName } from './help/topics';
 import { Home } from './Home';
+import { Series } from './series/Series';
 import { SetupForm } from './setup/SetupForm';
 import { SuggestFeature } from './SuggestFeature';
 
 type Screen =
-  { kind: 'home' } | { kind: 'new' } | { kind: 'event'; event: OpenEvent; page: EventPage };
+  | { kind: 'home' }
+  | { kind: 'new' }
+  | { kind: 'series' }
+  | { kind: 'event'; event: OpenEvent; page: EventPage };
 
 export function App() {
   return (
@@ -39,12 +43,19 @@ const SCREEN_NAMES: Record<EventPage['name'], string> = {
   results: 'Results',
 };
 const screenName = (s: Screen) =>
-  s.kind === 'home' ? 'Home' : s.kind === 'new' ? 'New event' : SCREEN_NAMES[s.page.name];
+  s.kind === 'home'
+    ? 'Home'
+    : s.kind === 'new'
+      ? 'New event'
+      : s.kind === 'series'
+        ? 'Series points'
+        : SCREEN_NAMES[s.page.name];
 
 /** The guide page for the screen in front of the desk. */
 function topicFor(screen: Screen): HelpTopicName {
   if (screen.kind === 'home') return 'home';
   if (screen.kind === 'new') return 'newEvent';
+  if (screen.kind === 'series') return 'series';
   return screen.page.name;
 }
 
@@ -117,8 +128,14 @@ function Shell() {
 
       <AppShell.Main>
         {screen.kind === 'home' && (
-          <Home info={info} onNew={() => setScreen({ kind: 'new' })} onOpened={open} />
+          <Home
+            info={info}
+            onNew={() => setScreen({ kind: 'new' })}
+            onSeries={() => setScreen({ kind: 'series' })}
+            onOpened={open}
+          />
         )}
+        {screen.kind === 'series' && <Series onBack={() => setScreen({ kind: 'home' })} />}
         {screen.kind === 'new' && (
           <SetupForm
             mode="new"

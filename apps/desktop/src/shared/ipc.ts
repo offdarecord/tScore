@@ -14,11 +14,20 @@ import type {
   LabelSkip,
   Results,
   CompetitionStatus,
+  SeriesRules,
+  SeriesTally,
   ValidationIssue,
 } from '@tscore/core';
 
 export const IPC = {
   appInfo: 'app:info',
+  listSeries: 'series:list',
+  newSeries: 'series:new',
+  seriesView: 'series:view',
+  updateSeries: 'series:update',
+  addSeriesRoundFile: 'series:add-round-file',
+  deleteSeries: 'series:delete',
+  exportSeries: 'series:export',
   emailSuggestion: 'suggest:email',
   copySuggestion: 'suggest:copy',
   saveSuggestion: 'suggest:save',
@@ -239,6 +248,44 @@ export interface ResultsView {
   readonly nextRevision: number;
   /** While reopened: the places that would change from the last final revision. */
   readonly changes?: readonly string[];
+}
+
+/** A series on this laptop, for the list. */
+export interface SeriesSummary {
+  readonly file: string;
+  readonly name: string;
+  readonly rounds: number;
+}
+
+export interface SeriesRoundView {
+  readonly round: number;
+  readonly folder: string;
+  readonly name: string;
+  readonly code: string;
+  readonly date?: string;
+  /** Only final rounds count. */
+  readonly state: 'final' | 'provisional' | 'reopened' | 'missing' | 'unreadable';
+  readonly revision?: number;
+}
+
+export interface SeriesView {
+  readonly file: string;
+  readonly name: string;
+  readonly rules: SeriesRules;
+  readonly rounds: readonly SeriesRoundView[];
+  /** A label per counted round, matching the tally's columns. */
+  readonly roundLabels: readonly string[];
+  readonly tally: SeriesTally;
+  /** Rounds not counted yet, and why. */
+  readonly notCounted: readonly string[];
+}
+
+export interface SeriesChange {
+  readonly name?: string;
+  readonly rules?: SeriesRules;
+  /** An event folder from the recent list. */
+  readonly addRound?: string;
+  readonly removeRound?: string;
 }
 
 /** How a suggestion left tScore (never sent by tScore itself). */
@@ -465,6 +512,19 @@ export type Outcome<T> =
 
 export interface TscoreApi {
   getAppInfo(): Promise<AppInfo>;
+  listSeries(): Promise<Outcome<SeriesSummary[]>>;
+  newSeries(name: string): Promise<Outcome<SeriesView>>;
+  seriesView(file: string): Promise<Outcome<SeriesView>>;
+  updateSeries(file: string, change: SeriesChange): Promise<Outcome<SeriesView>>;
+  /** Shows the open dialog for an event file and adds it as a round. `null` if cancelled. */
+  addSeriesRoundFile(file: string): Promise<Outcome<SeriesView | null>>;
+  deleteSeries(file: string): Promise<Outcome<SeriesSummary[]>>;
+  /** Shows the save dialog, then saves. The saved path, or `null` if the desk cancels. */
+  exportSeries(
+    file: string,
+    kind: ExportKind,
+    juniorInitials: boolean,
+  ): Promise<Outcome<string | null>>;
   /** Opens the mail app with the suggestion (via the clipboard if it's long). */
   emailSuggestion(text: string): Promise<Outcome<SuggestionSent>>;
   copySuggestion(text: string): Promise<Outcome<SuggestionSent>>;

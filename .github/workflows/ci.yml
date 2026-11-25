@@ -29,6 +29,10 @@ jobs:
       - run: npm run format:check
       - run: npm run typecheck
       - run: npm test
+      - name: No high or critical vulnerabilities in any library (npm audit)
+        run: npm run check:audit
+      - name: Electron is still a version that gets security fixes
+        run: npm run check:electron
 
   e2e:
     name: App end-to-end

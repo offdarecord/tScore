@@ -34,9 +34,23 @@ export interface DraftClass {
   original?: Class;
 }
 
+export interface DraftSection {
+  name: string;
+  observer: string;
+}
+
 export interface DraftDay {
   date: string;
   startTime: string;
+  /** Section names and observers, index 0 = section 1. Empty strings where nothing's entered. */
+  sections: DraftSection[];
+}
+
+export interface DraftOfficial {
+  /** Stable key for React while rows are being edited. */
+  key: string;
+  role: string;
+  name: string;
 }
 
 export interface Draft {
@@ -49,6 +63,9 @@ export interface Draft {
   overdueMargin: string;
   days: DraftDay[];
   classes: DraftClass[];
+  officials: DraftOfficial[];
+  /** Print the thank-you block on the results PDF. */
+  thanks: boolean;
 }
 
 export const MAX_DAYS = 3;
@@ -57,10 +74,14 @@ let nextKey = 0;
 const newKey = () => `c${++nextKey}`;
 
 export function toDraft(setup: EventSetup): Draft {
-  const days = setup.days.map((d) => ({
-    date: d.date ?? '',
-    startTime: d.start_time ?? DEFAULT_START,
-  }));
+  const days = setup.days.map((d) => {
+    const sections: DraftSection[] = [];
+    for (const s of d.section_details ?? []) {
+      while (sections.length < s.section) sections.push({ name: '', observer: '' });
+      sections[s.section - 1] = { name: s.name ?? '', observer: s.observer ?? '' };
+    }
+    return { date: d.date ?? '', startTime: d.start_time ?? DEFAULT_START, sections };
+  });
   return {
     name: setup.event.name,
     code: setup.event.code,
@@ -83,7 +104,18 @@ export function toDraft(setup: EventSetup): Draft {
       }),
       original: c,
     })),
+    officials: (setup.officials ?? []).map((o) => ({ key: newKey(), role: o.role, name: o.name })),
+    thanks: setup.thanks_on_results ?? true,
   };
+}
+
+export function newOfficial(): DraftOfficial {
+  return { key: newKey(), role: '', name: '' };
+}
+
+/** How many sections a day has: the most any class rides that day. */
+export function sectionsOnDay(draft: Draft, day: number): number {
+  return Math.max(0, ...draft.classes.map((c) => whole(c.days[day]?.sections ?? '') || 0));
 }
 
 /** Is this class junior, as the tick box shows it? */
@@ -109,6 +141,7 @@ export function withDayCount(draft: Draft, count: number): Draft {
     days: resize(draft.days, (i) => ({
       date: nextDate(draft.days[i - 1]?.date ?? ''),
       startTime: draft.days[0]?.startTime ?? DEFAULT_START,
+      sections: [],
     })),
     classes: draft.classes.map((c) => ({
       ...c,
@@ -150,11 +183,22 @@ export function toSetup(draft: Draft, base: EventSetup): EventSetup {
     event,
     scoring,
     overdue_margin_minutes: margin,
-    days: draft.days.map((d, i) => ({
-      day: i + 1,
-      ...(d.date && { date: d.date }),
-      start_time: d.startTime,
-    })),
+    days: draft.days.map((d, i) => {
+      const details = d.sections
+        .map((s, k) => ({ section: k + 1, name: s.name.trim(), observer: s.observer.trim() }))
+        .filter((s) => s.name || s.observer)
+        .map((s) => ({
+          section: s.section,
+          ...(s.name && { name: s.name }),
+          ...(s.observer && { observer: s.observer }),
+        }));
+      return {
+        day: i + 1,
+        ...(d.date && { date: d.date }),
+        start_time: d.startTime,
+        ...(details.length > 0 && { section_details: details }),
+      };
+    }),
     classes: draft.classes.map((c, i) => {
       const days: Class['days'] = {};
       c.days.forEach((d, j) => {
@@ -180,6 +224,13 @@ export function toSetup(draft: Draft, base: EventSetup): EventSetup {
     }),
   };
   if (Object.keys(scoring).length === 0) delete setup.scoring;
+  const officials = draft.officials
+    .map((o) => ({ role: o.role.trim(), name: o.name.trim() }))
+    .filter((o) => o.role || o.name);
+  if (officials.length) setup.officials = officials;
+  else delete setup.officials;
+  if (draft.thanks) delete setup.thanks_on_results;
+  else setup.thanks_on_results = false;
   return setup;
 }
 
@@ -241,6 +292,12 @@ export function problems(draft: Draft, base: EventSetup): Problem[] {
           `${label} has ${sections} sections${day}, but the regional card has only 16 rows. Use 16 or fewer.`,
         );
     });
+  });
+  draft.officials.forEach((o, i) => {
+    const role = o.role.trim();
+    const name = o.name.trim();
+    if (name && !role) add(`officials[${i}].role`, `Say what ${name} did, e.g. Clerk of Course.`);
+    if (role && !name) add(`officials[${i}].name`, `Give the ${role}'s name, or remove the row.`);
   });
   if (out.length) return out;
 

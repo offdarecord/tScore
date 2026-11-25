@@ -35,6 +35,14 @@ show those riders' surnames as an initial (see
 Choose **Create event** (or **Save changes**). If something is missing, a red box lists each
 problem, and the box concerned is marked.
 
+### Sections and officials
+
+Optional. Under **Sections and officials**, give each section a short name or place ("Creek bed")
+and the observer or observers, for each day, and add other officials such as the Clerk of
+Course. When any names are entered, the results PDF ends with **Thanks to our observers and
+officials**, listing them. Untick **Thank the observers and officials…** to leave it out. The
+names are kept in the event file and never written to tScore's log.
+
 ### Logos
 
 Under **Logos** on **Event setup**, choose the event (or club) logo and add up to 8 sponsor

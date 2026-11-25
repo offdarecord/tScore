@@ -51,6 +51,16 @@ export interface EventSetup {
    * Sections cancelled or not scored, e.g. section 6 closed for safety after lap 2.
    */
   skipped_sections?: SkippedSection[];
+  /**
+   * Officials to thank on the results, besides the observers.
+   *
+   * @maxItems 20
+   */
+  officials?: Official[];
+  /**
+   * Print the thank-you block for observers and officials on the results PDF, when any names are entered.
+   */
+  thanks_on_results?: boolean;
   labels?: Labels;
   /**
    * On the day, a rider is overdue when it has been longer than their class's average lap plus this many minutes since their last card. Overdue never marks anyone DNF.
@@ -113,6 +123,27 @@ export interface Day {
    * Lap 1 start for riders without their own start time (local time, 24-hour).
    */
   start_time?: string;
+  /**
+   * Optional names for the day's sections and who observed them, for the thank-you block on the results.
+   *
+   * @maxItems 30
+   */
+  section_details?: SectionDetail[];
+}
+/**
+ * This interface was referenced by `EventSetup`'s JSON-Schema
+ * via the `definition` "SectionDetail".
+ */
+export interface SectionDetail {
+  section: number;
+  /**
+   * A short name or place, e.g. Creek bed.
+   */
+  name?: string;
+  /**
+   * Who observed it: one or more names, as the club wants them printed.
+   */
+  observer?: string;
 }
 /**
  * This interface was referenced by `EventSetup`'s JSON-Schema
@@ -177,6 +208,17 @@ export interface SkippedSection {
    */
   classes?: string[];
   reason?: string;
+}
+/**
+ * This interface was referenced by `EventSetup`'s JSON-Schema
+ * via the `definition` "Official".
+ */
+export interface Official {
+  /**
+   * e.g. Clerk of Course, Secretary, Results desk.
+   */
+  role: string;
+  name: string;
 }
 /**
  * Card label printing options.

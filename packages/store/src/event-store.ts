@@ -32,6 +32,28 @@ import { backupTo, openDatabase, transaction } from './database.js';
 import { SetupError, StoreError } from './errors.js';
 
 export const EVENT_FILE = 'event.sqlite';
+export const LOGO_MAX_BYTES = 1_000_000;
+export const LOGO_MAX_SPONSORS = 8;
+
+export type LogoRole = 'event' | 'sponsor';
+
+export interface LogoInfo {
+  readonly id: string;
+  readonly role: LogoRole;
+  readonly position: number;
+  readonly mime: 'image/png' | 'image/jpeg';
+  readonly bytes: number;
+}
+
+/** PNG or JPEG, from the first bytes (never from a file name). */
+export function imageType(data: Uint8Array): LogoInfo['mime'] | null {
+  const png = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+  if (data.length > 8 && png.every((b, i) => data[i] === b)) return 'image/png';
+  if (data.length > 3 && data[0] === 0xff && data[1] === 0xd8 && data[2] === 0xff) {
+    return 'image/jpeg';
+  }
+  return null;
+}
 export const EVENT_DIRS = ['cards', 'exports', 'backups'] as const;
 
 /** Who and where changes come from, recorded on every row and audit event. */
@@ -848,6 +870,70 @@ export class EventStore {
       .all() as unknown as LabelKey[];
   }
 
+  // ---- Logos ----
+
+  /** The event logo (at most one) and sponsor logos in order, without their pictures. */
+  logos(): LogoInfo[] {
+    return this.#db
+      .prepare(
+        'SELECT id, role, position, mime, length(data) AS bytes FROM logo ORDER BY role, position',
+      )
+      .all() as unknown as LogoInfo[];
+  }
+
+  /** A logo's picture. */
+  logoData(id: string): Uint8Array | null {
+    const row = this.#db.prepare('SELECT data FROM logo WHERE id = ?').get(id) as
+      { data: Uint8Array } | undefined;
+    return row ? row.data : null;
+  }
+
+  /**
+   * Set the event logo (replacing any) or add a sponsor logo. Only PNG or JPEG, checked from
+   * the picture itself, up to LOGO_MAX_BYTES; at most LOGO_MAX_SPONSORS sponsors.
+   */
+  addLogo(role: LogoRole, data: Uint8Array): LogoInfo {
+    const mime = imageType(data);
+    if (!mime) throw new StoreError('STORE_LOGO_TYPE', 'A logo must be a PNG or JPEG picture.');
+    if (data.length > LOGO_MAX_BYTES) {
+      throw new StoreError(
+        'STORE_LOGO_SIZE',
+        `That picture is ${(data.length / 1_000_000).toFixed(1)} MB. Logos can be up to 1 MB: save a smaller copy.`,
+      );
+    }
+    return this.#tx(() => {
+      if (role === 'event') {
+        this.#db.prepare("DELETE FROM logo WHERE role = 'event'").run();
+      } else if (this.logos().filter((l) => l.role === 'sponsor').length >= LOGO_MAX_SPONSORS) {
+        throw new StoreError(
+          'STORE_LOGO_COUNT',
+          `There can be up to ${LOGO_MAX_SPONSORS} sponsor logos. Remove one first.`,
+        );
+      }
+      const { next } = this.#db
+        .prepare('SELECT COALESCE(MAX(position), 0) + 1 AS next FROM logo WHERE role = ?')
+        .get(role) as { next: number };
+      const id = newId(this.#ctx);
+      this.#db
+        .prepare(
+          'INSERT INTO logo (id, role, position, mime, data, added_at) VALUES (?, ?, ?, ?, ?, ?)',
+        )
+        .run(id, role, next, mime, data, stamp(this.#ctx));
+      this.#audit('logo.add', id, { role, mime, bytes: data.length });
+      return { id, role, position: next, mime, bytes: data.length };
+    });
+  }
+
+  removeLogo(id: string): void {
+    this.#tx(() => {
+      const row = this.#db.prepare('SELECT role FROM logo WHERE id = ?').get(id) as
+        { role: LogoRole } | undefined;
+      if (!row) return;
+      this.#db.prepare('DELETE FROM logo WHERE id = ?').run(id);
+      this.#audit('logo.remove', id, { role: row.role });
+    });
+  }
+
   // ---- Results marked final ----
 
   /** The latest revision marked final, if any, and whether it has been reopened. */
@@ -981,6 +1067,21 @@ export class EventStore {
   /** Record that this event was restored from a backup file (the file name only). */
   noteRestored(from: string): void {
     this.#tx(() => this.#audit('event.restore', this.eventId, { from }));
+  }
+
+  /** Save a consistent copy of the event file at `path`, which must not exist yet. */
+  copyTo(path: string): void {
+    backupTo(this.#db, path);
+  }
+
+  /** Record that a copy was saved to move this event to another laptop (file name only). */
+  noteMovedOut(file: string): void {
+    this.#tx(() => this.#audit('event.move_out', this.eventId, { file }));
+  }
+
+  /** Record that this event came from another laptop's copy (file name only). */
+  noteMovedIn(from: string): void {
+    this.#tx(() => this.#audit('event.move_in', this.eventId, { from }));
   }
 
   /**

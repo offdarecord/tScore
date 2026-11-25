@@ -12,6 +12,7 @@ import { formatDate } from './format';
 import { ImportRiders } from './riders/ImportRiders';
 import { Riders } from './riders/Riders';
 import { BackupCard } from './setup/BackupCard';
+import { LogosCard } from './setup/LogosCard';
 import { SetupForm } from './setup/SetupForm';
 
 /** The event screens that exist so far. */
@@ -136,7 +137,9 @@ function NavHeading({ children }: { children: string }) {
       mb={4}
       px={4}
       pt="sm"
-      style={{ borderTop: '1px solid var(--mantine-color-gray-3)' }}
+      style={{
+        borderTop: '1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
+      }}
     >
       {children}
     </Text>
@@ -237,6 +240,7 @@ export function EventMain({ event, page, onChange, onNavigate }: Props) {
           return r;
         }}
       />
+      <LogosCard event={event} />
       <BackupCard event={event} />
     </Stack>
   );

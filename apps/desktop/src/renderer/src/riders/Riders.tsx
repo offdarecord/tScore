@@ -346,7 +346,7 @@ function RiderDialog(props: {
           </Group>
         ))}
         {nameless && (
-          <Text c="red.8" size="sm" role="alert">
+          <Text c="light-dark(#a51111, #ffa8a8)" size="sm" role="alert">
             A rider needs a first name or a surname.
           </Text>
         )}
@@ -520,7 +520,7 @@ function LateEntryDialog(props: {
           </Group>
         ))}
         {sameName && (
-          <Text c="orange.9" size="sm" role="status">
+          <Text c="light-dark(#7a3500, #ffc078)" size="sm" role="status">
             Rider {sameName.number} already has this name. If it&apos;s the same person riding a
             second class, use Change on rider {sameName.number} instead.
           </Text>

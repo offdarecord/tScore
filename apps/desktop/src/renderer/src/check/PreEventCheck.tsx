@@ -4,10 +4,30 @@ import type { AppError, CheckItem, OpenEvent, PreEventCheck as Check } from '../
 import { ErrorAlert } from '../ErrorAlert';
 
 const LOOK: Record<CheckItem['state'], { icon: string; bg: string; fg: string; words: string }> = {
-  ok: { icon: '✓', bg: '#e3f4e6', fg: '#1f5f26', words: 'OK' },
-  warning: { icon: '!', bg: '#fff0de', fg: '#7a3500', words: 'Look at this' },
-  problem: { icon: '✗', bg: '#fdeaea', fg: '#a51111', words: 'Fix this' },
-  info: { icon: '–', bg: '#e9ecef', fg: '#343a40', words: 'For information' },
+  ok: {
+    icon: '✓',
+    bg: 'light-dark(#e3f4e6, #1c3b22)',
+    fg: 'light-dark(#1f5f26, #8ce99a)',
+    words: 'OK',
+  },
+  warning: {
+    icon: '!',
+    bg: 'light-dark(#fff0de, #3f2a10)',
+    fg: 'light-dark(#7a3500, #ffc078)',
+    words: 'Look at this',
+  },
+  problem: {
+    icon: '✗',
+    bg: 'light-dark(#fdeaea, #431c1c)',
+    fg: 'light-dark(#a51111, #ffa8a8)',
+    words: 'Fix this',
+  },
+  info: {
+    icon: '–',
+    bg: 'light-dark(#e9ecef, #2e3236)',
+    fg: 'light-dark(#343a40, #dee2e6)',
+    words: 'For information',
+  },
 };
 
 const FIX_WORDS: Record<NonNullable<CheckItem['fix']>, string> = {
@@ -68,7 +88,13 @@ export function PreEventCheck(props: {
               {check.items.map((item) => {
                 const look = LOOK[item.state];
                 return (
-                  <li key={item.id} style={{ borderTop: '1px solid #e9ecef', padding: '12px 0' }}>
+                  <li
+                    key={item.id}
+                    style={{
+                      borderTop: '1px solid light-dark(#e9ecef, #2e3236)',
+                      padding: '12px 0',
+                    }}
+                  >
                     <Group align="flex-start" wrap="nowrap" gap="md">
                       <span
                         aria-hidden="true"

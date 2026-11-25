@@ -35,6 +35,24 @@ final ones say **FINAL**.
 Tick **Show junior riders' surnames as an initial** to print "Riley M." for riders in junior
 classes. It only changes saved files: results on this laptop always show full names.
 
+## Live scores on a big screen
+
+For a TV or monitor plugged into the desk laptop (HDMI), so riders and spectators can watch the
+scores come in.
+
+1. Plug in the TV and turn it on.
+2. On **Results**, choose **Show live scores**. It opens full screen on the TV; the desk keeps
+   working on the laptop screen. If tScore doesn't find the TV, it opens a window: drag it onto
+   the TV and press **F11** for full screen.
+3. Leave it. It updates as cards are saved and moves through the classes by itself, a page at a
+   time if a class doesn't fit.
+
+It shows each class's place, number, name, how far each rider has got ("Lap 2 of 4") and their
+total so far, marked **PROVISIONAL** until results are final. It follows the same rules as the
+PDF: junior surnames as an initial, and non-competitive riders with counts only, never a total.
+
+**Close live scores** on Results (or **Esc** on the big screen) closes it.
+
 ## Mark results final
 
 When the results are checked, choose **Mark results final…**, then **Mark final**. This makes a

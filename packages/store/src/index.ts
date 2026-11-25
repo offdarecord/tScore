@@ -2,6 +2,11 @@ export {
   EventStore,
   EVENT_DIRS,
   EVENT_FILE,
+  imageType,
+  LOGO_MAX_BYTES,
+  LOGO_MAX_SPONSORS,
+  type LogoInfo,
+  type LogoRole,
   type AmendCard,
   type AuditEvent,
   type CardSummary,
@@ -17,5 +22,6 @@ export {
 } from './event-store.js';
 export { StoreError, NewerFileError, DamagedFileError, SetupError } from './errors.js';
 export { EventLibrary, type LibraryOptions, type RecentEvent } from './library.js';
+export { MOVE_EXTENSION, MOVE_FORMAT, type MoveManifest } from './move.js';
 export { SCHEMA_VERSION } from './migrations.js';
 export { readEntryFile } from './entry-file.js';

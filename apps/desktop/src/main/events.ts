@@ -23,6 +23,8 @@ import {
 } from '@tscore/core';
 import {
   EventLibrary,
+  LOGO_MAX_BYTES,
+  MOVE_EXTENSION,
   readEntryFile,
   SetupError,
   StoreError,
@@ -46,6 +48,8 @@ import type {
   NewRider,
   LabelRequest,
   LabelsView,
+  LiveScores,
+  LogoView,
   NewPenalty,
   OpenEvent,
   Outcome,
@@ -60,7 +64,7 @@ import { backUp, backupStatus, beforeClose, setSecondPlace } from './backups';
 import { preEventCheck } from './check';
 import { courseView } from './course';
 import { labelsView, saveLabels, saveLabelTestPage, setLabelOffset } from './labels';
-import { exportResults, markFinal, openLastExport, resultsView } from './results';
+import { exportResults, liveScores, markFinal, openLastExport, resultsView } from './results';
 
 const PENALTY_REASONS: readonly PenaltyReason[] = [
   'time',
@@ -145,6 +149,22 @@ function reviewItems(store: EventStore): ReviewItem[] {
       scores: current.get(`${c.number}/${c.day}/${c.lap}`) ?? [],
       sections: c.sections,
     };
+  });
+}
+
+function logoViews(store: EventStore): LogoView[] {
+  return store.logos().flatMap((l) => {
+    const data = store.logoData(l.id);
+    return data
+      ? [
+          {
+            id: l.id,
+            role: l.role,
+            bytes: l.bytes,
+            uri: `data:${l.mime};base64,${Buffer.from(data).toString('base64')}`,
+          },
+        ]
+      : [];
   });
 }
 
@@ -259,14 +279,53 @@ export const eventHandlers = {
       title: 'Open an event',
       defaultPath: eventsDir(),
       properties: ['openFile'],
-      filters: [{ name: 'tScore event', extensions: ['sqlite'] }],
+      filters: [{ name: 'tScore event', extensions: ['sqlite', MOVE_EXTENSION] }],
     };
     const picked = win
       ? await dialog.showOpenDialog(win, options)
       : await dialog.showOpenDialog(options);
     const file = picked.filePaths[0];
     if (picked.canceled || !file) return { ok: true, value: null };
+    if (extname(file).toLowerCase() === `.${MOVE_EXTENSION}`) {
+      return attempt('opening the event from another laptop', () => {
+        const store = events().openMoved(file);
+        log.info('event opened from another laptop', {
+          eventId: store.eventId,
+          folder: store.folder,
+        });
+        return describe(store);
+      });
+    }
     return this.open(dirname(file));
+  },
+
+  async saveForMove(
+    win: BrowserWindow | null,
+  ): Promise<Outcome<{ file: string; bytes: number; files: number } | null>> {
+    const store = library?.current;
+    const date = store?.setup.days[0]?.date ?? '';
+    const options: Electron.SaveDialogOptions = {
+      title: 'Save a copy for another laptop',
+      defaultPath: join(
+        app.getPath('documents'),
+        `${date} ${store?.setup.event.code ?? 'event'}.${MOVE_EXTENSION}`.trim(),
+      ),
+      filters: [{ name: 'tScore event', extensions: [MOVE_EXTENSION] }],
+    };
+    const picked = win
+      ? await dialog.showSaveDialog(win, options)
+      : await dialog.showSaveDialog(options);
+    if (picked.canceled || !picked.filePath) return { ok: true, value: null };
+    const file = picked.filePath;
+    return attempt('saving a copy for another laptop', () => {
+      const saved = events().saveForMove(file);
+      log.info('event saved for another laptop', {
+        eventId: openStore().eventId,
+        bytes: saved.bytes,
+        files: saved.files,
+      });
+      return { file, ...saved };
+    });
   },
 
   /** Only folders the library knows (recent list), or from the open dialog. */
@@ -693,6 +752,54 @@ export const eventHandlers = {
       log.info('penalty removed', { eventId: store.eventId });
       return cardDesk(store);
     });
+  },
+
+  logos(): Outcome<LogoView[]> {
+    return attempt('reading the logos', () => logoViews(openStore()));
+  },
+
+  async chooseLogo(
+    role: 'event' | 'sponsor',
+    win: BrowserWindow | null,
+  ): Promise<Outcome<LogoView[] | null>> {
+    if (role !== 'event' && role !== 'sponsor') return { ok: true, value: null };
+    const options: Electron.OpenDialogOptions = {
+      title: role === 'event' ? 'Choose the event logo' : 'Add a sponsor logo',
+      properties: ['openFile'],
+      filters: [{ name: 'Picture (PNG or JPEG)', extensions: ['png', 'jpg', 'jpeg'] }],
+    };
+    const picked = win
+      ? await dialog.showOpenDialog(win, options)
+      : await dialog.showOpenDialog(options);
+    const file = picked.filePaths[0];
+    if (picked.canceled || !file) return { ok: true, value: null };
+    return attempt('adding the logo', () => {
+      const store = openStore();
+      const size = statSync(file).size;
+      if (size > LOGO_MAX_BYTES) {
+        throw new StoreError(
+          'STORE_LOGO_SIZE',
+          `That picture is ${(size / 1_000_000).toFixed(1)} MB. Logos can be up to 1 MB: save a smaller copy.`,
+        );
+      }
+      const added = store.addLogo(role, readFileSync(file));
+      log.info('logo added', { role, mime: added.mime, bytes: added.bytes });
+      return logoViews(store);
+    });
+  },
+
+  removeLogo(id: string): Outcome<LogoView[]> {
+    return attempt('removing the logo', () => {
+      const store = openStore();
+      if (typeof id === 'string') store.removeLogo(id);
+      return logoViews(store);
+    });
+  },
+
+  liveScores(): Outcome<LiveScores | null> {
+    const store = library?.current;
+    if (!store) return { ok: true, value: null };
+    return attempt('working out live scores', () => liveScores(store));
   },
 
   results(): Outcome<ResultsView> {

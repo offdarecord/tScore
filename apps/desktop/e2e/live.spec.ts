@@ -101,12 +101,17 @@ test('the big screen shows the class live, follows new cards, and never shows NC
     .analyze();
   expect(results.violations.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
 
-  // Esc on the big screen closes it, and the desk's button follows.
-  const closed = screen.waitForEvent('close');
-  // The page closes while the key is still being pressed.
-  await screen.keyboard.press('Escape').catch(() => undefined);
-  await closed;
+  // Esc on the big screen does nothing: a stray key mustn't close it.
+  await screen.keyboard.press('Escape');
+  await screen.waitForTimeout(500);
+  expect(screen.isClosed()).toBe(false);
   await nav().getByRole('button', { name: 'Results' }).click();
+  await expect(window.getByRole('button', { name: 'Close live scores' })).toBeVisible();
+
+  // The desk closes it.
+  const closed = screen.waitForEvent('close');
+  await window.getByRole('button', { name: 'Close live scores' }).click();
+  await closed;
   await expect(window.getByRole('button', { name: 'Show live scores' })).toBeVisible({
     timeout: 5_000,
   });

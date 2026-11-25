@@ -6,7 +6,6 @@ import {
   Paper,
   Stack,
   Text,
-  TextInput,
   Title,
   useMantineTheme,
 } from '@mantine/core';
@@ -21,6 +20,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AppError, CardDesk, OpenEvent } from '../../../shared/ipc';
 import { ErrorAlert } from '../ErrorAlert';
+import { pickedText, RiderPicker } from '../riders/RiderPicker';
 import { fromLabel, nextLap, SteadyGate, verdict, type Identity, type Verdict } from './scanLogic';
 
 /** How often a frame is read. */
@@ -68,7 +68,9 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [source, setSource] = useState<Source | null>(null);
   const [status, setStatus] = useState('Choose a camera, or practise with a test card.');
-  const [typed, setTyped] = useState('');
+  // A card with no label is for the rider found here: picked from the list, or a whole number typed.
+  const [query, setQuery] = useState('');
+  const [picked, setPicked] = useState<number | null>(null);
   const [shown, setShown] = useState<Shown | null>(null);
   const [last, setLast] = useState<string | null>(null);
   const [error, setError] = useState<AppError | null>(null);
@@ -81,6 +83,12 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
   const busy = useRef(false);
   const deskRef = useRef<CardDesk | null>(null);
   const typedRef = useRef('');
+  const typed =
+    picked !== null
+      ? String(picked)
+      : desk?.riders.some((r) => String(r.number) === query.trim())
+        ? query.trim()
+        : '';
   useEffect(() => {
     deskRef.current = desk;
     typedRef.current = typed;
@@ -189,7 +197,8 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
     );
     beep(undecided === 0);
     setShown(null);
-    setTyped('');
+    setQuery('');
+    setPicked(null);
     waitingForLift.current = true;
     setStatus('Lift the card off.');
   }, []);
@@ -240,7 +249,7 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
           const n = Number(typedRef.current);
           const rider = current.riders.find((x) => x.number === n);
           if (!rider) {
-            setStatus('No label: type the rider number, then press Enter.');
+            setStatus('No label: find the rider by number or name.');
             setShown(null);
             return;
           }
@@ -408,12 +417,21 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
           <Text role="status" fz="xl" fw={700}>
             {status}
           </Text>
-          <TextInput
-            label="Rider number (cards with no label)"
-            value={typed}
-            onChange={(e) => setTyped(e.currentTarget.value.replace(/\D/g, ''))}
-            inputMode="numeric"
-            w={260}
+          <RiderPicker
+            label="Rider for a card with no label: number or name"
+            placeholder="e.g. 17 or Sam"
+            riders={desk?.riders}
+            query={query}
+            picked={picked !== null}
+            onQueryChange={(q) => {
+              setQuery(q);
+              setPicked(null);
+            }}
+            onPick={(r) => {
+              setPicked(r.number);
+              setQuery(pickedText(r));
+            }}
+            maw={420}
           />
           {shown && (
             <Paper withBorder radius="md" p="md" component="section" aria-label="Card read">

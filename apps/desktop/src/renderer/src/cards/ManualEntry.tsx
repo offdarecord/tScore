@@ -11,11 +11,10 @@ import {
   Text,
   TextInput,
   Title,
-  UnstyledButton,
   VisuallyHidden,
 } from '@mantine/core';
 import { describeTypedScoreProblem, readTypedScores, singleDigitScores } from '@tscore/core';
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import type {
   AppError,
   CardDesk,
@@ -25,6 +24,7 @@ import type {
   PenaltyReason,
   PenaltyRow,
 } from '../../../shared/ipc';
+import { pickedText, RiderPicker } from '../riders/RiderPicker';
 import { riderName } from '../riders/Riders';
 import { CardPreview } from './CardPreview';
 import { ErrorAlert } from '../ErrorAlert';
@@ -121,14 +121,6 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
       : undefined;
   const multiDay = (desk?.days.length ?? 1) > 1;
 
-  const suggestions = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!desk || sel !== null || !q) return [];
-    return desk.riders
-      .filter((r) => String(r.number).startsWith(q) || riderName(r).toLowerCase().includes(q))
-      .slice(0, 6);
-  }, [desk, query, sel]);
-
   function clear(message = '') {
     setQuery('');
     setSel(null);
@@ -153,25 +145,13 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
     let next = 1;
     while (next < laps && done.has(next)) next++;
     setSel(r.number);
-    setQuery(`${r.number} ${riderName(r)}`);
+    setQuery(pickedText(r));
     setDay(d);
     setLap(next);
     setText('');
     setFlash('');
     setError(null);
     setTimeout(() => scoresRef.current?.focus(), 0);
-  }
-
-  function onRiderKey(e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key !== 'Enter' || !desk || sel !== null) return;
-    const q = query.trim();
-    const exact = desk.riders.find((r) => String(r.number) === q);
-    const only = suggestions.length === 1 ? suggestions[0] : undefined;
-    const choice = exact ?? only;
-    if (choice) {
-      e.preventDefault();
-      pick(choice);
-    }
   }
 
   function edit(c: CardRow) {
@@ -271,57 +251,26 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
             )}
 
             <Group align="flex-start" gap="md" wrap="wrap">
-              <div style={{ flex: '1 1 260px', position: 'relative' }}>
-                <TextInput
+              <div style={{ flex: '1 1 260px' }}>
+                <RiderPicker
                   ref={riderRef}
+                  riders={desk?.riders}
                   label="Rider: number or name"
+                  required
                   placeholder="e.g. 17 or Sam"
                   size="md"
-                  value={query}
+                  query={query}
+                  picked={sel !== null}
                   disabled={editing !== null}
                   data-autofocus
                   autoFocus
-                  onChange={(e) => {
-                    setQuery(e.currentTarget.value);
+                  onQueryChange={(q) => {
+                    setQuery(q);
                     setSel(null);
                     setFlash('');
                   }}
-                  onKeyDown={onRiderKey}
-                  {...(!rider &&
-                    query.trim() &&
-                    suggestions.length === 0 && {
-                      error: `No rider matches "${query.trim()}". Check the number, or add them on the Riders screen.`,
-                    })}
-                  styles={{ error: { color: 'light-dark(#a51111, #ffa8a8)', fontSize: 15 } }}
+                  onPick={pick}
                 />
-                {suggestions.length > 0 && (
-                  <Paper withBorder mt={4} role="listbox" aria-label="Matching riders">
-                    {suggestions.map((s) => (
-                      <UnstyledButton
-                        key={s.number}
-                        role="option"
-                        aria-selected="false"
-                        onClick={() => pick(s)}
-                        style={{
-                          display: 'flex',
-                          gap: 12,
-                          width: '100%',
-                          padding: '8px 12px',
-                          minHeight: 44,
-                          alignItems: 'center',
-                          borderTop: '1px solid light-dark(#e9ecef, #2e3236)',
-                        }}
-                      >
-                        <Text fw={800} w={40} size="lg">
-                          {s.number}
-                        </Text>
-                        <Text>
-                          {riderName(s)} · {s.classes[0]}
-                        </Text>
-                      </UnstyledButton>
-                    ))}
-                  </Paper>
-                )}
               </div>
               {multiDay && (
                 <NativeSelect

@@ -17,6 +17,7 @@
     "dev": "npm run dev -w apps/desktop",
     "build": "npm run build -w apps/desktop",
     "dist": "npm run dist -w apps/desktop",
+    "screenshots": "npm run screenshots -w apps/desktop",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

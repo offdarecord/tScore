@@ -21,7 +21,8 @@ export {
   type StoreContext,
 } from './event-store.js';
 export { StoreError, NewerFileError, DamagedFileError, SetupError } from './errors.js';
-export { EventLibrary, type LibraryOptions, type RecentEvent } from './library.js';
+export { EventLibrary, type LibraryOptions, type RecentEvent, type TidyPrefs } from './library.js';
+export { SCANS_REMOVED, SMALL_COPY_MAX_BYTES, type ManagedEvent } from './manage.js';
 export {
   deleteSeries,
   listSeries,

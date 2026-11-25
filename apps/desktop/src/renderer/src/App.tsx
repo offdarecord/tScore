@@ -10,6 +10,7 @@ import { HelpButton, HelpProvider, useHelp } from './help/Help';
 import { HelpPanel } from './help/HelpPanel';
 import type { HelpTopicName } from './help/topics';
 import { Home } from './Home';
+import { ManageEvents, type ManageAction } from './manage/ManageEvents';
 import { Series } from './series/Series';
 import { SetupForm } from './setup/SetupForm';
 import { SuggestFeature } from './SuggestFeature';
@@ -18,6 +19,7 @@ type Screen =
   | { kind: 'home' }
   | { kind: 'new' }
   | { kind: 'series' }
+  | { kind: 'manage'; preselect?: string[]; action?: ManageAction }
   | { kind: 'event'; event: OpenEvent; page: EventPage };
 
 export function App() {
@@ -49,13 +51,16 @@ const screenName = (s: Screen) =>
       ? 'New event'
       : s.kind === 'series'
         ? 'Series points'
-        : SCREEN_NAMES[s.page.name];
+        : s.kind === 'manage'
+          ? 'Manage events'
+          : SCREEN_NAMES[s.page.name];
 
 /** The guide page for the screen in front of the desk. */
 function topicFor(screen: Screen): HelpTopicName {
   if (screen.kind === 'home') return 'home';
   if (screen.kind === 'new') return 'newEvent';
   if (screen.kind === 'series') return 'series';
+  if (screen.kind === 'manage') return 'home';
   return screen.page.name;
 }
 
@@ -132,10 +137,24 @@ function Shell() {
             info={info}
             onNew={() => setScreen({ kind: 'new' })}
             onSeries={() => setScreen({ kind: 'series' })}
+            onManage={(preselect, action) =>
+              setScreen({
+                kind: 'manage',
+                ...(preselect && { preselect }),
+                ...(action && { action }),
+              })
+            }
             onOpened={open}
           />
         )}
         {screen.kind === 'series' && <Series onBack={() => setScreen({ kind: 'home' })} />}
+        {screen.kind === 'manage' && (
+          <ManageEvents
+            {...(screen.preselect && { preselect: screen.preselect })}
+            {...(screen.action && { action: screen.action })}
+            onBack={() => setScreen({ kind: 'home' })}
+          />
+        )}
         {screen.kind === 'new' && (
           <SetupForm
             mode="new"

@@ -78,6 +78,24 @@ If a problem keeps happening, see [Troubleshooting](troubleshooting.md).
 
 **What to do:** On the first laptop, choose **Save a copy for another laptop…** again, wait for "Saved and checked", then open the new copy (see [Move an event to another laptop](backups.md#move-an-event-to-another-laptop)).
 
+### TS-DB-006
+
+**Type the event code to delete it.** Deleting an event needs its code typed in, so nobody deletes the wrong one by accident. What was typed doesn't match.
+
+**What to do:** Type the code shown in the message (for example `ECT`), then choose **Delete** again.
+
+### TS-DB-007
+
+**That event can't be tidied while it's open.** Card scans can't be removed, and an event can't be deleted, while it's the open event.
+
+**What to do:** Close the event (**← All events**), then use **Manage events** on the home screen.
+
+### TS-DB-008
+
+**That folder isn't one of this laptop's events.** Manage events only tidies event folders it lists: ones in `Documents\tScore` or on the recent list. The folder may have been moved or deleted since the list was shown.
+
+**What to do:** Close **Manage events** and open it again to refresh the list.
+
 ## Event setup
 
 ### TS-SET-001

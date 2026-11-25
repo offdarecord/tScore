@@ -36,6 +36,13 @@ export const IPC = {
   openEventFile: 'events:open-file',
   openRecentEvent: 'events:open-recent',
   forgetEvent: 'events:forget',
+  manageEvents: 'manage:list',
+  removeCardScans: 'manage:remove-scans',
+  deleteEvents: 'manage:delete',
+  saveEventCopy: 'manage:save-copy',
+  showEventFolder: 'manage:show-folder',
+  keepEvent: 'manage:keep',
+  remindTidyLater: 'manage:remind-later',
   currentEvent: 'event:current',
   updateSetup: 'event:update-setup',
   closeEvent: 'event:close',
@@ -341,6 +348,37 @@ export interface RecentEventInfo {
   readonly missing: boolean;
 }
 
+/** An event folder as Manage events shows it. */
+export interface ManagedEventInfo {
+  readonly folder: string;
+  readonly name: string;
+  readonly code: string;
+  readonly firstDate?: string;
+  readonly lastDate?: string;
+  readonly days: number;
+  readonly cardFiles: number;
+  readonly cardBytes: number;
+  readonly otherBytes: number;
+  /** Results marked final and not reopened since. */
+  readonly final: boolean;
+  /** When its card photos were shrunk to small copies (ISO). */
+  readonly scansRemovedAt?: string;
+  /** When its newest backup reached the second place (ISO), if that's plugged in. */
+  readonly lastSecondCopy?: string;
+  /** The open event: listed, but not tidied until it's closed. */
+  readonly open: boolean;
+  /** The desk chose Keep: never offered for tidying. */
+  readonly keep: boolean;
+}
+
+export interface ManageView {
+  readonly events: readonly ManagedEventInfo[];
+  /** Don't offer old events again before this (ISO). */
+  readonly remindAfter?: string;
+  /** A second place for backups is chosen on this laptop. */
+  readonly secondPlaceChosen: boolean;
+}
+
 /** The open event, as the screens need it. */
 export interface OpenEvent {
   readonly folder: string;
@@ -536,6 +574,17 @@ export interface TscoreApi {
   openEventFile(): Promise<Outcome<OpenEvent | null>>;
   openRecentEvent(folder: string): Promise<Outcome<OpenEvent>>;
   forgetEvent(folder: string): Promise<void>;
+  /** Every event folder on this laptop, for Manage events. */
+  manageEvents(): Promise<Outcome<ManageView>>;
+  /** Shrink these events' card photos to small copies. */
+  removeCardScans(folders: string[]): Promise<Outcome<{ images: number; bytesFreed: number }>>;
+  /** Move these events to the Recycle Bin, each confirmed by its code. */
+  deleteEvents(chosen: { folder: string; code: string }[]): Promise<Outcome<{ deleted: number }>>;
+  /** Shows the save dialog, then saves a closed event as one file. `null` if cancelled. */
+  saveEventCopy(folder: string): Promise<Outcome<{ file: string; bytes: number } | null>>;
+  showEventFolder(folder: string): Promise<void>;
+  keepEvent(folder: string): Promise<Outcome<ManageView>>;
+  remindTidyLater(): Promise<Outcome<ManageView>>;
   /** The open event, if any (e.g. after the window reloads). */
   currentEvent(): Promise<OpenEvent | null>;
   updateSetup(setup: EventSetup): Promise<Outcome<OpenEvent>>;

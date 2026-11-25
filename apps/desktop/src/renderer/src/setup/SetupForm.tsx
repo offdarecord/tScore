@@ -416,7 +416,7 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
           </Button>
         )}
         {mode === 'edit' && !dirty && savedAt && tried && (
-          <Text c="green.9" role="status">
+          <Text c="light-dark(#2b8a3e, #8ce99a)" role="status">
             Saved
           </Text>
         )}

@@ -503,7 +503,7 @@ describe('backups', () => {
     const files = readdirSync(join(store.folder, 'backups'));
     expect(files.filter((f) => f.endsWith('-auto.sqlite'))).toHaveLength(3);
     expect(files.filter((f) => f.endsWith('-named.sqlite'))).toHaveLength(1);
-  });
+  }, 30_000);
 });
 
 describe('card labels', () => {

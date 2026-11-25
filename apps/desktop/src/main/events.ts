@@ -24,6 +24,7 @@ import {
 import {
   EventLibrary,
   LOGO_MAX_BYTES,
+  MOVE_EXTENSION,
   readEntryFile,
   SetupError,
   StoreError,
@@ -256,14 +257,53 @@ export const eventHandlers = {
       title: 'Open an event',
       defaultPath: eventsDir(),
       properties: ['openFile'],
-      filters: [{ name: 'tScore event', extensions: ['sqlite'] }],
+      filters: [{ name: 'tScore event', extensions: ['sqlite', MOVE_EXTENSION] }],
     };
     const picked = win
       ? await dialog.showOpenDialog(win, options)
       : await dialog.showOpenDialog(options);
     const file = picked.filePaths[0];
     if (picked.canceled || !file) return { ok: true, value: null };
+    if (extname(file).toLowerCase() === `.${MOVE_EXTENSION}`) {
+      return attempt('opening the event from another laptop', () => {
+        const store = events().openMoved(file);
+        log.info('event opened from another laptop', {
+          eventId: store.eventId,
+          folder: store.folder,
+        });
+        return describe(store);
+      });
+    }
     return this.open(dirname(file));
+  },
+
+  async saveForMove(
+    win: BrowserWindow | null,
+  ): Promise<Outcome<{ file: string; bytes: number; files: number } | null>> {
+    const store = library?.current;
+    const date = store?.setup.days[0]?.date ?? '';
+    const options: Electron.SaveDialogOptions = {
+      title: 'Save a copy for another laptop',
+      defaultPath: join(
+        app.getPath('documents'),
+        `${date} ${store?.setup.event.code ?? 'event'}.${MOVE_EXTENSION}`.trim(),
+      ),
+      filters: [{ name: 'tScore event', extensions: [MOVE_EXTENSION] }],
+    };
+    const picked = win
+      ? await dialog.showSaveDialog(win, options)
+      : await dialog.showSaveDialog(options);
+    if (picked.canceled || !picked.filePath) return { ok: true, value: null };
+    const file = picked.filePath;
+    return attempt('saving a copy for another laptop', () => {
+      const saved = events().saveForMove(file);
+      log.info('event saved for another laptop', {
+        eventId: openStore().eventId,
+        bytes: saved.bytes,
+        files: saved.files,
+      });
+      return { file, ...saved };
+    });
   },
 
   /** Only folders the library knows (recent list), or from the open dialog. */

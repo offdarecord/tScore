@@ -21,5 +21,6 @@ export {
 } from './event-store.js';
 export { StoreError, NewerFileError, DamagedFileError, SetupError } from './errors.js';
 export { EventLibrary, type LibraryOptions, type RecentEvent } from './library.js';
+export { MOVE_EXTENSION, MOVE_FORMAT, type MoveManifest } from './move.js';
 export { SCHEMA_VERSION } from './migrations.js';
 export { readEntryFile } from './entry-file.js';

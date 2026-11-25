@@ -44,6 +44,7 @@ export const IPC = {
   chooseBackupPlace: 'backup:choose-place',
   clearBackupPlace: 'backup:clear-place',
   restoreFromBackup: 'backup:restore',
+  saveForMove: 'event:save-for-move',
   preEventCheck: 'check:pre-event',
   markFinal: 'results:mark-final',
   reopenResults: 'results:reopen',
@@ -452,6 +453,13 @@ export interface TscoreApi {
   chooseBackupPlace(): Promise<Outcome<BackupStatus | null>>;
   clearBackupPlace(): Promise<Outcome<BackupStatus>>;
   /** Shows the open dialog, then opens the backup as a new event folder. `null` if cancelled. */
+  /**
+   * Shows the save dialog, then saves the whole event as one `.tscore` file to carry to another
+   * laptop (Home → Open event file… there). `null` if the desk cancels.
+   */
+  saveForMove(): Promise<
+    Outcome<{ readonly file: string; readonly bytes: number; readonly files: number } | null>
+  >;
   /** Check the event is ready for the first card. */
   preEventCheck(): Promise<Outcome<PreEventCheck>>;
   restoreFromBackup(): Promise<

@@ -218,7 +218,11 @@ function Status(props: { gaps: readonly ResultsGapInfo[]; open: boolean; onToggl
       p="md"
       component="section"
       aria-label="Provisional"
-      style={{ background: '#fff0de', color: '#6b2e00', border: '2px solid #b35c00' }}
+      style={{
+        background: 'light-dark(#fff0de, #3f2a10)',
+        color: 'light-dark(#6b2e00, #ffc078)',
+        border: '2px solid light-dark(#b35c00, #ffa94d)',
+      }}
     >
       <Group justify="space-between" wrap="wrap" gap="sm" align="flex-start">
         <div>
@@ -259,7 +263,7 @@ function ClassTable(props: {
   }
   return (
     <Stack gap={4}>
-      <Text c="dark.6">
+      <Text>
         {classSummary(cls)} · {cls.entries.length} {cls.entries.length === 1 ? 'entry' : 'entries'}
       </Text>
       {/* On a narrow window the table scrolls sideways; focusable so the keyboard can scroll it. */}
@@ -305,18 +309,14 @@ function ClassTable(props: {
                 e.competition_status === 'no_award' ? 'No award' : '',
               ].filter(Boolean);
               return (
-                <Table.Tr key={e.number} {...(muted && { bg: '#f8f9fa' })}>
+                <Table.Tr key={e.number} {...(muted && { bg: 'light-dark(#f8f9fa, #25282c)' })}>
                   <Table.Td fw={800} fz="lg">
                     {places[i]}
                   </Table.Td>
                   <Table.Td fw={700}>{e.number}</Table.Td>
                   <Table.Td>
                     {entryName(e)}
-                    {notes.length > 0 && (
-                      <Text size="sm" c="dark.6">
-                        {notes.join(' · ')}
-                      </Text>
-                    )}
+                    {notes.length > 0 && <Text size="sm">{notes.join(' · ')}</Text>}
                   </Table.Td>
                   <Table.Td style={{ whiteSpace: 'nowrap' }}>{e.club ?? ''}</Table.Td>
                   {cols.map((c) => (
@@ -329,7 +329,7 @@ function ClassTable(props: {
                     {e.total ?? ''}
                   </Table.Td>
                   {scoreValues.map((v) => (
-                    <Table.Td key={v} ta="right" c="dark.6">
+                    <Table.Td key={v} ta="right">
                       {e.status === 'dns' ? '' : (e.counts?.[String(v)] ?? 0)}
                     </Table.Td>
                   ))}
@@ -392,7 +392,11 @@ function FinalPanel(props: { view: ResultsView; onChange: (view: ResultsView) =>
         p="md"
         component="section"
         aria-label="Final results"
-        style={{ background: '#e3f4e6', color: '#123b17', border: '2px solid #1f5f26' }}
+        style={{
+          background: 'light-dark(#e3f4e6, #1c3b22)',
+          color: 'light-dark(#123b17, #b2f2bb)',
+          border: '2px solid light-dark(#1f5f26, #8ce99a)',
+        }}
       >
         <Group justify="space-between" wrap="wrap" gap="sm" align="flex-start">
           <div>

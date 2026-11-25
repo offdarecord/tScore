@@ -23,6 +23,17 @@ tScore is a Windows desktop app that:
 
 Everything works offline. Every score traces back to a card image and an audit log.
 
+Website: **<https://offdarecord.github.io/tScore/>**
+
+## Download
+
+Get `tScore-Setup-<version>.exe` from the
+[latest release](https://github.com/offdarecord/tScore/releases/latest) and run it (Windows 10 or
+11; no administrator password needed). Until the installer is signed, Windows may show **Windows
+protected your PC**: choose **More info**, then **Run anyway**. Then read
+[Getting started](docs/guide/getting-started.md). To remove tScore: Windows Settings → Apps →
+tScore → Uninstall.
+
 ## See it work
 
 <p>
@@ -36,6 +47,20 @@ Everything works offline. Every score traces back to a card image and an audit l
 
 More in [the tour](docs/tour.md). The pictures use an invented event and come from the real app
 (`npm run screenshots`).
+
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by
+[SignPath Foundation](https://signpath.org/).
+
+- Committers and reviewers:
+  [contributors with write access](https://github.com/offdarecord/tScore/graphs/contributors)
+- Approvers: [the repository owner](https://github.com/offdarecord)
+
+Privacy: this program will not transfer any information to other networked systems unless
+specifically requested by the user or the person installing or operating it, except checking
+GitHub for a newer version when online with no event open. Details in
+[CODE_SIGNING_POLICY.md](CODE_SIGNING_POLICY.md).
 
 ## For developers
 
@@ -55,6 +80,7 @@ npm start
 | `npm run test:e2e`    | Launch the real app and click through it (Playwright, accessibility check) |
 | `npm run check`       | Lint, format check, type-check and tests (what CI runs)                    |
 | `npm run dist`        | Build the Windows installer into `apps/desktop/release/`                   |
+| `npm run site`        | Build the website (GitHub Pages) into `_site/`                             |
 | `npm run screenshots` | Refresh the README and tour pictures in `docs/media/` (demo event)         |
 
 ### Layout

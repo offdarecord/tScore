@@ -18,6 +18,7 @@
     "build": "npm run build -w apps/desktop",
     "dist": "npm run dist -w apps/desktop",
     "screenshots": "npm run screenshots -w apps/desktop",
+    "site": "node scripts/build-site.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

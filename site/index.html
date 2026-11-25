@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>tScore: free scoring for motorcycle trials</title>
+    <meta
+      name="description"
+      content="tScore is a free, open-source Windows app for scoring motorcycle trials. It works offline at the venue and reads punched scorecards with a USB document camera."
+    />
+    <meta property="og:title" content="tScore: free scoring for motorcycle trials" />
+    <meta
+      property="og:description"
+      content="Free, offline scoring for motorcycle trials, with punched scorecards read by a USB document camera."
+    />
+    <meta property="og:image" content="https://offdarecord.github.io/tScore/media/banner.jpg" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to the content</a>
+    <header class="top">
+      <div class="wrap top-row">
+        <a class="brand" href="./">tScore</a>
+        <nav aria-label="Site">
+          <a href="#features">Features</a>
+          <a href="#download">Download</a>
+          <a href="https://github.com/offdarecord/tScore/blob/main/docs/guide/README.md"
+            >User guide</a
+          >
+          <a href="https://github.com/offdarecord/tScore">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero">
+        <div class="wrap">
+          <img
+            class="banner"
+            src="media/banner.jpg"
+            width="1600"
+            height="679"
+            alt="tScore: Mototrials scoring app. Automated card scanning. Works offline."
+          />
+          <h1>Free scoring for motorcycle trials, built for club volunteers.</h1>
+          <p class="lead">
+            tScore is a Windows app (Mac coming soon!) for the scoring desk. It works with no
+            internet at the venue, reads riders' punched scorecards with a cheap USB document
+            camera, and turns them into ranked results.
+          </p>
+          <p class="actions">
+            <a
+              class="button primary"
+              id="download-button"
+              href="https://github.com/offdarecord/tScore/releases/latest"
+              >Download for Windows</a
+            >
+            <a class="button" href="https://github.com/offdarecord/tScore/blob/main/docs/tour.md"
+              >Take the tour</a
+            >
+          </p>
+          <p class="small" id="download-note">
+            Free and open source. Windows 10 and 11. Early version: try it at home before you use it
+            at an event.
+          </p>
+        </div>
+      </section>
+
+      <section id="features" class="wrap">
+        <h2>What it does</h2>
+        <ul class="features">
+          <li>
+            <h3>Before the event</h3>
+            <p>
+              Set up classes, sections and laps. Import the entry list from Ridernet or Entryplace.
+              Print card labels with a QR code for every rider and lap.
+            </p>
+          </li>
+          <li>
+            <h3>On the day</h3>
+            <p>
+              Put each card under the camera: clear cards save themselves, anything unclear goes to
+              a review queue with its photo. Or type cards in, keyboard only. See who is still on
+              course at a glance.
+            </p>
+          </li>
+          <li>
+            <h3>Results</h3>
+            <p>
+              Results build up as cards come in, ranked with the usual tie-breaks. Save a PDF with
+              your club and sponsor logos, put live scores on a big screen, and keep series points
+              across the season.
+            </p>
+          </li>
+          <li>
+            <h3>Safe with your data</h3>
+            <p>
+              Everything stays on the laptop. Every change is saved at once, with automatic backups
+              and an optional copy on a USB stick. Every score traces back to a card photo and an
+              audit log.
+            </p>
+          </li>
+        </ul>
+      </section>
+
+      <section class="wrap" aria-labelledby="see-h">
+        <h2 id="see-h">See it work</h2>
+        <div class="shots">
+          <figure>
+            <img
+              src="media/manual-entry.png"
+              width="1280"
+              height="800"
+              loading="lazy"
+              alt="Manual entry: a rider's scores typed as one string of digits, with a drawing of the card filling in beside it"
+            />
+            <figcaption>Type a card in with the keyboard alone, or scan it.</figcaption>
+          </figure>
+          <figure>
+            <img
+              src="media/results.png"
+              width="1280"
+              height="800"
+              loading="lazy"
+              alt="Results: a class ranked with lap totals, totals and counts of 0s to 5s, marked provisional while cards are missing"
+            />
+            <figcaption>
+              Results update as cards come in, provisional until every card is in.
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              src="media/progress.png"
+              width="1280"
+              height="800"
+              loading="lazy"
+              alt="Progress: which cards are in for every rider and lap, with overdue riders flagged"
+            />
+            <figcaption>Which cards are in, and who is overdue.</figcaption>
+          </figure>
+          <figure>
+            <img
+              src="media/card-labels.png"
+              width="1280"
+              height="800"
+              loading="lazy"
+              alt="Card labels: a sheet of labels with rider name, class, lap and a QR code on each"
+            />
+            <figcaption>Card labels on standard label sheets, any printer.</figcaption>
+          </figure>
+        </div>
+        <p>
+          <a href="https://github.com/offdarecord/tScore/blob/main/docs/tour.md"
+            >More in the tour →</a
+          >
+        </p>
+      </section>
+
+      <section id="download" class="wrap" aria-labelledby="download-h">
+        <h2 id="download-h">Download and install</h2>
+        <ol class="steps">
+          <li>
+            Download
+            <a id="download-link" href="https://github.com/offdarecord/tScore/releases/latest"
+              >the latest installer</a
+            >
+            from the release page.
+          </li>
+          <li>Run it. tScore installs for you only, with no administrator password, and starts.</li>
+          <li>
+            If Windows shows <strong>Windows protected your PC</strong>, choose
+            <strong>More info</strong>, then <strong>Run anyway</strong>. This goes once the
+            installer is signed.
+          </li>
+          <li>
+            Read
+            <a href="https://github.com/offdarecord/tScore/blob/main/docs/guide/getting-started.md"
+              >Getting started</a
+            >, and try it at home with internet before the event. On the day it needs no internet.
+          </li>
+        </ol>
+        <p>
+          tScore updates itself from GitHub when the laptop is online and no event is open. To
+          remove it: Windows Settings → Apps → tScore → Uninstall. Your events stay in
+          Documents\tScore.
+        </p>
+      </section>
+
+      <section id="code-signing-policy" class="wrap" aria-labelledby="sign-h">
+        <h2 id="sign-h">Code signing policy</h2>
+        <p>
+          Free code signing provided by <a href="https://about.signpath.io/">SignPath.io</a>,
+          certificate by <a href="https://signpath.org/">SignPath Foundation</a>.
+        </p>
+        <p>
+          Only the tScore app and its installer, built by this project's
+          <a href="https://github.com/offdarecord/tScore/blob/main/.github/workflows/release.yml"
+            >release workflow</a
+          >
+          on GitHub Actions from the public source code, are signed, and every release is approved
+          by hand.
+        </p>
+        <ul>
+          <li>
+            Committers and reviewers:
+            <a href="https://github.com/offdarecord/tScore/graphs/contributors"
+              >contributors with write access</a
+            >
+          </li>
+          <li>Approvers: <a href="https://github.com/offdarecord">the repository owner</a></li>
+        </ul>
+        <p>
+          The full policy:
+          <a href="https://github.com/offdarecord/tScore/blob/main/CODE_SIGNING_POLICY.md"
+            >CODE_SIGNING_POLICY.md</a
+          >.
+        </p>
+      </section>
+
+      <section id="privacy" class="wrap" aria-labelledby="privacy-h">
+        <h2 id="privacy-h">Privacy</h2>
+        <p>
+          This program will not transfer any information to other networked systems unless
+          specifically requested by the user or the person installing or operating it, with one
+          exception: when the laptop is online and no event is open, tScore asks GitHub whether a
+          newer version exists, and downloads it if so. tScore never sends event data, rider data or
+          files anywhere.
+        </p>
+        <p>This website uses no cookies and no tracking.</p>
+      </section>
+
+      <section class="wrap" aria-labelledby="help-h">
+        <h2 id="help-h">Ideas and problems</h2>
+        <p>
+          Have an idea? In tScore, open <strong>About → Suggest a feature</strong>, or see
+          <a href="https://github.com/offdarecord/tScore/blob/main/docs/suggest-a-feature.md"
+            >how to suggest a feature</a
+          >. Found a problem?
+          <a href="https://github.com/offdarecord/tScore/issues">Tell us on GitHub</a>, or email
+          <a href="mailto:tscoreapp@outlook.com">tscoreapp@outlook.com</a>.
+        </p>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <p>
+          tScore is free and open source under the
+          <a href="https://github.com/offdarecord/tScore/blob/main/LICENSE">Apache License 2.0</a>.
+          The tScore name, logo and banner artwork are all rights reserved.
+        </p>
+      </div>
+    </footer>
+
+    <script src="download.js" defer></script>
+  </body>
+</html>

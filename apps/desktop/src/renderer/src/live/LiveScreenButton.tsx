@@ -8,7 +8,7 @@ export function LiveScreenButton() {
 
   useEffect(() => {
     void window.tscore.liveWindowState().then(setState);
-    // The big screen closes itself with Esc; keep the button in step.
+    // The big screen can also be closed with its window's ✕; keep the button in step.
     const timer = setInterval(() => void window.tscore.liveWindowState().then(setState), 2_000);
     return () => clearInterval(timer);
   }, []);

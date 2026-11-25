@@ -99,10 +99,10 @@ export function LiveScores() {
     const timer = setInterval(() => void load(), REFRESH_MS);
     const resize = () => setHeight(window.innerHeight);
     window.addEventListener('resize', resize);
-    // No controls on screen: Esc closes the big screen, F11 toggles full screen.
+    // No controls on screen. F11 toggles full screen. Esc does nothing: it's too easy to hit by
+    // accident, so the big screen closes only from the desk (Close live scores) or its window's ✕.
     const keys = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') void window.tscore.closeLiveScores();
-      else if (e.key === 'F11') {
+      if (e.key === 'F11') {
         e.preventDefault();
         void window.tscore.toggleLiveFullScreen();
       }

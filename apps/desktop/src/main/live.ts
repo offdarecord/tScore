@@ -1,7 +1,8 @@
 /**
  * The big screen (live scores): a second window, full screen on the external monitor (HDMI) if
  * one is plugged in, otherwise an ordinary window the desk can drag there. It has no controls:
- * it shows the open event's results and refreshes itself. Esc closes it; F11 or a double-click
+ * it shows the open event's results and refreshes itself. It closes only from the desk (Close live
+ * scores) or its window's ✕, never Esc, which is too easy to hit by accident. F11 or a double-click
  * toggles full screen.
  *
  * Same renderer and preload as the desk window, opened at `#live`, so it can't disagree with

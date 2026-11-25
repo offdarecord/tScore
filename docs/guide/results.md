@@ -51,7 +51,9 @@ It shows each class's place, number, name, how far each rider has got ("Lap 2 of
 total so far, marked **PROVISIONAL** until results are final. It follows the same rules as the
 PDF: junior surnames as an initial, and non-competitive riders with counts only, never a total.
 
-**Close live scores** on Results (or **Esc** on the big screen) closes it.
+**Close live scores** on Results closes it, or the big screen's ✕ when it isn't full screen
+(**F11** switches full screen on and off). **Esc** does nothing on the big screen, so a stray key
+can't close it.
 
 ## Mark results final
 

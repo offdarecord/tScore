@@ -36,6 +36,15 @@ show those riders' surnames as an initial (see
 Choose **Create event** (or **Save changes**). If something is missing, a red box lists each
 problem, and the box concerned is marked.
 
+### Logos
+
+Under **Logos** on **Event setup**, choose the event (or club) logo and add up to 8 sponsor
+logos. The event logo goes beside the event name on the results PDF and the big screen; sponsor
+logos go at the end of the PDF, under "Supported by", and along the bottom of the big screen.
+
+Logos must be PNG or JPEG pictures, up to 1 MB each. They're kept in the event file, so backups
+and a copy moved to another laptop have them too.
+
 ## Import the entry list
 
 On **Riders**, choose **Import from entry list…** and pick the export from your entry system.

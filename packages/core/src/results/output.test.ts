@@ -129,6 +129,24 @@ describe('the printable results (PDF)', () => {
     expect(out).not.toContain('<b>Al');
   });
 
+  it('shows the event logo by the title and sponsors at the end, and nothing but pictures', () => {
+    const png = 'data:image/png;base64,iVBORw0KGgo=';
+    const jpg = 'data:image/jpeg;base64,/9j/4AAQ';
+    const out = resultsHtml(report.results, {
+      gaps: [],
+      dates: '',
+      footer: '',
+      logos: { event: png, sponsors: [jpg, 'data:text/html;base64,PHNjcmlwdD4=', 'x" onerror="y'] },
+    });
+    expect(out).toContain(`<img class="event-logo" src="${png}" alt="">`);
+    expect(out).toContain(
+      `Supported by</p><div><img class="sponsor-logo" src="${jpg}" alt=""></div>`,
+    );
+    expect(out).not.toContain('text/html');
+    expect(out).not.toContain('onerror');
+    expect(html).not.toContain('Supported by');
+  });
+
   it('explains the tie-break rule in words', () => {
     expect(tieBreakWords(report.results)).toBe(
       'Lowest total wins. Ties are split by most 0s, then most 1s, then most 2s, then most 3s, then fewest 5s, then a ride-off.',

@@ -14,11 +14,12 @@ import {
   rmSync,
   writeFileSync,
 } from 'node:fs';
-import { basename, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { validateEventSetup, type EventSetup } from '@tscore/core';
 import { DamagedFileError, SetupError, StoreError } from './errors.js';
 import { EVENT_FILE, EventStore, type StoreContext } from './event-store.js';
+import { packEvent, unpackEvent } from './move.js';
 
 export interface LibraryOptions {
   /** App settings folder (Electron's userData): the station id and recent-events list live here. */
@@ -116,11 +117,55 @@ export class EventLibrary {
    * events by date. A number is added if that folder is already used.
    */
   folderFor(setup: EventSetup): string {
-    const date = setup.days[0]?.date ?? this.#now().toISOString().slice(0, 10);
-    const base = join(this.eventsDir, `${date} ${setup.event.code}`);
+    return this.#freeFolder(setup.days[0]?.date, setup.event.code);
+  }
+
+  #freeFolder(date: string | undefined, code: string): string {
+    const base = join(this.eventsDir, `${date ?? this.#now().toISOString().slice(0, 10)} ${code}`);
     let folder = base;
     for (let n = 2; existsSync(folder); n++) folder = `${base} (${n})`;
     return folder;
+  }
+
+  /**
+   * Save the open event as one file to carry to another laptop, then read the file back to
+   * check it. Backups and exports are left out (see move.ts).
+   */
+  saveForMove(file: string): { bytes: number; files: number } {
+    const store = this.#current;
+    if (!store) throw new StoreError('STORE_NO_EVENT', 'No event is open.');
+    store.noteMovedOut(basename(file));
+    const data = packEvent(store, this.#appVersion, this.#now());
+    const tmp = `${file}.tmp`;
+    writeFileSync(tmp, data);
+    renameSync(tmp, file);
+    const { manifest } = unpackEvent(readFileSync(file));
+    return { bytes: data.length, files: manifest.files.length };
+  }
+
+  /**
+   * Open an event saved on another laptop with saveForMove: checked, then unpacked into a new
+   * folder beside the others ("<date> <code>", numbered if that's taken). Nothing existing is
+   * touched, and the new folder is removed again if the event can't be opened.
+   */
+  openMoved(file: string): EventStore {
+    const { manifest, files } = unpackEvent(readFileSync(file));
+    mkdirSync(this.eventsDir, { recursive: true });
+    const folder = this.#freeFolder(manifest.event.date, safeName(manifest.event.code));
+    let store: EventStore;
+    try {
+      for (const [path, data] of files) {
+        const target = join(folder, ...path.split('/'));
+        mkdirSync(dirname(target), { recursive: true });
+        writeFileSync(target, data);
+      }
+      store = EventStore.open(folder, this.context());
+    } catch (err) {
+      rmSync(folder, { recursive: true, force: true });
+      throw err;
+    }
+    store.noteMovedIn(basename(file));
+    return this.#use(store);
   }
 
   /** Make a new event and open it (closing any open event). */
@@ -228,6 +273,12 @@ export class EventLibrary {
   #writeRecent(events: StoredRecent[]): void {
     writeJson(join(this.#settingsDir, RECENT_FILE), { events });
   }
+}
+
+/** An event code as part of a folder name: no characters Windows refuses. */
+function safeName(code: string): string {
+  // eslint-disable-next-line no-control-regex -- control characters are what's being removed
+  return code.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_').trim() || 'event';
 }
 
 /** Windows paths are case-insensitive. */

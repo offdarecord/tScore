@@ -13,7 +13,8 @@ of any screen to open the page for that screen.
 3. [Event day](event-day.md): scanning and typing in cards, the review queue, penalties, late entries, DNF and DNS, and who is
    still on course.
 4. [Results](results.md): provisional and final results, ties, and saving a PDF or CSV.
-5. [Series points](series.md): a points tally across the rounds of a series.
+5. [Series points](series.md): a points tally across the rounds of a series, including a
+   [series run by several clubs](series-across-clubs.md).
 6. [Backups and restore](backups.md): what is saved, where, and how to get an event back.
 7. [Event-day checklist](checklist.md): one page to print and take to the venue.
 8. [Troubleshooting](troubleshooting.md): common problems, and how to get help.

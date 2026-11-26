@@ -14,6 +14,10 @@ spreadsheet.
 Series are kept in `Documents\tScore\Series`, one small file each. Removing a round or a series
 never changes the events themselves.
 
+**Rounds run by other clubs?** When clubs share a series, each round is scored on a different
+laptop. See [A series run by several clubs](series-across-clubs.md) for getting every round onto
+one laptop for the tally.
+
 ## Rules
 
 - **Points for 1st, 2nd, 3rd …**: the usual scale is 25, 22, 20, 18, 16, then 15 down to 1.

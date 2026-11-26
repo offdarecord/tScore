@@ -2,6 +2,7 @@
  * The Scan desk's decisions, kept apart from the screen so they can be tested: when a reading
  * is steady, whose card it is, and whether it can be saved without a person looking.
  */
+import i18next from '../i18n';
 import type { CardReading, LabelId } from '@tscore/vision';
 import type { CardRow, DeskRider } from '../../../shared/ipc';
 
@@ -84,22 +85,26 @@ export function verdict(
   cards: readonly CardRow[],
 ): Verdict {
   const rider = riders.find((r) => r.number === id.number);
-  if (!rider) return { kind: 'problem', message: `Rider ${id.number} isn't on the entry list.` };
+  if (!rider)
+    return { kind: 'problem', message: i18next.t('scan.notListed', { number: id.number }) };
   if (rider.status === 'dns')
-    return { kind: 'problem', message: `Rider ${id.number} is marked DNS.` };
+    return { kind: 'problem', message: i18next.t('scan.dns', { number: id.number }) };
   const ride = rider.rides[id.day];
   if (!ride)
-    return { kind: 'problem', message: `Rider ${id.number}'s class doesn't ride day ${id.day}.` };
+    return {
+      kind: 'problem',
+      message: i18next.t('scan.notThatDay', { number: id.number, day: id.day }),
+    };
   if (id.lap < 1 || id.lap > ride.laps) {
     return {
       kind: 'problem',
-      message: `Rider ${id.number}'s class rides ${ride.laps} laps on day ${id.day}.`,
+      message: i18next.t('scan.laps', { number: id.number, laps: ride.laps, day: id.day }),
     };
   }
   if (cards.some((c) => c.number === id.number && c.day === id.day && c.lap === id.lap)) {
     return {
       kind: 'problem',
-      message: `Rider ${id.number} lap ${id.lap} is already in. To change it, use Manual entry.`,
+      message: i18next.t('scan.alreadyIn', { number: id.number, lap: id.lap }),
     };
   }
   const active = card.rows.slice(0, ride.sections);

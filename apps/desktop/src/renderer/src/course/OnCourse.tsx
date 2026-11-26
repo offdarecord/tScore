@@ -1,4 +1,5 @@
-import { Button, Group, Paper, Stack, Table, Text, Title } from '@mantine/core';
+import i18next from '../i18n';
+import { Button, Group, Paper, Stack, Table, Text, Title, VisuallyHidden } from '@mantine/core';
 import type { CourseView, OpenEvent } from '../../../shared/ipc';
 import { clock, DayPicker, MarkDnf, minutes, useCourse, useDnf } from './shared';
 import { ErrorAlert } from '../ErrorAlert';
@@ -7,31 +8,31 @@ type Rider = CourseView['riders'][number];
 
 /** Traffic-light colours; white text on these meets WCAG AA. */
 const LOOK = {
-  out: { bg: '#b02525', fg: '#fff', tag: 'OUT', words: 'on course' },
+  out: { bg: '#b02525', fg: '#fff', tag: 'course.onCourseTag', words: 'course.onCourseWords' },
   waiting: {
     bg: 'light-dark(#e9ecef, #2e3236)',
     fg: 'light-dark(#212529, #f1f3f5)',
-    tag: 'START',
-    words: 'not started yet',
+    tag: 'course.startTag',
+    words: 'course.startWords',
   },
-  in: { bg: '#237032', fg: '#fff', tag: 'IN', words: 'final card in' },
+  in: { bg: '#237032', fg: '#fff', tag: 'course.inTag', words: 'course.inWords' },
   dnf: {
     bg: 'light-dark(#ced4da, #495057)',
     fg: 'light-dark(#212529, #f1f3f5)',
-    tag: 'DNF',
-    words: 'did not finish',
+    tag: 'course.dnfShort',
+    words: 'course.dnfWords',
   },
   dns: {
     bg: 'light-dark(#ced4da, #495057)',
     fg: 'light-dark(#212529, #f1f3f5)',
-    tag: 'DNS',
-    words: 'did not start',
+    tag: 'course.dnsShort',
+    words: 'course.dnsWords',
   },
   not_riding: {
     bg: 'light-dark(#ced4da, #495057)',
     fg: 'light-dark(#212529, #f1f3f5)',
-    tag: '',
-    words: 'not riding today',
+    tag: null,
+    words: 'course.notTodayWords',
   },
 } as const;
 
@@ -69,11 +70,8 @@ export function OnCourse({
     <Stack gap="lg" maw={1300}>
       <Group justify="space-between" align="flex-end" wrap="wrap">
         <div>
-          <Title order={2}>Still on course</Title>
-          <Text c="dimmed">
-            Worked out from the cards in and riders marked DNF. A rider is on course from the start
-            until their final lap card is in, or they&apos;re marked DNF.
-          </Text>
+          <Title order={2}>{i18next.t('course.stillOnCourse')}</Title>
+          <Text c="dimmed">{i18next.t('course.onCourseIntro')}</Text>
         </div>
         <DayPicker view={view} onChange={setDay} />
       </Group>
@@ -82,25 +80,25 @@ export function OnCourse({
 
       <Group gap="md" wrap="wrap" align="stretch">
         <Count
-          label="Still on course"
+          label={i18next.t('course.stillOnCourse')}
           value={view.counts.out}
           bg={view.counts.out ? LOOK.out.bg : 'light-dark(#e3f4e6, #1c3b22)'}
           fg={view.counts.out ? LOOK.out.fg : 'light-dark(#1f5f26, #8ce99a)'}
         />
         <Count
-          label="Final card in"
+          label={i18next.t('course.finalIn')}
           value={view.counts.in}
           bg="light-dark(#e3f4e6, #1c3b22)"
           fg="light-dark(#1f5f26, #8ce99a)"
         />
         <Count
-          label="DNF"
+          label={i18next.t('course.dnfShort')}
           value={view.counts.dnf}
           bg="light-dark(#e9ecef, #2e3236)"
           fg="light-dark(#212529, #f1f3f5)"
         />
         <Count
-          label="DNS"
+          label={i18next.t('course.dnsShort')}
           value={view.counts.dns}
           bg="light-dark(#e9ecef, #2e3236)"
           fg="light-dark(#212529, #f1f3f5)"
@@ -109,41 +107,47 @@ export function OnCourse({
 
       {flash}
 
-      <Paper withBorder radius="md" p="md" component="section" aria-label="Riders on course">
+      <Paper
+        withBorder
+        radius="md"
+        p="md"
+        component="section"
+        aria-label={i18next.t('course.ridersOnCourse')}
+      >
         {!view.started ? (
           <Text fz={20} fw={700} ta="center" py="lg">
-            Lap 1 starts at {view.startTime}. Riders are on course from then.
+            {i18next.t('course.startsAt', { time: view.startTime ?? '' })}
           </Text>
         ) : out.length === 0 ? (
           <Stack align="center" gap="sm" py="lg">
             <Text fz={22} fw={700} ta="center" c="light-dark(#1f5f26, #8ce99a)">
               {view.riders.length === 0
-                ? 'No riders yet.'
-                : 'Everyone is accounted for. The event can be closed down.'}
+                ? i18next.t('course.noRidersYet')
+                : i18next.t('course.allAccounted')}
             </Text>
             {view.riders.length > 0 && onCloseEvent && (
               <Button size="md" onClick={onCloseEvent}>
-                Close the event: check and mark results final
+                {i18next.t('course.closeEvent')}
               </Button>
             )}
           </Stack>
         ) : (
           <div
             role="region"
-            aria-label="Riders on course, scrolls sideways"
+            aria-label={i18next.t('course.onCourseScroll')}
             tabIndex={0}
             style={{ overflowX: 'auto' }}
           >
             <Table miw={760} verticalSpacing="sm">
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>No.</Table.Th>
-                  <Table.Th>Rider</Table.Th>
-                  <Table.Th>Class</Table.Th>
-                  <Table.Th>Last card in</Table.Th>
-                  <Table.Th>Since then</Table.Th>
+                  <Table.Th>{i18next.t('course.number')}</Table.Th>
+                  <Table.Th>{i18next.t('course.rider')}</Table.Th>
+                  <Table.Th>{i18next.t('course.class')}</Table.Th>
+                  <Table.Th>{i18next.t('course.lastCardIn')}</Table.Th>
+                  <Table.Th>{i18next.t('course.sinceThen')}</Table.Th>
                   <Table.Th>
-                    <span style={{ position: 'absolute', left: -9999 }}>Actions</span>
+                    <VisuallyHidden>{i18next.t('course.actions')}</VisuallyHidden>
                   </Table.Th>
                 </Table.Tr>
               </Table.Thead>
@@ -157,15 +161,17 @@ export function OnCourse({
                     <Table.Td>{r.className}</Table.Td>
                     <Table.Td>
                       {r.lastCard
-                        ? `Lap ${r.lastCard.lap} at ${clock(r.lastCard.at)}`
-                        : `None yet (started ${view.startTime ?? ''})`}
+                        ? i18next.t('course.lapAt', {
+                            lap: r.lastCard.lap,
+                            time: clock(r.lastCard.at),
+                          })
+                        : i18next.t('course.noneYet', { time: view.startTime ?? '' })}
                     </Table.Td>
                     <Table.Td>
                       {minutes(r.minutesOut ?? 0)}
                       {r.overdue && (
                         <Text span fw={700} c="light-dark(#a51111, #ffa8a8)">
-                          {' '}
-                          · overdue
+                          {i18next.t('course.overdueTag')}
                         </Text>
                       )}
                     </Table.Td>
@@ -180,17 +186,23 @@ export function OnCourse({
         )}
       </Paper>
 
-      <Paper withBorder radius="md" p="md" component="section" aria-label="All riders">
+      <Paper
+        withBorder
+        radius="md"
+        p="md"
+        component="section"
+        aria-label={i18next.t('course.allRiders')}
+      >
         <Group justify="space-between" wrap="wrap" mb="sm">
           <Title order={3} size="h4">
-            All riders
+            {i18next.t('course.allRiders')}
           </Title>
           <Text size="sm" c="dimmed">
-            Red = on course · Green = final card in · Grey = DNF or did not start
+            {i18next.t('course.boardKey')}
           </Text>
         </Group>
         <ul
-          aria-label="Every rider's state"
+          aria-label={i18next.t('course.everyState')}
           style={{
             display: 'flex',
             flexWrap: 'wrap',
@@ -215,7 +227,7 @@ function Tile(props: { number: number; look: (typeof LOOK)[keyof typeof LOOK]; s
   const { look } = props;
   return (
     <div
-      aria-label={`Rider ${props.number}: ${look.words}`}
+      aria-label={i18next.t('course.tile', { number: props.number, words: i18next.t(look.words) })}
       role="img"
       style={{
         width: props.small ? 56 : 76,
@@ -234,7 +246,7 @@ function Tile(props: { number: number; look: (typeof LOOK)[keyof typeof LOOK]; s
     >
       {props.number}
       {!props.small && look.tag && (
-        <span style={{ fontSize: 12, fontWeight: 700 }}>{look.tag}</span>
+        <span style={{ fontSize: 12, fontWeight: 700 }}>{i18next.t(look.tag)}</span>
       )}
     </div>
   );

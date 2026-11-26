@@ -1,12 +1,13 @@
 import { Button, Group, Paper, SegmentedControl, Stack, Text, Title } from '@mantine/core';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { AppError, OpenEvent, ReviewItem } from '../../../shared/ipc';
 import { ErrorAlert } from '../ErrorAlert';
 
-const REASONS: Record<string, string> = {
-  NO_PUNCH: 'No hole found',
-  MULTI_PUNCH: 'More than one hole',
-  LOW_CONF: 'Unclear hole (torn or partly punched)',
+const REASONS: Record<string, 'review.noPunch' | 'review.multiPunch' | 'review.lowConf'> = {
+  NO_PUNCH: 'review.noPunch',
+  MULTI_PUNCH: 'review.multiPunch',
+  LOW_CONF: 'review.lowConf',
 };
 
 /**
@@ -23,6 +24,7 @@ export function ReviewQueue({
   /** Go to Manual entry, for a card that's easier typed in than decided here. */
   onManualEntry?: () => void;
 }) {
+  const { t } = useTranslation();
   const [items, setItems] = useState<ReviewItem[] | null>(null);
   const [values, setValues] = useState<readonly number[]>(scoreValues ?? [0, 1, 2, 3, 5]);
   const [error, setError] = useState<AppError | null>(null);
@@ -38,11 +40,8 @@ export function ReviewQueue({
   return (
     <Stack gap="lg" maw={1300}>
       <div>
-        <Title order={2}>Review queue</Title>
-        <Text c="dimmed">
-          Scanned cards with a score the reader couldn&apos;t decide. Check the card, pick the
-          score, then save.
-        </Text>
+        <Title order={2}>{t('review.title')}</Title>
+        <Text c="dimmed">{t('review.intro')}</Text>
       </div>
       {error && <ErrorAlert error={error} onClose={() => setError(null)} />}
       {saved && (
@@ -51,7 +50,7 @@ export function ReviewQueue({
         </Text>
       )}
       {items.length === 0 ? (
-        <Text fz="lg">Nothing to review.</Text>
+        <Text fz="lg">{t('review.nothing')}</Text>
       ) : (
         items.map((item) => (
           <ReviewCard
@@ -68,9 +67,9 @@ export function ReviewQueue({
       )}
       {onManualEntry && (
         <Group gap="sm">
-          <Text c="dimmed">Card can&apos;t be read at all? Type it in by hand.</Text>
+          <Text c="dimmed">{t('review.cantRead')}</Text>
           <Button variant="default" onClick={onManualEntry}>
-            Go to Manual entry
+            {t('review.goManual')}
           </Button>
         </Group>
       )}
@@ -84,6 +83,7 @@ function ReviewCard(props: {
   onSaved: (items: ReviewItem[], words: string) => void;
   onError: (e: AppError) => void;
 }) {
+  const { t } = useTranslation();
   const { item } = props;
   const [photo, setPhoto] = useState<string | null>(null);
   const [picked, setPicked] = useState<Record<number, string>>({});
@@ -94,7 +94,13 @@ function ReviewCard(props: {
   }, [item.imagePath]);
 
   const ready = item.sections.every((s) => picked[s.section] !== undefined);
-  const label = `Rider ${item.number}${item.name ? ` (${item.name})` : ''}, ${item.className}, day ${item.day} lap ${item.lap}`;
+  const label = t('review.label', {
+    number: item.number,
+    name: item.name ? t('review.labelName', { name: item.name }) : '',
+    class: item.className,
+    day: item.day,
+    lap: item.lap,
+  });
 
   return (
     <Paper withBorder radius="md" p="lg" component="section" aria-label={label}>
@@ -102,7 +108,7 @@ function ReviewCard(props: {
         {photo ? (
           <img
             src={photo}
-            alt={`Photo of rider ${item.number}'s card`}
+            alt={t('review.photoAlt', { number: item.number })}
             style={{
               width: 300,
               maxHeight: 420,
@@ -113,7 +119,7 @@ function ReviewCard(props: {
           />
         ) : (
           <Text c="dimmed" w={300}>
-            No photo.
+            {t('review.noPhoto')}
           </Text>
         )}
         <Stack gap="sm" style={{ flex: 1 }}>
@@ -121,7 +127,7 @@ function ReviewCard(props: {
             {label}
           </Title>
           <Text>
-            Read so far:{' '}
+            {t('review.readSoFar')}{' '}
             {item.scores.map((s, i) => (
               <Text key={i} span fw={700} mr={6}>
                 {s ?? '?'}
@@ -131,10 +137,13 @@ function ReviewCard(props: {
           {item.sections.map((s) => (
             <div key={s.section}>
               <Text fw={600}>
-                Section {s.section}: {REASONS[s.reason ?? ''] ?? 'Not decided'}
+                {t('review.section', {
+                  section: s.section,
+                  reason: t(REASONS[s.reason ?? ''] ?? 'review.notDecided'),
+                })}
               </Text>
               <SegmentedControl
-                aria-label={`Score for section ${s.section}`}
+                aria-label={t('review.scoreFor', { section: s.section })}
                 value={picked[s.section] ?? ''}
                 onChange={(v) => setPicked((p) => ({ ...p, [s.section]: v }))}
                 data={props.values.map((v) => ({ value: String(v), label: String(v) }))}
@@ -157,12 +166,15 @@ function ReviewCard(props: {
                   })
                   .then((r) =>
                     r.ok
-                      ? props.onSaved(r.value, `Saved rider ${item.number} lap ${item.lap}.`)
+                      ? props.onSaved(
+                          r.value,
+                          t('review.saved', { number: item.number, lap: item.lap }),
+                        )
                       : props.onError(r.error),
                   )
               }
             >
-              Save scores
+              {t('review.save')}
             </Button>
           </Group>
         </Stack>

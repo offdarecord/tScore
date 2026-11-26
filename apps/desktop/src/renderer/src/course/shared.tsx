@@ -1,5 +1,6 @@
 import { Alert, Button, Group, NativeSelect, Text } from '@mantine/core';
 import { useCallback, useEffect, useState } from 'react';
+import i18next from '../i18n';
 import type { AppError, CourseView, Outcome } from '../../../shared/ipc';
 
 /** How often the screens refresh on their own, so "overdue" keeps up with the clock. */
@@ -37,10 +38,13 @@ export function DayPicker(props: { view: CourseView; onChange: (day: number) => 
   if (props.view.days.length < 2) return null;
   return (
     <NativeSelect
-      label="Day"
+      label={i18next.t('course.day')}
       w={110}
       value={String(props.view.day)}
-      data={props.view.days.map((d) => ({ value: String(d), label: `Day ${d}` }))}
+      data={props.view.days.map((d) => ({
+        value: String(d),
+        label: i18next.t('course.dayN', { day: d }),
+      }))}
       onChange={(e) => props.onChange(Number(e.currentTarget.value))}
     />
   );
@@ -54,7 +58,9 @@ export const clock = (iso: string) =>
   });
 
 export const minutes = (m: number) =>
-  m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`;
+  m < 60
+    ? i18next.t('course.minutes', { m })
+    : i18next.t('course.hours', { h: Math.floor(m / 60), m: String(m % 60).padStart(2, '0') });
 
 /**
  * Mark a rider DNF, with Undo. Uses the Riders screen's own change (logged). Overdue never marks
@@ -81,11 +87,9 @@ export function useDnf(reload: () => Promise<void>, onError: (e: AppError) => vo
   const flash = done ? (
     <Alert color="gray" role="status" withCloseButton onClose={() => setDone(null)}>
       <Group justify="space-between" wrap="wrap" gap="sm">
-        <span>
-          Rider {done.number} ({done.name}) marked DNF. Logged.
-        </span>
+        <span>{i18next.t('course.markedDnf', { number: done.number, name: done.name })}</span>
         <Button variant="default" size="xs" onClick={() => void undo()}>
-          Undo
+          {i18next.t('course.undo')}
         </Button>
       </Group>
     </Alert>
@@ -104,20 +108,20 @@ export function MarkDnf(props: {
   if (!asking) {
     return (
       <Button variant="default" onClick={() => setAsking(true)}>
-        Mark DNF…
+        {i18next.t('course.markDnfAsk')}
       </Button>
     );
   }
   return (
     <Group gap="xs" wrap="nowrap">
       <Text fw={600} size="sm">
-        Mark rider {props.number} DNF?
+        {i18next.t('course.markConfirm', { number: props.number })}
       </Text>
       <Button color="red.9" onClick={() => void props.onMark(props.number, props.name)}>
-        Mark DNF
+        {i18next.t('course.markDnf')}
       </Button>
       <Button variant="default" onClick={() => setAsking(false)}>
-        Cancel
+        {i18next.t('course.cancel')}
       </Button>
     </Group>
   );

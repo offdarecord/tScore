@@ -15,6 +15,7 @@ import {
 } from '@mantine/core';
 import { describeTypedScoreProblem, readTypedScores, singleDigitScores } from '@tscore/core';
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import type {
   AppError,
   CardDesk,
@@ -29,27 +30,33 @@ import { riderName } from '../riders/Riders';
 import { CardPreview } from './CardPreview';
 import { ErrorAlert } from '../ErrorAlert';
 
-export const PENALTY_LABEL: Record<PenaltyReason, string> = {
-  time: 'Time (e.g. lap not finished in the time allowed)',
-  dissent: 'Dissent / arguing with an observer',
-  outside_assistance: 'Outside assistance',
-  course_cutting: 'Course cutting',
-  other: 'Other',
-};
+export const PENALTY_LABEL = {
+  time: 'penalty.time',
+  dissent: 'penalty.dissent',
+  outside_assistance: 'penalty.outsideAssistance',
+  course_cutting: 'penalty.courseCutting',
+  other: 'penalty.other',
+} as const satisfies Record<PenaltyReason, string>;
 
-const HOW: Record<string, { label: string; bg: string; fg: string }> = {
+/** The reason as it reads in a list (no explanation in brackets). */
+const PENALTY_SHORT = { ...PENALTY_LABEL, time: 'penalty.timeShort' } as const;
+
+const HOW: Record<
+  string,
+  { label: 'manual.scanned' | 'manual.typed' | 'manual.edited'; bg: string; fg: string }
+> = {
   scan: {
-    label: 'Scanned',
+    label: 'manual.scanned',
     bg: 'light-dark(#e9ecef, #2e3236)',
     fg: 'light-dark(#343a40, #dee2e6)',
   },
   manual: {
-    label: 'Typed',
+    label: 'manual.typed',
     bg: 'light-dark(#e3eefa, #1a3049)',
     fg: 'light-dark(#0b4a8b, #a5d8ff)',
   },
   edited: {
-    label: 'Edited',
+    label: 'manual.edited',
     bg: 'light-dark(#fff0de, #3f2a10)',
     fg: 'light-dark(#8a3b00, #ffc078)',
   },
@@ -90,6 +97,7 @@ interface Where {
  * and where the rare penalties are added (agreed with the scorer, 24 Nov).
  */
 export function ManualEntry({ event }: { readonly event: OpenEvent }) {
+  const { t } = useTranslation();
   const [desk, setDesk] = useState<CardDesk | null>(null);
   const [query, setQuery] = useState('');
   const [sel, setSel] = useState<number | null>(null);
@@ -186,8 +194,8 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
     setDesk(r.value);
     clear(
       editing
-        ? `Changed rider ${rider.number} lap ${lap}: total now ${typed.total}.`
-        : `Saved rider ${rider.number} lap ${lap}: total ${typed.total}. Next card.`,
+        ? t('manual.changed', { number: rider.number, lap, total: typed.total })
+        : t('manual.saved', { number: rider.number, lap, total: typed.total }),
     );
   }
 
@@ -215,18 +223,14 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
     <Stack gap="lg" maw={1200} onKeyDown={onKey}>
       <Group justify="space-between" wrap="wrap" align="flex-start">
         <div>
-          <Title order={2}>Manual entry</Title>
+          <Title order={2}>{t('manual.title')}</Title>
           <Text c="dimmed">
-            Type a card in by hand: when it won&apos;t scan, there&apos;s no camera, or you&apos;d
-            rather type. Keyboard only: number, <Kbd>Enter</Kbd>, scores, <Kbd>Enter</Kbd>.
-            Penalties are added here too.
+            <Trans i18nKey="manual.intro" components={{ kbd: <Kbd /> }} />
           </Text>
         </div>
       </Group>
 
-      {desk.riders.length === 0 && (
-        <Alert color="blue">No riders yet. Import the entry list on the Riders screen first.</Alert>
-      )}
+      {desk.riders.length === 0 && <Alert color="blue">{t('manual.noRiders')}</Alert>}
 
       <Group align="flex-start" gap="lg" wrap="wrap">
         <Paper
@@ -234,7 +238,7 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
           radius="md"
           p="lg"
           component="section"
-          aria-label="Card"
+          aria-label={t('manual.card')}
           style={{
             flex: '999 1 440px',
             minWidth: 0,
@@ -245,8 +249,7 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
           <Stack gap="md">
             {editing && (
               <Alert color="blue" role="status">
-                Editing an earlier card: rider {editing.number}, lap {editing.lap}. The old scores
-                are kept in the audit log.
+                {t('manual.editing', { number: editing.number, lap: editing.lap })}
               </Alert>
             )}
 
@@ -255,9 +258,9 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
                 <RiderPicker
                   ref={riderRef}
                   riders={desk?.riders}
-                  label="Rider: number or name"
+                  label={t('manual.rider')}
                   required
-                  placeholder="e.g. 17 or Sam"
+                  placeholder={t('manual.riderPlaceholder')}
                   size="md"
                   query={query}
                   picked={sel !== null}
@@ -274,7 +277,7 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
               </div>
               {multiDay && (
                 <NativeSelect
-                  label="Day"
+                  label={t('manual.day')}
                   size="md"
                   w={110}
                   value={String(day)}
@@ -282,11 +285,14 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
                   onChange={(e) => setDay(Number(e.currentTarget.value))}
                   data={desk.days
                     .filter((d) => !rider || rider.rides[d.day])
-                    .map((d) => ({ value: String(d.day), label: `Day ${d.day}` }))}
+                    .map((d) => ({
+                      value: String(d.day),
+                      label: t('manual.dayN', { day: d.day }),
+                    }))}
                 />
               )}
               <NativeSelect
-                label="Lap"
+                label={t('manual.lap')}
                 size="md"
                 w={110}
                 value={String(lap)}
@@ -295,14 +301,14 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
                 data={Array.from({ length: rides?.laps ?? 1 }, (_, i) => String(i + 1))}
               />
               <TextInput
-                label="Card in at"
+                label={t('manual.inAt')}
                 type="time"
                 size="md"
                 w={150}
                 value={inAt}
                 disabled={editing !== null}
                 onChange={(e) => setInAt(e.currentTarget.value || nowHHMM())}
-                description="Laptop time. Change for an earlier card."
+                description={t('manual.inAtHelp')}
               />
             </Group>
 
@@ -315,30 +321,33 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
                   {riderName(rider)}
                 </Text>
                 <Text fz={18}>
-                  {rider.classes[0]} · {sections} sections · lap {lap} of {rides?.laps ?? 0}
-                  {multiDay ? ` · day ${day}` : ''}
+                  {t('manual.riderLine', {
+                    class: rider.classes[0] ?? '',
+                    sections,
+                    lap,
+                    laps: rides?.laps ?? 0,
+                  })}
+                  {multiDay ? t('manual.riderLineDay', { day }) : ''}
                 </Text>
                 {rider.status !== 'riding' && (
                   <Badge color="gray" variant="light">
-                    Marked {rider.status.toUpperCase()}
+                    {t('manual.marked', { status: rider.status.toUpperCase() })}
                   </Badge>
                 )}
               </Group>
             )}
             {rider && !rides && (
               <Alert color="orange">
-                {rider.classes[0]} doesn&apos;t ride on day {day}.
+                {t('manual.notThatDay', { class: rider.classes[0] ?? '', day })}
               </Alert>
             )}
 
             {existing && (
               <Alert color="orange" role="alert">
                 <Group justify="space-between" wrap="wrap" gap="sm">
-                  <span>
-                    Lap {lap} for rider {existing.number} is already in.
-                  </span>
+                  <span>{t('manual.alreadyIn', { lap, number: existing.number })}</span>
                   <Button variant="default" onClick={() => edit(existing)}>
-                    Edit that card instead
+                    {t('manual.editInstead')}
                   </Button>
                 </Group>
               </Alert>
@@ -346,16 +355,16 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
 
             <TextInput
               ref={scoresRef}
-              label="Scores, section 1 onwards"
+              label={t('manual.scores')}
               required
               description={
                 singleDigitScores(scoreValues)
-                  ? `One digit per section (${scoreValues.join(' ')}). Spaces are ignored.`
-                  : `Separate the scores with spaces (${scoreValues.join(' ')}).`
+                  ? t('manual.oneDigit', { values: scoreValues.join(' ') })
+                  : t('manual.spaced', { values: scoreValues.join(' ') })
               }
               inputMode="numeric"
               autoComplete="off"
-              placeholder="e.g. 0102530010"
+              placeholder={t('manual.scoresPlaceholder')}
               size="lg"
               value={text}
               disabled={!rider || !rides || existing !== undefined}
@@ -389,7 +398,7 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
                 onClick={() => void save()}
                 rightSection={<Kbd>Enter</Kbd>}
               >
-                {editing ? 'Save change' : 'Save card'}
+                {editing ? t('manual.saveChange') : t('manual.saveCard')}
               </Button>
               <Button
                 size="md"
@@ -397,7 +406,7 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
                 onClick={() => clear()}
                 rightSection={<Kbd>Esc</Kbd>}
               >
-                {editing ? 'Cancel edit' : 'Clear'}
+                {editing ? t('manual.cancelEdit') : t('manual.clear')}
               </Button>
               <Button
                 size="md"
@@ -406,7 +415,7 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
                 disabled={!rider}
                 onClick={() => setPenaltyOpen(true)}
               >
-                Add penalty…
+                {t('manual.addPenalty')}
               </Button>
             </Group>
 
@@ -428,7 +437,7 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
                 onSaved={(next, points) => {
                   setDesk(next);
                   setPenaltyOpen(false);
-                  setFlash(`Penalty of ${points} added for rider ${rider.number}.`);
+                  setFlash(t('manual.penaltyAdded', { points, number: rider.number }));
                 }}
               />
             )}
@@ -437,7 +446,7 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
                 penalties={riderPenalties}
                 onRemoved={(next) => {
                   setDesk(next);
-                  setFlash(`Penalty removed for rider ${rider?.number ?? ''}. Logged.`);
+                  setFlash(t('manual.penaltyRemoved', { number: rider?.number ?? '' }));
                 }}
                 onError={setError}
               />
@@ -450,17 +459,16 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
           radius="md"
           p="md"
           component="section"
-          aria-label="Card preview"
+          aria-label={t('manual.preview')}
           style={{ flex: '0 1 auto' }}
         >
           <Stack gap="xs">
             <div>
               <Title order={3} size="h4">
-                Card preview
+                {t('manual.preview')}
               </Title>
               <Text c="dimmed" size="sm" maw={396}>
-                Fills in as you type. Hold it against the card in your hand: the punches should sit
-                in the same places.
+                {t('manual.previewHelp')}
               </Text>
             </div>
             <CardPreview
@@ -473,44 +481,48 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
               total={text.trim() ? typed.total : null}
               label={{
                 number: rider ? String(rider.number) : '—',
-                name: rider ? riderName(rider) : 'Pick a rider',
+                name: rider ? riderName(rider) : t('manual.pickRider'),
                 detail: rider
-                  ? `${rider.classes[0] ?? ''} · Lap ${lap} of ${rides?.laps ?? 0}`
-                  : 'Class and lap show here',
+                  ? t('manual.previewDetail', {
+                      class: rider.classes[0] ?? '',
+                      lap,
+                      laps: rides?.laps ?? 0,
+                    })
+                  : t('manual.previewEmpty'),
               }}
             />
             <VisuallyHidden role="status">
-              {rider && text.trim() ? `Lap total ${typed.total}` : ''}
+              {rider && text.trim() ? t('manual.lapTotal', { total: typed.total }) : ''}
             </VisuallyHidden>
           </Stack>
         </Paper>
       </Group>
 
-      <Paper withBorder radius="md" p="md" component="section" aria-label="Earlier cards">
+      <Paper withBorder radius="md" p="md" component="section" aria-label={t('manual.earlier')}>
         <Group justify="space-between" mb="xs" wrap="wrap">
           <Title order={3} size="h4">
-            {rider ? `Rider ${rider.number}'s cards` : 'Earlier cards'}
+            {rider ? t('manual.riderCards', { number: rider.number }) : t('manual.earlier')}
           </Title>
           <Text c="dimmed" size="sm">
-            {rider ? 'All laps' : 'Newest first'}
+            {rider ? t('manual.allLaps') : t('manual.newest')}
           </Text>
         </Group>
         {shownCards.length === 0 ? (
-          <Text c="dimmed">No cards yet.</Text>
+          <Text c="dimmed">{t('manual.noCards')}</Text>
         ) : (
           <Table.ScrollContainer minWidth={560}>
             <Table verticalSpacing="xs">
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>No.</Table.Th>
-                  {multiDay && <Table.Th>Day</Table.Th>}
-                  <Table.Th>Lap</Table.Th>
-                  <Table.Th>Scores</Table.Th>
-                  <Table.Th>Total</Table.Th>
-                  <Table.Th>In at</Table.Th>
-                  <Table.Th>How</Table.Th>
+                  <Table.Th>{t('manual.number')}</Table.Th>
+                  {multiDay && <Table.Th>{t('manual.day')}</Table.Th>}
+                  <Table.Th>{t('manual.lap')}</Table.Th>
+                  <Table.Th>{t('manual.scoresCol')}</Table.Th>
+                  <Table.Th>{t('manual.total')}</Table.Th>
+                  <Table.Th>{t('manual.inAtCol')}</Table.Th>
+                  <Table.Th>{t('manual.how')}</Table.Th>
                   <Table.Th>
-                    <VisuallyHidden>Edit</VisuallyHidden>
+                    <VisuallyHidden>{t('manual.edit')}</VisuallyHidden>
                   </Table.Th>
                 </Table.Tr>
               </Table.Thead>
@@ -546,7 +558,7 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
                             py={2}
                             style={{ background: how.bg, color: how.fg, borderRadius: 999 }}
                           >
-                            {how.label}
+                            {t(how.label)}
                           </Text>
                         )}
                       </Table.Td>
@@ -554,10 +566,10 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
                         <Button
                           variant="default"
                           size="xs"
-                          aria-label={`Edit rider ${c.number} lap ${c.lap}`}
+                          aria-label={t('manual.editLabel', { number: c.number, lap: c.lap })}
                           onClick={() => edit(c)}
                         >
-                          Edit
+                          {t('manual.edit')}
                         </Button>
                       </Table.Td>
                     </Table.Tr>
@@ -568,8 +580,7 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
           </Table.ScrollContainer>
         )}
         <Text c="dimmed" size="sm" mt="xs">
-          Edit loads the card into the form. The old scores, who changed them and when are kept in
-          the audit log.
+          {t('manual.editHelp')}
         </Text>
       </Paper>
     </Stack>
@@ -585,6 +596,7 @@ function PenaltyForm(props: {
   onCancel: () => void;
   onSaved: (desk: CardDesk, points: number) => void;
 }) {
+  const { t } = useTranslation();
   const [points, setPoints] = useState('');
   const [reason, setReason] = useState<PenaltyReason>('time');
   const [lap, setLap] = useState(String(props.lap));
@@ -612,16 +624,16 @@ function PenaltyForm(props: {
       p="md"
       radius="md"
       component="section"
-      aria-label="Add penalty"
+      aria-label={t('manual.addPenaltyRegion')}
       style={{ borderColor: '#f08c00', borderWidth: 2, background: 'light-dark(#fffaf2, #2f2413)' }}
     >
       <Stack gap="sm">
         <Text fw={700} fz="lg">
-          Penalty for rider {props.rider.number} ({riderName(props.rider)})
+          {t('manual.penaltyFor', { number: props.rider.number, name: riderName(props.rider) })}
         </Text>
         <Group align="flex-start" gap="md" wrap="wrap">
           <TextInput
-            label="Points"
+            label={t('manual.points')}
             required
             type="number"
             min={1}
@@ -632,46 +644,47 @@ function PenaltyForm(props: {
             onChange={(e) => setPoints(e.currentTarget.value)}
           />
           <NativeSelect
-            label="Reason"
+            label={t('manual.reason')}
             style={{ flex: '1 1 260px' }}
             value={reason}
             onChange={(e) => setReason(e.currentTarget.value as PenaltyReason)}
             data={(Object.keys(PENALTY_LABEL) as PenaltyReason[]).map((k) => ({
               value: k,
-              label: PENALTY_LABEL[k],
+              label: t(PENALTY_LABEL[k]),
             }))}
           />
           <NativeSelect
-            label="Lap"
+            label={t('manual.lap')}
             w={140}
             value={lap}
             onChange={(e) => setLap(e.currentTarget.value)}
             data={[
-              { value: '', label: 'Not a lap' },
+              { value: '', label: t('manual.notALap') },
               ...Array.from({ length: props.laps }, (_, i) => ({
                 value: String(i + 1),
-                label: `Lap ${i + 1}${props.multiDay ? ` (day ${props.day})` : ''}`,
+                label: props.multiDay
+                  ? t('manual.lapNDay', { lap: i + 1, day: props.day })
+                  : t('manual.lapN', { lap: i + 1 }),
               })),
             ]}
           />
         </Group>
         <TextInput
-          label={reason === 'other' ? 'What for' : 'Note (optional)'}
+          label={reason === 'other' ? t('manual.whatFor') : t('manual.note')}
           required={reason === 'other'}
           value={note}
           onChange={(e) => setNote(e.currentTarget.value)}
         />
         <Text size="sm" c="dimmed">
-          A section over the 90-second limit isn&apos;t a penalty here: it&apos;s a 5 on the card,
-          typed with the scores.
+          {t('manual.timeLimit')}
         </Text>
         {error && <ErrorAlert error={error} onClose={() => setError(null)} />}
         <Group gap="sm">
           <Button disabled={!valid} onClick={() => void save()}>
-            Save penalty
+            {t('manual.savePenalty')}
           </Button>
           <Button variant="default" onClick={props.onCancel}>
-            Cancel
+            {t('manual.cancel')}
           </Button>
         </Group>
       </Stack>
@@ -684,14 +697,15 @@ function PenaltyList(props: {
   onRemoved: (desk: CardDesk) => void;
   onError: (e: AppError) => void;
 }) {
+  const { t } = useTranslation();
   async function remove(id: string) {
     const r = await window.tscore.removePenalty(id);
     if (r.ok) props.onRemoved(r.value);
     else props.onError(r.error);
   }
   return (
-    <Stack gap={6} component="section" aria-label="Penalties for this rider">
-      <Text fw={700}>Penalties for this rider</Text>
+    <Stack gap={6} component="section" aria-label={t('manual.penalties')}>
+      <Text fw={700}>{t('manual.penalties')}</Text>
       {props.penalties.map((p) => (
         <Group
           key={p.id}
@@ -707,22 +721,23 @@ function PenaltyList(props: {
           }}
         >
           <span>
-            <strong>+{p.points}</strong> · {PENALTY_LABEL[p.reason].replace(/ \(.*\)$/, '')}
-            {p.note ? ` (${p.note})` : ''} · {p.lap ? `lap ${p.lap}` : 'not a lap'} · added{' '}
-            {timeOf(p.createdAt)}
+            <strong>+{p.points}</strong> · {t(PENALTY_SHORT[p.reason])}
+            {p.note ? ` (${p.note})` : ''} ·{' '}
+            {p.lap ? t('manual.penaltyLap', { lap: p.lap }) : t('manual.penaltyNotLap')} ·{' '}
+            {t('manual.penaltyAddedAt', { time: timeOf(p.createdAt) })}
           </span>
           <Button
             variant="default"
             size="xs"
-            aria-label={`Remove penalty of ${p.points}`}
+            aria-label={t('manual.removePenalty', { points: p.points })}
             onClick={() => void remove(p.id)}
           >
-            Remove
+            {t('manual.remove')}
           </Button>
         </Group>
       ))}
       <Text size="sm" c="dimmed">
-        Added to the rider&apos;s total on the results. Adding or removing one is logged.
+        {t('manual.penaltiesHelp')}
       </Text>
     </Stack>
   );

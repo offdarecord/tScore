@@ -53,12 +53,13 @@ export interface ReaderProfile {
 }
 
 /**
- * The reader's view of a card profile. Only cards this reader can find are accepted: the
- * black-column locator (other locators come with #106). Punched, pen-hole and ink marks are all
- * read as change from the blank card, with the profile's thresholds and colour.
+ * The reader's view of a card profile. Only cards this reader can find are accepted: by their
+ * black section column, or by the four corners the desk clicks (`readCardFromCorners`);
+ * card-edges comes with #130. Punched, pen-hole and ink marks are all read as change from the
+ * blank card, with the profile's thresholds and colour.
  */
 export function readerProfile(profile: CardProfile): ReaderProfile {
-  if (profile.locator !== 'black-column') {
+  if (profile.locator !== 'black-column' && profile.locator !== 'manual-corners') {
     throw new Error(`Card profile ${profile.id}: ${profile.locator} cards can't be read yet.`);
   }
   return {
@@ -469,7 +470,6 @@ function readWith(
   reference: BlankReference,
   radius: number,
 ): ReadResult {
-  const threshold = profile.markThreshold;
   const found = findColumn(grey, radius);
   if ('reason' in found) return { ok: false, reason: found.reason };
   const { axis } = found;
@@ -507,6 +507,24 @@ function readWith(
   const paper = median(papers);
   if (paper - black < 40) return { ok: false, reason: 'NO_CARD' };
 
+  const rows = readCells(at, profile, reference, pitch, paper, black);
+  return { ok: true, card: { profile: profile.id, pose, rows, paper, black } };
+}
+
+/**
+ * Read every row: each value cell's change from the blank card, then the row's decision.
+ * `at(u, v)` is the frame's brightness at a point on the card, in grid units (u up from the
+ * grid's bottom, v across from its reference line); `paper` and `black` are this card's levels.
+ */
+export function readCells(
+  at: (u: number, v: number) => number,
+  profile: ReaderProfile,
+  reference: BlankReference,
+  pitch: number,
+  paper: number,
+  black: number,
+): RowReading[] {
+  const threshold = profile.markThreshold;
   const points = reference.points;
   const rows: RowReading[] = [];
   for (let k = 0; k < profile.rows; k++) {
@@ -567,5 +585,5 @@ function readWith(
       });
     }
   }
-  return { ok: true, card: { profile: profile.id, pose, rows, paper, black } };
+  return rows;
 }

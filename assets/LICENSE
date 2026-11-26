@@ -5,7 +5,9 @@ project owner (github.com/offdarecord). All rights reserved.
 
 This covers:
   - everything in this assets/ folder (e.g. tscore-banner.jpg);
-  - the app icon, apps/desktop/build/icon.ico and apps/desktop/build/icon.png.
+  - the app icon, apps/desktop/build/icon.ico and apps/desktop/build/icon.png;
+  - the results credit's logo, assets/results-credit.jpg, and the copy of it in
+    packages/core/src/generated/results-credit.ts (made by npm run gen:credit).
 
 They are NOT licensed under the Apache License 2.0 that covers tScore's code,
 nor under the licences for schemas/ (MIT) or docs/ (CC BY 4.0).
@@ -14,3 +16,7 @@ You may show them unchanged to refer to tScore itself, for example in a link to
 the project, a review, or official tScore builds. Any other use, including in a
 modified version of tScore, needs written permission. A modified version must
 use a different name and its own icon.
+
+The "Results brought to you by tScore" credit on results PDFs and live results is
+defined in one place, packages/core/src/credit.ts. A modified version of tScore must
+replace or remove the credit's logo there, and should point its link at its own project.

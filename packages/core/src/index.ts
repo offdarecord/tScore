@@ -45,3 +45,5 @@ export * from './errors.js';
 export * from './course.js';
 export * from './test-trial.js';
 export * from './words.js';
+// The tScore credit on results (#110).
+export * from './credit.js';

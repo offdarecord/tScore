@@ -75,4 +75,12 @@ test('the event and sponsor logos are chosen on Event setup and shown on the big
   const screen = await opened;
   await expect(screen.locator('img.live-logo')).toHaveCount(1);
   await expect(screen.locator('img.live-sponsor')).toHaveCount(1);
+  // The tScore credit (#110): always there, with a QR code to the project.
+  const credit = screen.locator('.live-credit');
+  await expect(credit).toContainText('Results brought to you by');
+  await expect(credit.getByRole('img', { name: 'tScore', exact: true })).toBeVisible();
+  await expect(
+    credit.getByRole('img', { name: 'https://github.com/offdarecord/tScore' }),
+  ).toBeVisible();
+  if (process.env.TSCORE_SHOT) await screen.screenshot({ path: process.env.TSCORE_SHOT });
 });

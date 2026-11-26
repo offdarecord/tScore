@@ -5,6 +5,7 @@
  * Everything here reads only the payload, so the screen, the PDF and the CSV always agree, and
  * whatever the payload leaves out (a non-competitive rider's scores) can't appear in any of them.
  */
+import { CREDIT_CSS, creditHtml } from '../credit.js';
 import type { ClassResults, Entry, Results } from '../generated/results.js';
 import { english, type Translate } from '../words.js';
 import type { ResultsGap } from './compute.js';
@@ -429,7 +430,7 @@ export function resultsHtml(results: Results, opts: PrintOptions): string {
   .thanks ul { margin: 2px 0 6px; padding: 0; list-style: none; columns: 2; column-gap: 10mm; }
   .thanks li { break-inside: avoid; padding: 1px 0; }
   .thanks li span { font-weight: 700; }
-  footer { margin-top: 14px; color: #444; font-size: 8pt; }
+  footer { margin-top: 14px; color: #444; font-size: 8pt; }${CREDIT_CSS}
 </style></head><body>
 <div class="head">${logo(opts.logos?.event, 'event-logo')}<div><h1>${esc(ev.name)}</h1>
 <div class="sub">${sub}</div></div></div>
@@ -439,6 +440,7 @@ ${classes}
 ${thanksHtml(opts.thanks, t)}
 ${sponsorsHtml(opts.logos?.sponsors, t)}
 <footer>${esc(tieBreakWords(results, t))} ${esc(t('core.footnote', 'NA = No award (scored, not placed). NC = Non-competitive (counts only; scores are not published). DNF = did not finish. DNS = did not start.'))}<br>${esc(opts.footer)}</footer>
+${creditHtml(t)}
 </body></html>`;
 }
 

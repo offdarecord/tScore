@@ -158,7 +158,10 @@ function checkRules(rules: SeriesRules): void {
     rules.points.every((p, i) => isWhole(p, 0) && p <= (rules.points[i - 1] ?? Infinity)) &&
     (rules.bestOf === undefined || isWhole(rules.bestOf, 1)) &&
     (rules.ties === 'share' || rules.ties === 'split');
-  if (!ok) throw new StoreError('APP_BAD_REQUEST', 'The series rules are not valid.');
+  if (!ok)
+    throw new StoreError('APP_BAD_REQUEST', 'The series rules are not valid.', {
+      key: 'errors.APP_BAD_REQUEST_3',
+    });
 }
 
 function reviewItems(store: EventStore): ReviewItem[] {
@@ -198,7 +201,8 @@ function logoViews(store: EventStore): LogoView[] {
 
 function openStore(): EventStore {
   const store = library?.current;
-  if (!store) throw new StoreError('APP_NO_EVENT', 'No event is open.');
+  if (!store)
+    throw new StoreError('APP_NO_EVENT', 'No event is open.', { key: 'errors.APP_NO_EVENT' });
   return store;
 }
 
@@ -278,11 +282,15 @@ function failed(what: string, err: unknown): { ok: false; error: AppError } {
   if (err instanceof SetupError) {
     error = { code: publicErrorCode(err.code), message: err.message, issues: err.issues };
   } else if (err instanceof StoreError || err instanceof ImportError) {
-    error = { code: publicErrorCode(err.code), message: err.message };
+    // The English is the fallback, so a message missing from the laptop's language still reads.
+    const message = err.words
+      ? t(err.words.key, { ...err.words.values, defaultValue: err.message })
+      : err.message;
+    error = { code: publicErrorCode(err.code), message };
   } else {
     error = {
       code: publicErrorCode('APP_UNEXPECTED'),
-      message: `Something went wrong (${what}). The details are in tScore's log.`,
+      message: t('errors.APP_UNEXPECTED', { what }),
     };
   }
   log.warn(`${what} failed`, { code: error.code }, err);
@@ -472,37 +480,55 @@ export const eventHandlers = {
   updateRider(number: number, change: RiderChange): Outcome<RiderInfo[]> {
     return attempt('changing a rider', () => {
       const store = openStore();
-      if (!Number.isInteger(number)) throw new StoreError('APP_BAD_REQUEST', 'No such rider.');
+      if (!Number.isInteger(number))
+        throw new StoreError('APP_BAD_REQUEST', 'No such rider.', {
+          key: 'errors.APP_BAD_REQUEST_4',
+        });
       if (change.riders !== undefined) {
         const ok =
           Array.isArray(change.riders) &&
           change.riders.every(
             (p) => typeof p?.givenName === 'string' && typeof p?.familyName === 'string',
           );
-        if (!ok) throw new StoreError('APP_BAD_REQUEST', 'Give the rider a name.');
+        if (!ok)
+          throw new StoreError('APP_BAD_REQUEST', 'Give the rider a name.', {
+            key: 'errors.APP_BAD_REQUEST_5',
+          });
         store.renameRiders(number, change.riders);
       }
       if (change.club !== undefined) {
-        if (!isText(change.club)) throw new StoreError('APP_BAD_REQUEST', 'Type a club.');
+        if (!isText(change.club))
+          throw new StoreError('APP_BAD_REQUEST', 'Type a club.', {
+            key: 'errors.APP_BAD_REQUEST_6',
+          });
         store.setClub(number, change.club);
       }
       if (change.machine !== undefined) {
-        if (!isText(change.machine)) throw new StoreError('APP_BAD_REQUEST', 'Type a machine.');
+        if (!isText(change.machine))
+          throw new StoreError('APP_BAD_REQUEST', 'Type a machine.', {
+            key: 'errors.APP_BAD_REQUEST_7',
+          });
         store.setMachine(number, change.machine);
       }
       if (change.classes !== undefined) {
         if (!Array.isArray(change.classes) || !change.classes.every((c) => typeof c === 'string'))
-          throw new StoreError('APP_BAD_REQUEST', 'Choose a class.');
+          throw new StoreError('APP_BAD_REQUEST', 'Choose a class.', {
+            key: 'errors.APP_BAD_REQUEST_8',
+          });
         store.changeClasses(number, change.classes);
       }
       if (change.competitionStatus !== undefined) {
         if (!COMPETITION_STATUSES.includes(change.competitionStatus))
-          throw new StoreError('APP_BAD_REQUEST', 'Choose a competition status.');
+          throw new StoreError('APP_BAD_REQUEST', 'Choose a competition status.', {
+            key: 'errors.APP_BAD_REQUEST_9',
+          });
         store.setCompetitionStatus(number, change.competitionStatus);
       }
       if (change.status !== undefined) {
         if (!STATUSES.includes(change.status))
-          throw new StoreError('APP_BAD_REQUEST', 'Choose a riding status.');
+          throw new StoreError('APP_BAD_REQUEST', 'Choose a riding status.', {
+            key: 'errors.APP_BAD_REQUEST_10',
+          });
         store.setStatus(number, change.status);
       }
       log.info('rider changed', { eventId: store.eventId, number, fields: Object.keys(change) });
@@ -529,18 +555,27 @@ export const eventHandlers = {
             n.familyName.length > NAME_MAX,
         )
       ) {
-        throw new StoreError('APP_BAD_REQUEST', 'Give the rider a first name or a surname.');
+        throw new StoreError('APP_BAD_REQUEST', 'Give the rider a first name or a surname.', {
+          key: 'errors.APP_BAD_REQUEST_11',
+        });
       }
       const club = tidy(rider.club);
       const machine = tidy(rider.machine);
       if (club.length > CLUB_MAX || machine.length > MACHINE_MAX) {
-        throw new StoreError('APP_BAD_REQUEST', 'That club or machine is too long.');
+        throw new StoreError('APP_BAD_REQUEST', 'That club or machine is too long.', {
+          key: 'errors.APP_BAD_REQUEST_12',
+        });
       }
       const className = tidy(rider.className);
       const cls = store.setup.classes.find((c) => c.name === className);
-      if (!cls) throw new StoreError('APP_BAD_REQUEST', 'Choose a class from the event setup.');
+      if (!cls)
+        throw new StoreError('APP_BAD_REQUEST', 'Choose a class from the event setup.', {
+          key: 'errors.APP_BAD_REQUEST_13',
+        });
       if (!COMPETITION_STATUSES.includes(rider.competitionStatus)) {
-        throw new StoreError('APP_BAD_REQUEST', 'Choose a competition status.');
+        throw new StoreError('APP_BAD_REQUEST', 'Choose a competition status.', {
+          key: 'errors.APP_BAD_REQUEST_9',
+        });
       }
       const taken = new Set(store.entries().map((e) => e.number));
       // Numbers never move once issued: a late entry gets the next free number (decision 25).
@@ -554,10 +589,14 @@ export const eventHandlers = {
           throw new StoreError(
             'APP_BAD_REQUEST',
             'A rider number is a whole number from 1 to 9999.',
+            { key: 'errors.APP_BAD_REQUEST_15' },
           );
         }
         if (taken.has(number)) {
-          throw new StoreError('APP_NUMBER_TAKEN', `Rider number ${number} is already taken.`);
+          throw new StoreError('APP_NUMBER_TAKEN', `Rider number ${number} is already taken.`, {
+            key: 'errors.APP_NUMBER_TAKEN',
+            values: { number },
+          });
         }
       }
       store.addEntry({
@@ -630,7 +669,9 @@ export const eventHandlers = {
         key = undefined;
       }
       if (!isTestTrialKey(key)) {
-        throw new StoreError('APP_NOT_A_KEY', "That file isn't a Test trial answer key.");
+        throw new StoreError('APP_NOT_A_KEY', "That file isn't a Test trial answer key.", {
+          key: 'errors.APP_NOT_A_KEY',
+        });
       }
       const riders = store.entries().map((e) => ({
         number: e.number,
@@ -662,7 +703,9 @@ export const eventHandlers = {
         !Array.isArray(card.scores) ||
         !card.scores.every((s) => isWhole(s, 0))
       ) {
-        throw new StoreError('APP_BAD_REQUEST', 'That card is incomplete.');
+        throw new StoreError('APP_BAD_REQUEST', 'That card is incomplete.', {
+          key: 'errors.APP_BAD_REQUEST_16',
+        });
       }
       const where = { number: card.number, day: card.day, lap: card.lap };
       if (card.editing) {
@@ -700,7 +743,9 @@ export const eventHandlers = {
         !okScores ||
         !jpeg
       ) {
-        throw new StoreError('APP_BAD_REQUEST', 'That scan is incomplete.');
+        throw new StoreError('APP_BAD_REQUEST', 'That scan is incomplete.', {
+          key: 'errors.APP_BAD_REQUEST_17',
+        });
       }
       const words = (xs: unknown) =>
         Array.isArray(xs) ? xs.map((x) => (typeof x === 'string' ? x.slice(0, 20) : null)) : [];
@@ -743,7 +788,9 @@ export const eventHandlers = {
       const store = openStore();
       // Only photos in this event's cards folder.
       if (typeof path !== 'string' || !/^cards\/[\w.-]+\.jpg$/.test(path)) {
-        throw new StoreError('APP_BAD_REQUEST', "That isn't a card photo.");
+        throw new StoreError('APP_BAD_REQUEST', "That isn't a card photo.", {
+          key: 'errors.APP_BAD_REQUEST_18',
+        });
       }
       const data = readFileSync(join(store.folder, path));
       return `data:image/jpeg;base64,${data.toString('base64')}`;
@@ -760,7 +807,9 @@ export const eventHandlers = {
         !Array.isArray(d.scores) ||
         !d.scores.every((s) => isWhole(s?.section) && isWhole(s.value, 0))
       ) {
-        throw new StoreError('APP_BAD_REQUEST', 'Choose a score for each section.');
+        throw new StoreError('APP_BAD_REQUEST', 'Choose a score for each section.', {
+          key: 'errors.APP_BAD_REQUEST_19',
+        });
       }
       for (const s of d.scores) {
         store.correctScore({
@@ -793,11 +842,15 @@ export const eventHandlers = {
         (p.lap !== undefined && !isWhole(p.lap)) ||
         (p.note !== undefined && typeof p.note !== 'string')
       ) {
-        throw new StoreError('APP_BAD_REQUEST', 'That penalty is incomplete.');
+        throw new StoreError('APP_BAD_REQUEST', 'That penalty is incomplete.', {
+          key: 'errors.APP_BAD_REQUEST_20',
+        });
       }
       const note = p.note?.trim();
       if (p.reason === 'other' && !note) {
-        throw new StoreError('APP_PENALTY_NOTE', 'Say what the penalty is for.');
+        throw new StoreError('APP_PENALTY_NOTE', 'Say what the penalty is for.', {
+          key: 'errors.APP_PENALTY_NOTE',
+        });
       }
       store.addPenalty(p.number, {
         points: p.points,
@@ -814,7 +867,10 @@ export const eventHandlers = {
   removePenalty(id: string): Outcome<CardDesk> {
     return attempt('removing a penalty', () => {
       const store = openStore();
-      if (typeof id !== 'string') throw new StoreError('APP_BAD_REQUEST', 'No such penalty.');
+      if (typeof id !== 'string')
+        throw new StoreError('APP_BAD_REQUEST', 'No such penalty.', {
+          key: 'errors.APP_BAD_REQUEST_21',
+        });
       store.removePenalty(id);
       log.info('penalty removed', { eventId: store.eventId });
       return cardDesk(store);
@@ -847,6 +903,7 @@ export const eventHandlers = {
         throw new StoreError(
           'STORE_LOGO_SIZE',
           `That picture is ${(size / 1_000_000).toFixed(1)} MB. Logos can be up to 1 MB: save a smaller copy.`,
+          { key: 'errors.STORE_LOGO_SIZE', values: { size: (size / 1_000_000).toFixed(1) } },
         );
       }
       const added = store.addLogo(role, readFileSync(file));
@@ -887,7 +944,9 @@ export const eventHandlers = {
   updateSeries(file: string, change: SeriesChange): Outcome<SeriesView> {
     return attempt('saving the series', () => {
       if (change?.addRound !== undefined && !events().isRecent(change.addRound)) {
-        throw new StoreError('APP_NOT_RECENT', "That event isn't in the recent list.");
+        throw new StoreError('APP_NOT_RECENT', "That event isn't in the recent list.", {
+          key: 'errors.APP_NOT_RECENT',
+        });
       }
       if (change?.rules) checkRules(change.rules);
       updateSeries(eventsDir(), String(file), {
@@ -936,7 +995,9 @@ export const eventHandlers = {
   ): Promise<Outcome<string | null>> {
     return attemptAsync('saving series points', () => {
       if (kind !== 'pdf' && kind !== 'csv')
-        throw new StoreError('APP_BAD_REQUEST', 'Choose PDF or CSV.');
+        throw new StoreError('APP_BAD_REQUEST', 'Choose PDF or CSV.', {
+          key: 'errors.APP_BAD_REQUEST_22',
+        });
       return exportSeries(eventsDir(), String(file), kind, juniorInitials === true, win);
     });
   },
@@ -961,7 +1022,9 @@ export const eventHandlers = {
   course(day?: number): Outcome<CourseView> {
     return attempt('working out who is on course', () => {
       if (day !== undefined && !isWhole(day)) {
-        throw new StoreError('APP_BAD_REQUEST', 'Choose a day.');
+        throw new StoreError('APP_BAD_REQUEST', 'Choose a day.', {
+          key: 'errors.APP_BAD_REQUEST_23',
+        });
       }
       return courseView(openStore(), day);
     });
@@ -1019,7 +1082,9 @@ export const eventHandlers = {
     return attempt('reopening results', () => {
       const store = openStore();
       if (typeof reason !== 'string') {
-        throw new StoreError('APP_BAD_REQUEST', 'Say why the results are being reopened.');
+        throw new StoreError('APP_BAD_REQUEST', 'Say why the results are being reopened.', {
+          key: 'errors.APP_BAD_REQUEST_24',
+        });
       }
       store.reopenResults(reason);
       log.info('results reopened', {
@@ -1041,7 +1106,9 @@ export const eventHandlers = {
     return attempt('importing riders', () => {
       const store = openStore();
       if (!pending || pending.eventId !== store.eventId) {
-        throw new StoreError('APP_NO_ENTRY_LIST', 'Choose the entry list again.');
+        throw new StoreError('APP_NO_ENTRY_LIST', 'Choose the entry list again.', {
+          key: 'errors.APP_NO_ENTRY_LIST',
+        });
       }
       // Worked out again here from the event as saved, not taken from the window.
       const plan = planImport(pending.list, store.setup, store.entries(), choices ?? {});
@@ -1049,6 +1116,7 @@ export const eventHandlers = {
         throw new StoreError(
           'APP_IMPORT_NOT_READY',
           'Some class names or double entries still need a decision.',
+          { key: 'errors.APP_IMPORT_NOT_READY' },
         );
       }
       store.importEntries(plan.entries, plan.newAliases, pending.list.source);

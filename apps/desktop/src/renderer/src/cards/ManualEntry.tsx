@@ -29,6 +29,7 @@ import { pickedText, RiderPicker } from '../riders/RiderPicker';
 import { riderName } from '../riders/Riders';
 import { CardPreview } from './CardPreview';
 import { ErrorAlert } from '../ErrorAlert';
+import { coreT } from '../i18n';
 
 export const PENALTY_LABEL = {
   time: 'penalty.time',
@@ -212,7 +213,7 @@ export function ManualEntry({ event }: { readonly event: OpenEvent }) {
 
   const problem =
     rider && rides && text.trim() !== '' && typed.problem
-      ? describeTypedScoreProblem(typed.problem, scoreValues, rider.classes[0])
+      ? describeTypedScoreProblem(typed.problem, scoreValues, rider.classes[0], coreT)
       : null;
   // Not finished yet isn't an error: it's shown plainly, not in red.
   const stillTyping = typed.problem?.kind === 'too_few';

@@ -6,6 +6,7 @@
 import type { EventSetup } from '../generated/event-setup.js';
 import type { LabelTemplate } from '../generated/label-template.js';
 import type { EntryInput, CompetitionStatus } from '../results/model.js';
+import { english, type Translate } from '../words.js';
 import { cutToFit, fitName, textWidthMm, type FittedText } from './text.js';
 
 export type LabelLayout = 'row-per-rider' | 'packed' | 'by-lap';
@@ -60,6 +61,8 @@ export interface LabelOptions {
    * is late entries' labels and laps added since.
    */
   readonly exclude?: ReadonlySet<string>;
+  /** The label's words ("LAP 3", "NC") in the app's language (#64). English if omitted. */
+  readonly t?: Translate;
 }
 
 /** Identifies one label: a rider's card for one lap of one day. */
@@ -85,11 +88,11 @@ export interface LabelPlan {
   readonly skipped: readonly LabelSkip[];
 }
 
-const COMPETITION_STATUS_MARK: Record<CompetitionStatus, string> = {
-  competitive: '',
-  no_award: 'NA',
-  non_competitive: 'NC',
-};
+function competitionStatusMark(status: CompetitionStatus, t: Translate): string {
+  if (status === 'no_award') return t('core.na', 'NA');
+  if (status === 'non_competitive') return t('core.nc', 'NC');
+  return '';
+}
 
 export function qrPayload(code: string, number: number, day: number, lap: number): string {
   return `TS1;E=${code};R=${number};D=${day};L=${lap}`;
@@ -128,6 +131,7 @@ export function planLabels(
   options: LabelOptions = {},
 ): LabelPlan {
   const qr = options.qr ?? setup.labels?.qr ?? true;
+  const t = options.t ?? english;
   const width = textWidth(template, qr);
   const dayCount = setup.days.length;
   const days = setup.days
@@ -164,8 +168,11 @@ export function planLabels(
   const label = (r: Rider, day: number, lap: number): CardLabel => {
     const { entry } = r;
     const person = entry.riders[0];
-    const mark = COMPETITION_STATUS_MARK[entry.competitionStatus];
-    const lapText = dayCount > 1 ? `D${day}·LAP ${lap}` : `LAP ${lap}`;
+    const mark = competitionStatusMark(entry.competitionStatus, t);
+    const lapText =
+      dayCount > 1
+        ? t('core.labelDayLap', 'D{{day}}·LAP {{lap}}', { day, lap })
+        : t('core.labelLap', 'LAP {{lap}}', { lap });
     const classLine = mark ? `${r.className} · ${mark}` : r.className;
     return {
       number: entry.number,

@@ -25,7 +25,7 @@ import {
 import { app, dialog, type BrowserWindow } from 'electron';
 import type { SeriesSummary, SeriesView } from '../shared/ipc';
 import { pdfOf, rememberExport } from './results';
-import { t } from './i18n';
+import { coreT, pageLanguage, t } from './i18n';
 
 const shortDate = (iso: string) =>
   new Date(`${iso}T12:00:00`).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
@@ -40,10 +40,10 @@ function orderedRounds(setup: SeriesSetup): SeriesRoundInfo[] {
 }
 
 function stateWords(r: SeriesRoundInfo): string {
-  if (r.state === 'provisional') return 'results not final yet';
-  if (r.state === 'reopened') return 'results reopened for a correction';
-  if (r.state === 'missing') return "event not found (moved, or on a USB stick that isn't in)";
-  if (r.state === 'unreadable') return "event file can't be read";
+  if (r.state === 'provisional') return t('series.stateProvisional');
+  if (r.state === 'reopened') return t('series.stateReopened');
+  if (r.state === 'missing') return t('series.stateMissing');
+  if (r.state === 'unreadable') return t('series.stateUnreadable');
   return '';
 }
 
@@ -57,11 +57,23 @@ function build(setup: SeriesSetup, juniorInitials: boolean) {
   });
   // The tally has a column per counted round; label them with their round number.
   const labels = rounds.flatMap((r, i) =>
-    r.results ? [`Rd ${i + 1}${r.date ? ` (${shortDate(r.date)})` : ''}`] : [],
+    r.results
+      ? [
+          r.date
+            ? t('series.roundLabelDate', { round: i + 1, date: shortDate(r.date) })
+            : t('series.roundLabel', { round: i + 1 }),
+        ]
+      : [],
   );
   const notCounted = rounds
     .map((r, i) =>
-      r.state === 'final' ? '' : `Round ${i + 1} (${r.name || r.folder}): ${stateWords(r)}`,
+      r.state === 'final'
+        ? ''
+        : t('series.notCountedRound', {
+            round: i + 1,
+            name: r.name || r.folder,
+            state: stateWords(r),
+          }),
     )
     .filter(Boolean);
   return { rounds, tally, labels, notCounted };
@@ -77,7 +89,10 @@ export function seriesSummaries(eventsDir: string): SeriesSummary[] {
 
 export function seriesView(eventsDir: string, file: string): SeriesView {
   const found = listSeries(eventsDir).find((s) => s.file === file);
-  if (!found) throw new StoreError('APP_NO_SERIES', "That series isn't on this laptop any more.");
+  if (!found)
+    throw new StoreError('APP_NO_SERIES', "That series isn't on this laptop any more.", {
+      key: 'errors.APP_NO_SERIES',
+    });
   const { rounds, tally, labels, notCounted } = build(found.setup, false);
   return {
     file,
@@ -105,7 +120,10 @@ export function newSeries(eventsDir: string, name: string): string {
 
 function setupOf(eventsDir: string, file: string): SeriesSetup {
   const found = listSeries(eventsDir).find((s) => s.file === file);
-  if (!found) throw new StoreError('APP_NO_SERIES', "That series isn't on this laptop any more.");
+  if (!found)
+    throw new StoreError('APP_NO_SERIES', "That series isn't on this laptop any more.", {
+      key: 'errors.APP_NO_SERIES',
+    });
   return found.setup;
 }
 
@@ -165,7 +183,11 @@ export async function exportSeries(
       version: app.getVersion(),
       when: new Date().toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' }),
     }),
-    ...(notCounted.length && { notCounted: `Not counted yet: ${notCounted.join('; ')}.` }),
+    ...(notCounted.length && {
+      notCounted: t('series.notCountedYet', { rounds: notCounted.join('; ') }),
+    }),
+    t: coreT,
+    lang: pageLanguage(),
   };
   if (kind === 'csv') writeFileSync(picked.filePath, seriesCsv(tally, opts), 'utf8');
   else writeFileSync(picked.filePath, await pdfOf(seriesHtml(tally, opts)));

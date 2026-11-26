@@ -147,10 +147,13 @@ export function markFinal(store: EventStore): void {
     throw new StoreError(
       'APP_RESULTS_INCOMPLETE',
       'Results can be marked final once every expected card is in and every score decided.',
+      { key: 'errors.APP_RESULTS_INCOMPLETE' },
     );
   }
   if (results.classes.every((c) => c.entries.length === 0)) {
-    throw new StoreError('APP_RESULTS_INCOMPLETE', 'There are no results to mark final yet.');
+    throw new StoreError('APP_RESULTS_INCOMPLETE', 'There are no results to mark final yet.', {
+      key: 'errors.APP_RESULTS_INCOMPLETE_2',
+    });
   }
   store.markFinal(revision, results);
 }
@@ -206,7 +209,9 @@ export async function exportResults(
   win: BrowserWindow | null,
 ): Promise<string | null> {
   if (kind !== 'pdf' && kind !== 'csv') {
-    throw new StoreError('APP_BAD_REQUEST', 'Choose PDF or CSV.');
+    throw new StoreError('APP_BAD_REQUEST', 'Choose PDF or CSV.', {
+      key: 'errors.APP_BAD_REQUEST_22',
+    });
   }
   const options: Electron.SaveDialogOptions = {
     title: kind === 'pdf' ? t('dialog.resultsPdf') : t('dialog.resultsCsv'),
@@ -256,6 +261,10 @@ export function rememberExport(path: string): void {
 export async function openLastExport(): Promise<void> {
   if (lastExport) {
     const problem = await shell.openPath(lastExport);
-    if (problem) throw new StoreError('APP_OPEN_FAILED', `Couldn't open the file: ${problem}`);
+    if (problem)
+      throw new StoreError('APP_OPEN_FAILED', `Couldn't open the file: ${problem}`, {
+        key: 'errors.APP_OPEN_FAILED',
+        values: { problem },
+      });
   }
 }

@@ -22,7 +22,9 @@ export function courseView(store: EventStore, requestedDay?: number, now = new D
   const setup = store.setup;
   const days = setup.days.map((d) => d.day);
   if (requestedDay !== undefined && !days.includes(requestedDay)) {
-    throw new StoreError('APP_BAD_REQUEST', 'That day isn’t in this event.');
+    throw new StoreError('APP_BAD_REQUEST', 'That day isn’t in this event.', {
+      key: 'errors.APP_BAD_REQUEST_2',
+    });
   }
   // The day being ridden today, else the first day.
   const day = requestedDay ?? setup.days.find((d) => d.date === todayIso(now))?.day ?? days[0] ?? 1;

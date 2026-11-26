@@ -16,6 +16,7 @@
  */
 import type { Results } from './generated/results.js';
 import { BOM, csvField, esc } from './results/output.js';
+import { english, type Translate } from './words.js';
 
 type Entry = Results['classes'][number]['entries'][number];
 
@@ -210,6 +211,10 @@ export interface SeriesPrintOptions {
   readonly footer: string;
   /** Rounds in the series not counted yet (not final), in words. */
   readonly notCounted?: string;
+  /** The PDF's words in the app's language (#64); the CSV stays English. English if omitted. */
+  readonly t?: Translate;
+  /** The page's language, e.g. "en-AU". */
+  readonly lang?: string;
 }
 
 const placeWords = (r: SeriesRow) => `${r.place}${r.shared ? '=' : ''}`;
@@ -249,25 +254,41 @@ export function seriesCsv(tally: SeriesTally, opts: SeriesPrintOptions): string 
 /** A complete HTML page for A4 printing: one table per class. */
 export function seriesHtml(tally: SeriesTally, opts: SeriesPrintOptions): string {
   const best = opts.rules.bestOf !== undefined;
+  const t = opts.t ?? english;
+  const points = `${opts.rules.points.slice(0, 6).join(', ')}${opts.rules.points.length > 6 ? ' …' : ''}`;
+  const bestOf = opts.rules.bestOf ?? 0;
   const rule = [
-    `Points by place: ${opts.rules.points.slice(0, 6).join(', ')}${opts.rules.points.length > 6 ? ' …' : ''}.`,
-    best ? `Best ${opts.rules.bestOf} rounds count.` : 'Every round counts.',
+    t('core.seriesPoints', 'Points by place: {{points}}.', { points }),
+    best
+      ? t(
+          'core.seriesBest',
+          bestOf === 1 ? 'Best 1 round counts.' : 'Best {{count}} rounds count.',
+          { count: bestOf },
+        )
+      : t('core.seriesEvery', 'Every round counts.'),
     opts.rules.ties === 'share'
-      ? 'Equal totals share a place (=).'
-      : 'Equal totals are split by most round wins, then the latest round; = if still equal.',
-    'DNF and No award score 0. A blank is a round not ridden. Non-competitive riders take no series points.',
+      ? t('core.seriesTiesShare', 'Equal totals share a place (=).')
+      : t(
+          'core.seriesTiesSplit',
+          'Equal totals are split by most round wins, then the latest round; = if still equal.',
+        ),
+    t(
+      'core.seriesZero',
+      'DNF and No award score 0. A blank is a round not ridden. Non-competitive riders take no series points.',
+    ),
   ].join(' ');
+  const bestHead = t('core.seriesBestHead', 'Best {{rounds}}', { rounds: bestOf });
   const classes = tally.classes
     .map(
       (cls) => `
 <section>
   <h2>${esc(cls.name)}</h2>
   <table>
-    <thead><tr><th>Place</th><th>Rider</th><th class="n">No.</th><th>Club</th>${opts.roundLabels
+    <thead><tr><th>${esc(t('core.headPlace', 'Place'))}</th><th>${esc(t('core.headRider', 'Rider'))}</th><th class="n">${esc(t('core.headNumber', 'No.'))}</th><th>${esc(t('core.headClub', 'Club'))}</th>${opts.roundLabels
       .map((l) => `<th class="n">${esc(l)}</th>`)
       .join(
         '',
-      )}<th class="n">Total</th>${best ? `<th class="n">Best ${opts.rules.bestOf}</th>` : ''}</tr></thead>
+      )}<th class="n">${esc(t('core.headTotal', 'Total'))}</th>${best ? `<th class="n">${esc(bestHead)}</th>` : ''}</tr></thead>
     <tbody>${cls.rows
       .map(
         (r) =>
@@ -283,7 +304,7 @@ export function seriesHtml(tally: SeriesTally, opts: SeriesPrintOptions): string
     )
     .join('');
   return `<!doctype html>
-<html lang="en-AU"><head><meta charset="utf-8"><title>${esc(opts.name)}</title>
+<html lang="${esc(opts.lang ?? 'en-AU')}"><head><meta charset="utf-8"><title>${esc(opts.name)}</title>
 <style>
   @page { size: A4; margin: 14mm 12mm; }
   body { font-family: "Segoe UI", Arial, sans-serif; font-size: 9.5pt; color: #111; margin: 0; }
@@ -301,7 +322,13 @@ export function seriesHtml(tally: SeriesTally, opts: SeriesPrintOptions): string
   footer { margin-top: 14px; color: #444; font-size: 8pt; }
 </style></head><body>
 <h1>${esc(opts.name)}</h1>
-<div class="sub">Series points after ${tally.rounds} ${tally.rounds === 1 ? 'round' : 'rounds'}</div>
+<div class="sub">${esc(
+    t(
+      'core.seriesAfter',
+      tally.rounds === 1 ? 'Series points after 1 round' : 'Series points after {{count}} rounds',
+      { count: tally.rounds },
+    ),
+  )}</div>
 ${opts.notCounted ? `<div class="note">${esc(opts.notCounted)}</div>` : ''}
 ${classes}
 <footer>${esc(rule)}<br>${esc(opts.footer)}</footer>

@@ -20,6 +20,7 @@ import {
 } from '@tscore/core';
 import { useEffect, useMemo, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+import { coreT } from '../i18n';
 import type { AppError, EntryListFile, OpenEvent, RiderInfo } from '../../../shared/ipc';
 import { COMPETITION_STATUS_SHORT, riderName } from './Riders';
 import { ErrorAlert } from '../ErrorAlert';
@@ -66,7 +67,8 @@ export function ImportRiders({ event, file, onCancel, onImported }: Props) {
 
   const choices: ImportChoices = { classes, dontKeep, duplicates };
   const plan = useMemo(
-    () => (existing ? planImport(file.list, event.setup, existing, choices) : null),
+    () =>
+      existing ? planImport(file.list, event.setup, existing, choices, undefined, coreT) : null,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [existing, file, event.setup, classes, dontKeep, duplicates],
   );

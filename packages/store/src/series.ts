@@ -115,7 +115,10 @@ export function listSeries(eventsDir: string): { file: string; setup: SeriesSetu
 /** Save a series (a new file, or over `file`). Returns its file. */
 export function saveSeries(eventsDir: string, setup: SeriesSetup, file?: string): string {
   const name = setup.name.trim();
-  if (!name) throw new StoreError('STORE_SERIES_NAME', 'Give the series a name.');
+  if (!name)
+    throw new StoreError('STORE_SERIES_NAME', 'Give the series a name.', {
+      key: 'errors.STORE_SERIES_NAME',
+    });
   const dir = join(eventsDir, SERIES_DIR);
   mkdirSync(dir, { recursive: true });
   let target = file && file.startsWith(dir) ? file : undefined;

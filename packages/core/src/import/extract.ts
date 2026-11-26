@@ -36,13 +36,27 @@ export interface FileDiagnostics {
   }[];
 }
 
+/** A message's key in the app's message files, and the values it fills in (#64). */
+export interface ImportMessageRef {
+  readonly key: string;
+  readonly values?: Readonly<Record<string, string>>;
+}
+
 export class ImportError extends Error {
   readonly code: string;
   readonly diagnostics?: FileDiagnostics;
-  constructor(code: string, message: string, diagnostics?: FileDiagnostics) {
+  /** Lets the app show `message` (the English) in the laptop's language. */
+  readonly words: ImportMessageRef;
+  constructor(
+    code: string,
+    message: string,
+    words: ImportMessageRef,
+    diagnostics?: FileDiagnostics,
+  ) {
     super(message);
     this.name = 'ImportError';
     this.code = code;
+    this.words = words;
     if (diagnostics) this.diagnostics = diagnostics;
   }
 }
@@ -81,8 +95,9 @@ function otherExport(tables: readonly SourceTable[], presets: readonly ImportMap
   for (const t of tables) {
     const have = new Set(headerOf(t).map(norm));
     for (const p of presets) {
-      const hit = p.other_exports?.find((o) => o.headers.every((h) => have.has(norm(h))));
-      if (hit) return hit;
+      const i = (p.other_exports ?? []).findIndex((o) => o.headers.every((h) => have.has(norm(h))));
+      const hit = p.other_exports?.[i];
+      if (hit) return { message: hit.message, key: `errors.IMPORT_OTHER_EXPORT_${p.id}_${i + 1}` };
     }
   }
   return undefined;
@@ -99,11 +114,14 @@ export function readEntryList(
   if (!found) {
     const diagnostics = diagnose(tables, presets);
     const other = otherExport(tables, presets);
-    if (other) throw new ImportError('IMPORT_OTHER_EXPORT', other.message, diagnostics);
+    if (other) {
+      throw new ImportError('IMPORT_OTHER_EXPORT', other.message, { key: other.key }, diagnostics);
+    }
     throw new ImportError(
       'IMPORT_UNKNOWN_FORMAT',
       "tScore doesn't recognise this file. It reads Entryplace and Ridernet exports as they " +
         'come, and any other list saved in the tScore rider-list format.',
+      { key: 'errors.IMPORT_UNKNOWN_FORMAT' },
       diagnostics,
     );
   }
@@ -118,9 +136,11 @@ export function readEntryList(
   }
   const missing = REQUIRED.filter((f) => index[f] === undefined);
   if (missing.length > 0) {
+    const columns = missing.map((f) => `"${preset.columns[f]?.[0] ?? f}"`).join(' or ');
     throw new ImportError(
       'IMPORT_MISSING_COLUMN',
-      `This ${preset.name} has no ${missing.map((f) => `"${preset.columns[f]?.[0] ?? f}"`).join(' or ')} column.`,
+      `This ${preset.name} has no ${columns} column.`,
+      { key: 'errors.IMPORT_MISSING_COLUMN', values: { list: preset.name, columns } },
     );
   }
 

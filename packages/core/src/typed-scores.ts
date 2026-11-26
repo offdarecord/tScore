@@ -6,6 +6,8 @@
  * one digit (e.g. 10 in a gate trial), scores must be separated by spaces or commas.
  */
 
+import { english, type Translate } from './words.js';
+
 export type TypedScoreProblem =
   | { readonly kind: 'not_a_score'; readonly section: number; readonly text: string }
   | { readonly kind: 'too_few'; readonly missing: number }
@@ -63,19 +65,38 @@ export function describeTypedScoreProblem(
   p: TypedScoreProblem,
   scoreValues: readonly number[],
   className?: string,
+  t: Translate = english,
 ): string {
-  const allowed = listWords(scoreValues.map(String));
+  const allowed = listWords(scoreValues.map(String), t);
   switch (p.kind) {
     case 'not_a_score':
-      return `${p.text} isn't a score (section ${p.section}). Use ${allowed}.`;
+      return t('core.notAScore', "{{text}} isn't a score (section {{section}}). Use {{allowed}}.", {
+        text: p.text,
+        section: p.section,
+        allowed,
+      });
     case 'too_few':
-      return p.missing === 1 ? '1 section still to type.' : `${p.missing} sections still to type.`;
+      return t(
+        'core.stillToType',
+        p.missing === 1 ? '1 section still to type.' : '{{count}} sections still to type.',
+        { count: p.missing },
+      );
     case 'too_many':
-      return `Too many scores: ${className ?? 'this class'} rides ${p.sections} sections.`;
+      return className === undefined
+        ? t('core.tooManyScores', 'Too many scores: this class rides {{sections}} sections.', {
+            sections: p.sections,
+          })
+        : t('core.tooManyScoresClass', 'Too many scores: {{name}} rides {{sections}} sections.', {
+            name: className,
+            sections: p.sections,
+          });
   }
 }
 
-function listWords(items: readonly string[]): string {
+function listWords(items: readonly string[], t: Translate): string {
   if (items.length <= 1) return items.join('');
-  return `${items.slice(0, -1).join(', ')} or ${items[items.length - 1] ?? ''}`;
+  return t('core.orList', '{{items}} or {{last}}', {
+    items: items.slice(0, -1).join(', '),
+    last: items[items.length - 1] ?? '',
+  });
 }

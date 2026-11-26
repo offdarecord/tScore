@@ -97,7 +97,8 @@ test('an old event is offered, its card scans removed, then deleted to the Recyc
   await expect(go).toBeDisabled();
   await del.getByLabel(/To confirm, type the event's code/).fill('eat');
   await go.click();
-  await expect(window.getByText(/1 event moved to the Recycle Bin/)).toBeVisible();
+  // The Trash on a Mac (#61).
+  await expect(window.getByText(/1 event moved to the (Recycle Bin|Trash)/)).toBeVisible();
   expect(existsSync(old)).toBe(false);
   expect(existsSync(join(run.eventsDir, `${daysAgo(10)} ERT`))).toBe(true);
 

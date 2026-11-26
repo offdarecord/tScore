@@ -14,6 +14,7 @@ import {
   type PersonInput,
 } from '../results/model.js';
 import type { EntryList, SourceRow } from './extract.js';
+import { english, type Translate } from '../words.js';
 import { IMPORT_PRESETS, matcher, norm, type ImportMapping } from './presets.js';
 
 /** What the desk decided where tScore couldn't. */
@@ -92,6 +93,7 @@ export function planImport(
   existing: readonly EntryInput[],
   choices: ImportChoices = {},
   presets: readonly ImportMapping[] = IMPORT_PRESETS,
+  t: Translate = english,
 ): ImportPlan {
   const preset = presets.find((p) => p.id === list.presetId);
   if (!preset) throw new Error(`Unknown import preset ${list.presetId}`);
@@ -235,7 +237,10 @@ export function planImport(
     if (ok) numbering = 'from_file';
     else
       notes.push(
-        "The file's rider numbers are missing, repeated or already used, so tScore numbered the riders.",
+        t(
+          'core.importRenumbered',
+          "The file's rider numbers are missing, repeated or already used, so tScore numbered the riders.",
+        ),
       );
   }
   let next =
@@ -272,7 +277,11 @@ export function planImport(
   return {
     source: list.source,
     rowsRead,
-    skipped: [...skipped].map(([reason, count]) => ({ reason, count })),
+    // Reasons come from the presets (and 'no class'): a message key each, the English as fallback.
+    skipped: [...skipped].map(([reason, count]) => ({
+      reason: t(`core.skipReason_${reason.replace(/\W+/g, '_')}`, reason),
+      count,
+    })),
     classes,
     merged,
     duplicates,

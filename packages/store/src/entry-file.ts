@@ -24,16 +24,21 @@ export function readEntryFile(path: string): SourceTable[] {
     throw new StoreError(
       'STORE_ENTRY_FILE_TYPE',
       'Choose an Excel workbook (.xlsx or .xls) or a CSV file.',
+      { key: 'errors.STORE_ENTRY_FILE_TYPE' },
     );
   }
   let size: number;
   try {
     size = statSync(path).size;
   } catch {
-    throw new StoreError('STORE_ENTRY_FILE_MISSING', "That file couldn't be found.");
+    throw new StoreError('STORE_ENTRY_FILE_MISSING', "That file couldn't be found.", {
+      key: 'errors.STORE_ENTRY_FILE_MISSING',
+    });
   }
   if (size > MAX_BYTES) {
-    throw new StoreError('STORE_ENTRY_FILE_TOO_BIG', 'That file is too big to be an entry list.');
+    throw new StoreError('STORE_ENTRY_FILE_TOO_BIG', 'That file is too big to be an entry list.', {
+      key: 'errors.STORE_ENTRY_FILE_TOO_BIG',
+    });
   }
 
   let book: XLSX.WorkBook;
@@ -53,6 +58,7 @@ export function readEntryFile(path: string): SourceTable[] {
     throw new StoreError(
       'STORE_ENTRY_FILE_UNREADABLE',
       "That file couldn't be read as a spreadsheet. If it's open in Excel, save it, close it and try again.",
+      { key: 'errors.STORE_ENTRY_FILE_UNREADABLE' },
     );
   }
 

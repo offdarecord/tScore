@@ -188,6 +188,90 @@ test('the event-day screens show no English in the pseudo-language', async () =>
   expect(await plainWords(window, data)).toEqual([]);
 });
 
+/** Any of these English messages (no placeholders) showing on the page. */
+async function englishShown(window: Page, sections: (keyof typeof en)[]): Promise<string[]> {
+  const flat = (o: unknown): string[] =>
+    typeof o === 'string' ? [o] : Object.values(o as object).flatMap(flat);
+  const english = new Set(
+    sections
+      .flatMap((s) => flat(en[s]))
+      .filter((m) => !m.includes('{{') && !m.includes('<') && /[a-z]{3}/.test(m)),
+  );
+  const shown = await window.evaluate(() => {
+    const out: string[] = [];
+    const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+      const el = n.parentElement;
+      if (el?.checkVisibility() && !el.closest('.help-page')) out.push(n.textContent?.trim() ?? '');
+    }
+    return out;
+  });
+  return shown.filter((t) => english.has(t));
+}
+
+test('results, labels, series, manage events and the rest show their messages translated', async () => {
+  run = await launchApp(undefined, { TSCORE_TEST_LOCALE: 'en-XA' });
+  const { window } = run;
+  const sections: (keyof typeof en)[] = [
+    'results',
+    'live',
+    'testTrial',
+    'series',
+    'labels',
+    'manage',
+    'check',
+    'suggest',
+  ];
+  await window.getByRole('button', { name: pseudo(en.home.newEvent) }).click();
+  await window.getByLabel(pseudo(en.setup.name)).fill('Évént Ñö');
+  await window.getByLabel(pseudo(en.setup.date)).fill('2027-02-06');
+  await window.getByRole('button', { name: pseudo(en.setup.create) }).click();
+  await expect(window.getByRole('heading', { name: pseudo(en.setup.title) })).toBeVisible();
+  const csv = join(run.userData, 'riders.csv');
+  writeFileSync(
+    csv,
+    'Number,Given name,Family name,Class,Club,Competition status\r\n1,Ává,Ñöñé,Trial 3,Çlüb,\r\n',
+  );
+  await run.app.evaluate(({ dialog }, p) => {
+    dialog.showOpenDialog = (() =>
+      Promise.resolve({ canceled: false, filePaths: [p] })) as typeof dialog.showOpenDialog;
+  }, csv);
+  const nav = window.getByRole('navigation', { name: pseudo(en.nav.label) });
+  const go = (label: string) =>
+    nav.getByRole('button', { name: new RegExp(`^${escape(pseudo(label))}`) }).click();
+  await go(en.nav.riders);
+  await window.getByRole('button', { name: pseudo(en.riders.import) }).click();
+  await window
+    .getByRole('button', { name: pseudo(en.import.importN_one).replace('{{count}}', '1') })
+    .click();
+
+  for (const [page, heading] of [
+    [en.nav.results, en.results.title],
+    [en.nav.labels, en.labels.title],
+    [en.nav.check, en.check.title],
+  ] as const) {
+    await go(page);
+    await expect(window.getByRole('heading', { name: pseudo(heading) })).toBeVisible();
+    // The check's item titles (e.g. 'Card labels') come from the main process: stage 5.
+    const here = page === en.nav.check ? sections.filter((x) => x !== 'labels') : sections;
+    expect(await englishShown(window, here)).toEqual([]);
+  }
+
+  await nav.getByRole('button', { name: pseudo(en.nav.allEvents) }).click();
+  await window.getByRole('button', { name: pseudo(en.home.series) }).click();
+  await expect(window.getByRole('heading', { name: pseudo(en.series.title) })).toBeVisible();
+  expect(await englishShown(window, sections)).toEqual([]);
+  await window.getByRole('button', { name: pseudo(en.series.allEvents) }).click();
+  await window.getByRole('button', { name: pseudo(en.home.manage) }).click();
+  await expect(window.getByRole('heading', { name: pseudo(en.manage.title) })).toBeVisible();
+  expect(await englishShown(window, sections)).toEqual([]);
+
+  await window.getByRole('button', { name: pseudo(en.app.about) }).click();
+  await window.getByRole('button', { name: pseudo(en.app.suggest) }).click();
+  await expect(window.getByRole('dialog', { name: pseudo(en.suggest.title) })).toBeVisible();
+  expect(await englishShown(window, sections)).toEqual([]);
+});
+
 /** A string as a literal in a regular expression. */
 function escape(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

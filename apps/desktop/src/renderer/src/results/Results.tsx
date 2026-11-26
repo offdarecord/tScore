@@ -33,6 +33,7 @@ import type {
 } from '../../../shared/ipc';
 import { ErrorAlert } from '../ErrorAlert';
 import { LiveScreenButton } from '../live/LiveScreenButton';
+import i18next from '../i18n';
 import { isTestTrialEvent, TestTrialCheckButton } from './TestTrialCheck';
 
 type ClassResults = ResultsTypes.ClassResults;
@@ -85,8 +86,8 @@ export function Results({ event }: { readonly event: OpenEvent }) {
     <Stack gap="lg" maw={1300}>
       <Group justify="space-between" wrap="wrap" align="flex-start">
         <div>
-          <Title order={2}>Results</Title>
-          <Text c="dimmed">Worked out from every card in so far. Updates as cards are saved.</Text>
+          <Title order={2}>{i18next.t('results.title')}</Title>
+          <Text c="dimmed">{i18next.t('results.intro')}</Text>
         </div>
         <Group gap="sm" align="flex-start">
           {isTestTrialEvent(event.setup.event.name) && <TestTrialCheckButton onError={setError} />}
@@ -96,7 +97,7 @@ export function Results({ event }: { readonly event: OpenEvent }) {
             loading={busy === 'pdf'}
             disabled={classes.length === 0}
           >
-            Save PDF…
+            {i18next.t('results.savePdf')}
           </Button>
           <Button
             variant="default"
@@ -104,7 +105,7 @@ export function Results({ event }: { readonly event: OpenEvent }) {
             loading={busy === 'csv'}
             disabled={classes.length === 0}
           >
-            Save CSV…
+            {i18next.t('results.saveCsv')}
           </Button>
         </Group>
       </Group>
@@ -113,9 +114,9 @@ export function Results({ event }: { readonly event: OpenEvent }) {
       {saved && (
         <Alert color="green" role="status" withCloseButton onClose={() => setSaved(null)}>
           <Group justify="space-between" wrap="wrap" gap="sm">
-            <span>Saved: {saved}</span>
+            <span>{i18next.t('results.saved', { file: saved })}</span>
             <Button variant="default" size="xs" onClick={() => void open()}>
-              Open
+              {i18next.t('results.open')}
             </Button>
           </Group>
         </Alert>
@@ -123,9 +124,7 @@ export function Results({ event }: { readonly event: OpenEvent }) {
 
       {classes.length === 0 ? (
         <Paper withBorder radius="md" p="lg">
-          <Text c="dimmed">
-            No riders yet. Import the entry list on the Riders screen, then type or scan cards.
-          </Text>
+          <Text c="dimmed">{i18next.t('results.none')}</Text>
         </Paper>
       ) : (
         <>
@@ -134,7 +133,13 @@ export function Results({ event }: { readonly event: OpenEvent }) {
           )}
           <FinalPanel view={view} onChange={setView} />
 
-          <Paper withBorder radius="md" p="md" component="section" aria-label="Class results">
+          <Paper
+            withBorder
+            radius="md"
+            p="md"
+            component="section"
+            aria-label={i18next.t('results.classResults')}
+          >
             <Tabs value={current} onChange={setTab}>
               <Tabs.List>
                 {classes.map((c, i) => (
@@ -157,33 +162,35 @@ export function Results({ event }: { readonly event: OpenEvent }) {
               ))}
             </Tabs>
             <Text size="sm" c="dimmed" mt="sm">
-              {tieBreakWords(view.results)} NA = No award: scored and ranked among themselves, never
-              placed. NC = Non-competitive: listed after the class with their counts only; their
-              scores are never shown or published. Penalties are added on the Manual entry page.
+              {tieBreakWords(view.results)} {i18next.t('results.key')}
             </Text>
           </Paper>
 
-          <Paper withBorder radius="md" p="md" component="section" aria-label="Saving results">
+          <Paper
+            withBorder
+            radius="md"
+            p="md"
+            component="section"
+            aria-label={i18next.t('results.savingRegion')}
+          >
             <Stack gap={6}>
               <Title order={3} size="h4">
-                Saving results to share
+                {i18next.t('results.saving')}
               </Title>
               {hasJuniors ? (
                 <>
                   <Checkbox
-                    label="Show junior riders' surnames as an initial (“Riley M.”)"
+                    label={i18next.t('results.initials')}
                     checked={initials}
                     onChange={(e) => setInitials(e.currentTarget.checked)}
                   />
                   <Text size="sm" c="dimmed">
-                    Junior classes here: {view.juniorClasses.join(', ')}. Applies to the PDF and
-                    CSV. Results on this laptop always show full names.
+                    {i18next.t('results.juniorClasses', { classes: view.juniorClasses.join(', ') })}
                   </Text>
                 </>
               ) : (
                 <Text size="sm" c="dimmed">
-                  The PDF and CSV show what&apos;s on screen. Non-competitive riders&apos; scores
-                  are never included.
+                  {i18next.t('results.noJuniors')}
                 </Text>
               )}
             </Stack>
@@ -198,8 +205,8 @@ function Status(props: { gaps: readonly ResultsGapInfo[]; open: boolean; onToggl
   const { gaps } = props;
   if (gaps.length === 0) {
     return (
-      <Alert color="green" role="status" title="All cards are in">
-        No card is missing and no score is waiting. Check the results, then save the PDF.
+      <Alert color="green" role="status" title={i18next.t('results.allIn')}>
+        {i18next.t('results.allInHelp')}
       </Alert>
     );
   }
@@ -209,8 +216,18 @@ function Status(props: { gaps: readonly ResultsGapInfo[]; open: boolean; onToggl
       gaps.map((g) => [
         `${g.number}:${g.day}:${g.lap}:${g.kind}:${g.section ?? 0}`,
         g.kind === 'missing_card'
-          ? `Rider ${g.number} (${g.className}): lap ${g.lap}${g.day > 1 ? ` of day ${g.day}` : ''} not in yet`
-          : `Rider ${g.number} (${g.className}): lap ${g.lap} section ${g.section ?? '?'} undecided`,
+          ? i18next.t('results.missingLap', {
+              number: g.number,
+              class: g.className,
+              lap: g.lap,
+              day: g.day > 1 ? i18next.t('results.ofDay', { day: g.day }) : '',
+            })
+          : i18next.t('results.undecided', {
+              number: g.number,
+              class: g.className,
+              lap: g.lap,
+              section: g.section ?? '?',
+            }),
       ]),
     ).values(),
   ];
@@ -219,7 +236,7 @@ function Status(props: { gaps: readonly ResultsGapInfo[]; open: boolean; onToggl
       radius="md"
       p="md"
       component="section"
-      aria-label="Provisional"
+      aria-label={i18next.t('results.provisionalRegion')}
       style={{
         background: 'light-dark(#fff0de, #3f2a10)',
         color: 'light-dark(#6b2e00, #ffc078)',
@@ -229,12 +246,12 @@ function Status(props: { gaps: readonly ResultsGapInfo[]; open: boolean; onToggl
       <Group justify="space-between" wrap="wrap" gap="sm" align="flex-start">
         <div>
           <Text fw={800} fz="xl">
-            PROVISIONAL
+            {i18next.t('results.provisional')}
           </Text>
-          <Text>{gapWords(gaps)} Positions may change.</Text>
+          <Text>{i18next.t('results.mayChange', { gaps: gapWords(gaps) })}</Text>
         </div>
         <Button variant="default" onClick={props.onToggle} aria-expanded={props.open}>
-          {props.open ? 'Hide what’s missing' : 'See what’s missing'}
+          {props.open ? i18next.t('results.hideMissing') : i18next.t('results.seeMissing')}
         </Button>
       </Group>
       {props.open && (
@@ -242,7 +259,9 @@ function Status(props: { gaps: readonly ResultsGapInfo[]; open: boolean; onToggl
           {lines.slice(0, 200).map((l) => (
             <li key={l}>{l}</li>
           ))}
-          {lines.length > 200 && <li>…and {lines.length - 200} more</li>}
+          {lines.length > 200 && (
+            <li>{i18next.t('results.more', { count: lines.length - 200 })}</li>
+          )}
         </ul>
       )}
     </Paper>
@@ -266,32 +285,36 @@ function ClassTable(props: {
   return (
     <Stack gap={4}>
       <Text>
-        {classSummary(cls)} · {cls.entries.length} {cls.entries.length === 1 ? 'entry' : 'entries'}
+        {i18next.t('results.entries', { summary: classSummary(cls), count: cls.entries.length })}
       </Text>
       {/* On a narrow window the table scrolls sideways; focusable so the keyboard can scroll it. */}
       <div
         role="region"
-        aria-label={`${cls.name} results, scrolls sideways`}
+        aria-label={i18next.t('results.scrolls', { class: cls.name })}
         tabIndex={0}
         style={{ overflowX: 'auto' }}
       >
-        <Table verticalSpacing={8} miw={760} aria-label={`${cls.name} results`}>
+        <Table
+          verticalSpacing={8}
+          miw={760}
+          aria-label={i18next.t('results.classTable', { class: cls.name })}
+        >
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Place</Table.Th>
-              <Table.Th>No.</Table.Th>
-              <Table.Th>Rider</Table.Th>
-              <Table.Th>Club</Table.Th>
+              <Table.Th>{i18next.t('results.place')}</Table.Th>
+              <Table.Th>{i18next.t('results.number')}</Table.Th>
+              <Table.Th>{i18next.t('results.rider')}</Table.Th>
+              <Table.Th>{i18next.t('results.club')}</Table.Th>
               {cols.map((c) => (
                 <Table.Th key={c.label} ta="right">
                   {c.label}
                 </Table.Th>
               ))}
-              <Table.Th ta="right">Pen.</Table.Th>
-              <Table.Th ta="right">Total</Table.Th>
+              <Table.Th ta="right">{i18next.t('results.pen')}</Table.Th>
+              <Table.Th ta="right">{i18next.t('results.total')}</Table.Th>
               {scoreValues.map((v) => (
                 <Table.Th key={v} ta="right">
-                  {v}s
+                  {i18next.t('results.count', { value: v })}
                 </Table.Th>
               ))}
             </Table.Tr>
@@ -301,14 +324,14 @@ function ClassTable(props: {
               const muted = e.competition_status !== 'competitive' || e.status !== 'finished';
               const pen = penaltyPoints(e);
               const notes = [
-                e.also_in?.length ? `Also in ${e.also_in.join(', ')}` : '',
+                e.also_in?.length
+                  ? i18next.t('results.alsoIn', { classes: e.also_in.join(', ') })
+                  : '',
                 waiting.get(e.number)?.length
-                  ? `Waiting for lap ${waiting.get(e.number)?.join(', ')}`
+                  ? i18next.t('results.waiting', { laps: waiting.get(e.number)?.join(', ') ?? '' })
                   : '',
-                e.competition_status === 'non_competitive'
-                  ? 'Non-competitive: scores not shown'
-                  : '',
-                e.competition_status === 'no_award' ? 'No award' : '',
+                e.competition_status === 'non_competitive' ? i18next.t('results.ncNote') : '',
+                e.competition_status === 'no_award' ? i18next.t('results.naNote') : '',
               ].filter(Boolean);
               return (
                 <Table.Tr key={e.number} {...(muted && { bg: 'light-dark(#f8f9fa, #25282c)' })}>
@@ -393,7 +416,7 @@ function FinalPanel(props: { view: ResultsView; onChange: (view: ResultsView) =>
         radius="md"
         p="md"
         component="section"
-        aria-label="Final results"
+        aria-label={i18next.t('results.finalRegion')}
         style={{
           background: 'light-dark(#e3f4e6, #1c3b22)',
           color: 'light-dark(#123b17, #b2f2bb)',
@@ -403,32 +426,28 @@ function FinalPanel(props: { view: ResultsView; onChange: (view: ResultsView) =>
         <Group justify="space-between" wrap="wrap" gap="sm" align="flex-start">
           <div>
             <Text fw={800} fz="xl">
-              FINAL{final.revision > 1 ? ` · REVISION ${final.revision}` : ''}
+              {final.revision > 1
+                ? i18next.t('results.finalRevision', { revision: final.revision })
+                : i18next.t('results.final')}
             </Text>
-            <Text>
-              Marked final {when(final.markedAt)}. Saved PDFs and CSVs say FINAL. Cards, penalties,
-              riders and the setup can&apos;t change until the results are reopened.
-            </Text>
+            <Text>{i18next.t('results.markedFinal', { when: when(final.markedAt) })}</Text>
           </div>
           <Button variant="default" onClick={() => setAsking('reopen')}>
-            Reopen…
+            {i18next.t('results.reopenButton')}
           </Button>
         </Group>
         <Modal
           opened={asking === 'reopen'}
           onClose={() => setAsking(null)}
-          title={`Reopen revision ${final.revision}`}
-          closeButtonProps={{ 'aria-label': 'Close' }}
+          title={i18next.t('results.reopenTitle', { revision: final.revision })}
+          closeButtonProps={{ 'aria-label': i18next.t('results.close') }}
         >
           <Stack gap="md">
-            <Text>
-              Say what needs correcting. The reason is logged, and printed on the next revision
-              along with any places that change.
-            </Text>
+            <Text>{i18next.t('results.reopenHelp')}</Text>
             <Textarea
-              label="Why are the results being reopened?"
+              label={i18next.t('results.why')}
               required
-              placeholder="e.g. Rider 12, lap 3 section 6: observer card misread, 3 not 5"
+              placeholder={i18next.t('results.whyPlaceholder')}
               autosize
               minRows={2}
               maxLength={300}
@@ -438,14 +457,14 @@ function FinalPanel(props: { view: ResultsView; onChange: (view: ResultsView) =>
             {problem}
             <Group justify="flex-end">
               <Button variant="default" onClick={() => setAsking(null)}>
-                Cancel
+                {i18next.t('results.cancel')}
               </Button>
               <Button
                 loading={busy}
                 disabled={!reason.trim()}
                 onClick={() => void run(() => window.tscore.reopenResults(reason))}
               >
-                Reopen results
+                {i18next.t('results.reopen')}
               </Button>
             </Group>
           </Stack>
@@ -455,16 +474,27 @@ function FinalPanel(props: { view: ResultsView; onChange: (view: ResultsView) =>
   }
 
   return (
-    <Paper withBorder radius="md" p="md" component="section" aria-label="Mark results final">
+    <Paper
+      withBorder
+      radius="md"
+      p="md"
+      component="section"
+      aria-label={i18next.t('results.markRegion')}
+    >
       <Stack gap="sm">
         {reopened && (
           <div>
             <Text fw={700}>
-              Revision {reopened.revision} reopened: {reopened.reopenReason}
+              {i18next.t('results.reopened', {
+                revision: reopened.revision,
+                reason: reopened.reopenReason ?? '',
+              })}
             </Text>
             {view.changes && view.changes.length > 0 ? (
               <>
-                <Text size="sm">Places changed since revision {reopened.revision}:</Text>
+                <Text size="sm">
+                  {i18next.t('results.changed', { revision: reopened.revision })}
+                </Text>
                 <ul style={{ margin: '4px 0 0', paddingLeft: 20 }}>
                   {view.changes.map((c) => (
                     <li key={c}>
@@ -474,19 +504,25 @@ function FinalPanel(props: { view: ResultsView; onChange: (view: ResultsView) =>
                 </ul>
               </>
             ) : (
-              <Text size="sm">No places have changed since revision {reopened.revision} yet.</Text>
+              <Text size="sm">
+                {i18next.t('results.noChanges', { revision: reopened.revision })}
+              </Text>
             )}
           </div>
         )}
         <Group justify="space-between" wrap="wrap" gap="sm">
           <Text>
             {complete
-              ? `When the results are confirmed, mark them final${view.nextRevision > 1 ? ` as revision ${view.nextRevision}` : ''}.`
-              : 'Results can be marked final once every expected card is in.'}
+              ? view.nextRevision > 1
+                ? i18next.t('results.whenConfirmedRevision', { revision: view.nextRevision })
+                : i18next.t('results.whenConfirmed')
+              : i18next.t('results.notYet')}
           </Text>
           {complete && (
             <Button onClick={() => setAsking('final')}>
-              Mark results final{view.nextRevision > 1 ? ` (revision ${view.nextRevision})` : ''}…
+              {view.nextRevision > 1
+                ? i18next.t('results.markFinalRevision', { revision: view.nextRevision })
+                : i18next.t('results.markFinal')}
             </Button>
           )}
         </Group>
@@ -495,21 +531,22 @@ function FinalPanel(props: { view: ResultsView; onChange: (view: ResultsView) =>
       <Modal
         opened={asking === 'final'}
         onClose={() => setAsking(null)}
-        title={`Mark results final${view.nextRevision > 1 ? ` (revision ${view.nextRevision})` : ''}`}
-        closeButtonProps={{ 'aria-label': 'Close' }}
+        title={
+          view.nextRevision > 1
+            ? i18next.t('results.markTitleRevision', { revision: view.nextRevision })
+            : i18next.t('results.markTitle')
+        }
+        closeButtonProps={{ 'aria-label': i18next.t('results.close') }}
       >
         <Stack gap="md">
-          <Text>
-            Saved PDFs and CSVs will say FINAL. Cards, penalties, riders and the setup can&apos;t
-            change until you reopen the results, with a reason.
-          </Text>
+          <Text>{i18next.t('results.markHelp')}</Text>
           {problem}
           <Group justify="flex-end">
             <Button variant="default" onClick={() => setAsking(null)}>
-              Cancel
+              {i18next.t('results.cancel')}
             </Button>
             <Button loading={busy} onClick={() => void run(() => window.tscore.markFinal())}>
-              Mark final
+              {i18next.t('results.mark')}
             </Button>
           </Group>
         </Stack>

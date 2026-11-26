@@ -16,6 +16,8 @@ import {
   VisuallyHidden,
 } from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
+import { Trans } from 'react-i18next';
+import i18next, { isMac } from '../i18n';
 import type { AppError, ManagedEventInfo, ManageView } from '../../../shared/ipc';
 import { ErrorAlert } from '../ErrorAlert';
 import { formatDate } from '../format';
@@ -83,12 +85,13 @@ export function ManageEvents({ preselect, action, onBack }: Props) {
       <Group justify="space-between" align="flex-start" wrap="wrap">
         <div>
           <Button variant="subtle" px={0} onClick={onBack}>
-            ← All events
+            {i18next.t('manage.allEvents')}
           </Button>
-          <Title order={2}>Manage events</Title>
+          <Title order={2}>{i18next.t('manage.title')}</Title>
           <Text c="dimmed" maw={760}>
-            Every event on this laptop and the space it uses. Tidy up old ones: remove their card
-            scans (a small copy of each card is kept), or delete the whole event to the Recycle Bin.
+            {i18next.t('manage.intro', {
+              bin: i18next.t(isMac ? 'manage.binMac' : 'manage.binWindows'),
+            })}
           </Text>
         </div>
       </Group>
@@ -101,30 +104,35 @@ export function ManageEvents({ preselect, action, onBack }: Props) {
       )}
 
       {view && (
-        <Paper withBorder radius="md" p="lg" component="section" aria-label="Events on this laptop">
+        <Paper
+          withBorder
+          radius="md"
+          p="lg"
+          component="section"
+          aria-label={i18next.t('manage.region')}
+        >
           <Group justify="space-between" wrap="wrap" mb="md">
             <Text fw={700} fz="lg">
-              {events.length === 1 ? '1 event' : `${events.length} events`} use {formatBytes(total)}
+              {i18next.t('manage.total', { count: events.length, size: formatBytes(total) })}
               <Text span c="dimmed" fw={400}>
-                {' '}
-                ({formatBytes(cards)} of it card photos)
+                {i18next.t('manage.ofCards', { size: formatBytes(cards) })}
               </Text>
             </Text>
             <Group gap="sm">
               <SegmentedControl
-                aria-label="Sort by"
+                aria-label={i18next.t('manage.sortBy')}
                 value={sort}
                 onChange={(v) => setSort(v as 'date' | 'size')}
                 data={[
-                  { value: 'date', label: 'Newest first' },
-                  { value: 'size', label: 'Biggest first' },
+                  { value: 'date', label: i18next.t('manage.newest') },
+                  { value: 'size', label: i18next.t('manage.biggest') },
                 ]}
               />
             </Group>
           </Group>
 
           {events.length === 0 ? (
-            <Text c="dimmed">No events on this laptop yet.</Text>
+            <Text c="dimmed">{i18next.t('manage.none')}</Text>
           ) : (
             <Table.ScrollContainer minWidth={900}>
               <Table verticalSpacing="sm">
@@ -132,7 +140,7 @@ export function ManageEvents({ preselect, action, onBack }: Props) {
                   <Table.Tr>
                     <Table.Th w={40}>
                       <Checkbox
-                        aria-label="Tick every event"
+                        aria-label={i18next.t('manage.tickAll')}
                         checked={
                           chosen.length > 0 &&
                           chosen.length === events.filter((e) => !e.open).length
@@ -151,13 +159,13 @@ export function ManageEvents({ preselect, action, onBack }: Props) {
                         }
                       />
                     </Table.Th>
-                    <Table.Th>Event</Table.Th>
-                    <Table.Th>Date</Table.Th>
-                    <Table.Th ta="right">Card photos</Table.Th>
-                    <Table.Th ta="right">Everything else</Table.Th>
-                    <Table.Th>Second copy</Table.Th>
+                    <Table.Th>{i18next.t('manage.event')}</Table.Th>
+                    <Table.Th>{i18next.t('manage.date')}</Table.Th>
+                    <Table.Th ta="right">{i18next.t('manage.cardPhotos')}</Table.Th>
+                    <Table.Th ta="right">{i18next.t('manage.everythingElse')}</Table.Th>
+                    <Table.Th>{i18next.t('manage.secondCopy')}</Table.Th>
                     <Table.Th>
-                      <VisuallyHidden>Actions</VisuallyHidden>
+                      <VisuallyHidden>{i18next.t('manage.actions')}</VisuallyHidden>
                     </Table.Th>
                   </Table.Tr>
                 </Table.Thead>
@@ -166,7 +174,7 @@ export function ManageEvents({ preselect, action, onBack }: Props) {
                     <Table.Tr key={e.folder}>
                       <Table.Td>
                         <Checkbox
-                          aria-label={`Tick ${e.name}`}
+                          aria-label={i18next.t('manage.tick', { name: e.name })}
                           disabled={e.open}
                           checked={picked.has(e.folder) && !e.open}
                           onChange={() => toggle(e.folder)}
@@ -180,26 +188,26 @@ export function ManageEvents({ preselect, action, onBack }: Props) {
                           </Text>
                           {e.open && (
                             <Badge color="blue" variant="light">
-                              Open: close it to tidy
+                              {i18next.t('manage.openBadge')}
                             </Badge>
                           )}
                           {e.final ? (
                             <Badge color="green" variant="light">
-                              Results final
+                              {i18next.t('manage.finalBadge')}
                             </Badge>
                           ) : (
                             <Badge color="gray" variant="light">
-                              Not final
+                              {i18next.t('manage.notFinalBadge')}
                             </Badge>
                           )}
                           {e.keep && (
                             <Badge color="gray" variant="outline">
-                              Kept
+                              {i18next.t('manage.keptBadge')}
                             </Badge>
                           )}
                           {e.scansRemovedAt && (
                             <Badge color="gray" variant="outline">
-                              Scans removed {when(e.scansRemovedAt)}
+                              {i18next.t('manage.scansRemoved', { when: when(e.scansRemovedAt) })}
                             </Badge>
                           )}
                         </Group>
@@ -208,7 +216,7 @@ export function ManageEvents({ preselect, action, onBack }: Props) {
                       <Table.Td ta="right">
                         {formatBytes(e.cardBytes)}
                         <Text size="xs" c="dimmed">
-                          {e.cardFiles === 1 ? '1 file' : `${e.cardFiles} files`}
+                          {i18next.t('manage.files', { count: e.cardFiles })}
                         </Text>
                       </Table.Td>
                       <Table.Td ta="right">{formatBytes(e.otherBytes)}</Table.Td>
@@ -217,7 +225,9 @@ export function ManageEvents({ preselect, action, onBack }: Props) {
                           when(e.lastSecondCopy)
                         ) : (
                           <Text size="sm" c="dimmed">
-                            {view.secondPlaceChosen ? 'None found' : 'No second place'}
+                            {view.secondPlaceChosen
+                              ? i18next.t('manage.noneFound')
+                              : i18next.t('manage.noSecondPlace')}
                           </Text>
                         )}
                       </Table.Td>
@@ -226,23 +236,23 @@ export function ManageEvents({ preselect, action, onBack }: Props) {
                           <Button
                             variant="default"
                             size="xs"
-                            aria-label={`Show in folder: ${e.name}`}
+                            aria-label={i18next.t('manage.showLabel', { name: e.name })}
                             onClick={() => void window.tscore.showEventFolder(e.folder)}
                           >
-                            Show in folder
+                            {i18next.t('manage.showInFolder')}
                           </Button>
                           {!e.keep && !e.open && (
                             <Button
                               variant="subtle"
                               size="xs"
-                              aria-label={`Keep ${e.name}: don't offer it for tidying`}
+                              aria-label={i18next.t('manage.keepLabel', { name: e.name })}
                               onClick={() =>
                                 void window.tscore
                                   .keepEvent(e.folder)
                                   .then((r) => (r.ok ? setView(r.value) : setError(r.error)))
                               }
                             >
-                              Keep
+                              {i18next.t('manage.keep')}
                             </Button>
                           )}
                         </Group>
@@ -260,7 +270,7 @@ export function ManageEvents({ preselect, action, onBack }: Props) {
               disabled={chosen.length === 0}
               onClick={() => setDialog('remove')}
             >
-              Remove card scans…
+              {i18next.t('manage.removeScans')}
             </Button>
             <Button
               color="red"
@@ -268,12 +278,17 @@ export function ManageEvents({ preselect, action, onBack }: Props) {
               disabled={chosen.length === 0}
               onClick={() => setDialog('delete')}
             >
-              {chosen.length > 1 ? `Delete ${chosen.length} events…` : 'Delete event…'}
+              {chosen.length > 1
+                ? i18next.t('manage.deleteMany', { count: chosen.length })
+                : i18next.t('manage.deleteOne')}
             </Button>
             <Text size="sm" c="dimmed">
               {chosen.length === 0
-                ? 'Tick events to tidy them.'
-                : `${chosen.length === 1 ? '1 event' : `${chosen.length} events`} ticked, ${formatBytes(chosen.reduce((n, e) => n + totalBytes(e), 0))}.`}
+                ? i18next.t('manage.tickToTidy')
+                : i18next.t('manage.ticked', {
+                    count: chosen.length,
+                    size: formatBytes(chosen.reduce((n, e) => n + totalBytes(e), 0)),
+                  })}
             </Text>
           </Group>
         </Paper>
@@ -284,9 +299,7 @@ export function ManageEvents({ preselect, action, onBack }: Props) {
           events={chosen}
           onClose={() => setDialog(null)}
           onDone={(images, bytes) =>
-            finished(
-              `Card scans removed: ${images === 1 ? '1 photo' : `${images} photos`} shrunk to small copies, ${formatBytes(bytes)} freed.`,
-            )
+            finished(i18next.t('manage.removed', { count: images, size: formatBytes(bytes) }))
           }
           onError={setError}
         />
@@ -298,7 +311,10 @@ export function ManageEvents({ preselect, action, onBack }: Props) {
           onClose={() => setDialog(null)}
           onDone={(n) =>
             finished(
-              `${n === 1 ? '1 event' : `${n} events`} moved to the Recycle Bin. Restore from there if it was a mistake.`,
+              i18next.t('manage.deleted', {
+                count: n,
+                bin: i18next.t(isMac ? 'manage.binMac' : 'manage.binWindows'),
+              }),
             )
           }
           onError={setError}
@@ -321,39 +337,44 @@ function RemoveScansDialog(props: {
     <Modal
       opened
       onClose={props.onClose}
-      title="Remove card scans"
+      title={i18next.t('manage.removeTitle')}
       size="lg"
-      closeButtonProps={{ 'aria-label': 'Close' }}
+      closeButtonProps={{ 'aria-label': i18next.t('manage.close') }}
     >
       <Stack gap="md">
         <Text>
-          Card photos for{' '}
           {props.events.length === 1 ? (
-            <strong>{props.events[0]?.name}</strong>
+            <Trans
+              i18nKey="manage.removeIntroOne"
+              values={{ name: props.events[0]?.name ?? '', size: formatBytes(bytes) }}
+              components={{ strong: <strong /> }}
+            />
           ) : (
-            `${props.events.length} events`
-          )}{' '}
-          ({formatBytes(bytes)}) are shrunk to small copies.
+            i18next.t('manage.removeIntroMany', {
+              count: props.events.length,
+              size: formatBytes(bytes),
+            })
+          )}
         </Text>
         <List size="sm" spacing={4}>
           <List.Item>
-            <strong>Kept:</strong> riders, every score, the audit log, results (PDF, CSV) and
-            backups. Results can still be reopened and revised.
+            <Trans i18nKey="manage.kept" components={{ strong: <strong /> }} />
           </List.Item>
           <List.Item>
-            <strong>Lost:</strong> the full-size photos. Scores stay, but if a result is questioned
-            you&apos;ll only have a small copy of the card to look at.
+            <Trans i18nKey="manage.lost" components={{ strong: <strong /> }} />
           </List.Item>
         </List>
         {notFinal.length > 0 && (
-          <Alert color="yellow" title="Results aren't final">
-            {notFinal.map((e) => e.name).join(', ')} {notFinal.length === 1 ? "hasn't" : "haven't"}{' '}
-            had results marked final. Mark them final first if you can.
+          <Alert color="yellow" title={i18next.t('manage.notFinalTitle')}>
+            {i18next.t('manage.notFinal', {
+              count: notFinal.length,
+              names: notFinal.map((e) => e.name).join(', '),
+            })}
           </Alert>
         )}
         <Group justify="flex-end">
           <Button variant="default" onClick={props.onClose}>
-            Cancel
+            {i18next.t('manage.cancel')}
           </Button>
           <Button
             loading={busy}
@@ -369,7 +390,7 @@ function RemoveScansDialog(props: {
               });
             }}
           >
-            Remove card scans
+            {i18next.t('manage.removeConfirm')}
           </Button>
         </Group>
       </Stack>
@@ -396,15 +417,21 @@ function DeleteDialog(props: {
     <Modal
       opened
       onClose={props.onClose}
-      title={one ? `Delete ${one.name}` : `Delete ${props.events.length} events`}
+      title={
+        one
+          ? i18next.t('manage.deleteTitleOne', { name: one.name })
+          : i18next.t('manage.deleteTitleMany', { count: props.events.length })
+      }
       size="lg"
-      closeButtonProps={{ 'aria-label': 'Close' }}
+      closeButtonProps={{ 'aria-label': i18next.t('manage.close') }}
     >
       <Stack gap="md">
         <Text>
-          The whole event folder goes to the <strong>Windows Recycle Bin</strong>: riders, every
-          score, card photos, results and the event&apos;s own backups. Until the bin is emptied it
-          can be put back from there. Backups on a second place (USB) aren&apos;t touched.
+          <Trans
+            i18nKey="manage.deleteIntro"
+            values={{ bin: i18next.t(isMac ? 'manage.binMac' : 'manage.binWindowsFull') }}
+            components={{ strong: <strong /> }}
+          />
         </Text>
         <Stack gap="xs">
           {props.events.map((e) => (
@@ -418,16 +445,16 @@ function DeleteDialog(props: {
                     </Text>
                   </Text>
                   <Text size="sm">
-                    {e.final ? 'Results marked final.' : "Results aren't marked final."}{' '}
+                    {e.final ? i18next.t('manage.markedFinal') : i18next.t('manage.notMarkedFinal')}{' '}
                     {e.lastSecondCopy
-                      ? `Backup on the second place from ${when(e.lastSecondCopy)}.`
+                      ? i18next.t('manage.backupFrom', { when: when(e.lastSecondCopy) })
                       : props.secondPlaceChosen
-                        ? 'No backup found on the second place.'
-                        : 'No second place for backups is set up.'}
+                        ? i18next.t('manage.noBackup')
+                        : i18next.t('manage.noSecondSetUp')}
                   </Text>
                   {saved[e.folder] && (
                     <Text size="sm" c="green.8" role="status">
-                      Copy saved: {saved[e.folder]}
+                      {i18next.t('manage.copySaved', { file: saved[e.folder] })}
                     </Text>
                   )}
                 </div>
@@ -444,7 +471,7 @@ function DeleteDialog(props: {
                     })
                   }
                 >
-                  Save a copy first…
+                  {i18next.t('manage.saveCopy')}
                 </Button>
               </Group>
             </Paper>
@@ -453,8 +480,8 @@ function DeleteDialog(props: {
         <TextInput
           label={
             one
-              ? `To confirm, type the event's code: ${one.code}`
-              : `To confirm, type how many events: ${props.events.length}`
+              ? i18next.t('manage.typeCode', { code: one.code })
+              : i18next.t('manage.typeCount', { count: props.events.length })
           }
           required
           value={typed}
@@ -464,7 +491,7 @@ function DeleteDialog(props: {
         />
         <Group justify="flex-end">
           <Button variant="default" onClick={props.onClose}>
-            Cancel
+            {i18next.t('manage.cancel')}
           </Button>
           <Button
             color="red"
@@ -486,7 +513,9 @@ function DeleteDialog(props: {
                 });
             }}
           >
-            {one ? `Delete ${one.name}` : `Delete ${props.events.length} events`}
+            {one
+              ? i18next.t('manage.deleteTitleOne', { name: one.name })
+              : i18next.t('manage.deleteTitleMany', { count: props.events.length })}
           </Button>
         </Group>
       </Stack>

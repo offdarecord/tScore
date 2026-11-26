@@ -2,40 +2,44 @@ import { Button, Group, Paper, Stack, Text, Title } from '@mantine/core';
 import { useCallback, useEffect, useState } from 'react';
 import type { AppError, CheckItem, OpenEvent, PreEventCheck as Check } from '../../../shared/ipc';
 import { ErrorAlert } from '../ErrorAlert';
+import i18next from '../i18n';
 
-const LOOK: Record<CheckItem['state'], { icon: string; bg: string; fg: string; words: string }> = {
+const LOOK = {
   ok: {
     icon: '✓',
     bg: 'light-dark(#e3f4e6, #1c3b22)',
     fg: 'light-dark(#1f5f26, #8ce99a)',
-    words: 'OK',
+    words: 'check.ok',
   },
   warning: {
     icon: '!',
     bg: 'light-dark(#fff0de, #3f2a10)',
     fg: 'light-dark(#7a3500, #ffc078)',
-    words: 'Look at this',
+    words: 'check.warning',
   },
   problem: {
     icon: '✗',
     bg: 'light-dark(#fdeaea, #431c1c)',
     fg: 'light-dark(#a51111, #ffa8a8)',
-    words: 'Fix this',
+    words: 'check.problem',
   },
   info: {
     icon: '–',
     bg: 'light-dark(#e9ecef, #2e3236)',
     fg: 'light-dark(#343a40, #dee2e6)',
-    words: 'For information',
+    words: 'check.info',
   },
-};
+} as const satisfies Record<
+  CheckItem['state'],
+  { icon: string; bg: string; fg: string; words: string }
+>;
 
-const FIX_WORDS: Record<NonNullable<CheckItem['fix']>, string> = {
-  setup: 'Go to Event setup',
-  riders: 'Go to Riders',
-  labels: 'Go to Card labels',
-  backup: 'Set up a second copy',
-};
+const FIX_WORDS = {
+  setup: 'check.goSetup',
+  riders: 'check.goRiders',
+  labels: 'check.goLabels',
+  backup: 'check.goBackup',
+} as const satisfies Record<NonNullable<CheckItem['fix']>, string>;
 
 const clockWords = (iso: string) =>
   new Date(iso).toLocaleString('en-AU', {
@@ -70,16 +74,20 @@ export function PreEventCheck(props: {
   return (
     <Stack gap="lg" maw={900}>
       <div>
-        <Title order={2}>Pre-event check</Title>
-        <Text c="dimmed">
-          Run this when you arrive at the venue, before the first card comes in.
-        </Text>
+        <Title order={2}>{i18next.t('check.title')}</Title>
+        <Text c="dimmed">{i18next.t('check.intro')}</Text>
       </div>
 
       {error && <ErrorAlert error={error} />}
 
       {check && (
-        <Paper withBorder radius="md" p="lg" component="section" aria-label="Checks">
+        <Paper
+          withBorder
+          radius="md"
+          p="lg"
+          component="section"
+          aria-label={i18next.t('check.checks')}
+        >
           <Stack gap="md">
             <Text fw={700} fz="lg" role="status">
               {check.summary}
@@ -117,7 +125,7 @@ export function PreEventCheck(props: {
                         <Text fw={700}>
                           {item.title}{' '}
                           <Text span size="sm" fw={600} c={look.fg}>
-                            ({look.words})
+                            {i18next.t('check.state', { words: i18next.t(look.words) })}
                           </Text>
                         </Text>
                         {item.clock && (
@@ -129,7 +137,7 @@ export function PreEventCheck(props: {
                       </div>
                       {item.fix && (
                         <Button variant="default" onClick={() => item.fix && props.onFix(item.fix)}>
-                          {FIX_WORDS[item.fix]}
+                          {i18next.t(FIX_WORDS[item.fix])}
                         </Button>
                       )}
                     </Group>
@@ -142,11 +150,11 @@ export function PreEventCheck(props: {
                 variant="default"
                 onClick={() => void window.tscore.preEventCheck().then(apply)}
               >
-                Check again
+                {i18next.t('check.again')}
               </Button>
             </Group>
             <Text size="sm" c="dimmed">
-              The camera check comes with scanning.
+              {i18next.t('check.camera')}
             </Text>
           </Stack>
         </Paper>

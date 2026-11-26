@@ -21,6 +21,7 @@ const api: TscoreApi = {
   cardProfiles: call(IPC.cardProfiles),
   cardProfileImage: call(IPC.cardProfileImage),
   importCardProfile: call(IPC.importCardProfile),
+  saveTaughtCard: call(IPC.saveTaughtCard),
   saveCardShare: call(IPC.saveCardShare),
   emailCardShare: call(IPC.emailCardShare),
   showCardShareFile: call(IPC.showCardShareFile),

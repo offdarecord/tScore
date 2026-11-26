@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AppInfo, OpenEvent } from '../../shared/ipc';
 import { CardTypes } from './cards/CardTypes';
+import { TeachCard } from './cards/TeachCard';
 import { ColorSchemeSwitch } from './ColorSchemeSwitch';
 import { EventMain, EventNav, type EventPage } from './EventShell';
 import { today } from './format';
@@ -22,6 +23,7 @@ type Screen =
   | { kind: 'new' }
   | { kind: 'series' }
   | { kind: 'cardTypes' }
+  | { kind: 'teachCard' }
   | { kind: 'manage'; preselect?: string[]; action?: ManageAction }
   | { kind: 'event'; event: OpenEvent; page: EventPage };
 
@@ -58,7 +60,9 @@ const screenName = (s: Screen) =>
           ? 'Manage events'
           : s.kind === 'cardTypes'
             ? 'Card types'
-            : SCREEN_NAMES[s.page.name];
+            : s.kind === 'teachCard'
+              ? 'Teach a card'
+              : SCREEN_NAMES[s.page.name];
 
 /** The guide page for the screen in front of the desk. */
 function topicFor(screen: Screen): HelpTopicName {
@@ -67,6 +71,7 @@ function topicFor(screen: Screen): HelpTopicName {
   if (screen.kind === 'series') return 'series';
   if (screen.kind === 'manage') return 'home';
   if (screen.kind === 'cardTypes') return 'cardTypes';
+  if (screen.kind === 'teachCard') return 'teachCard';
   return screen.page.name;
 }
 
@@ -156,7 +161,15 @@ function Shell() {
           />
         )}
         {screen.kind === 'series' && <Series onBack={() => setScreen({ kind: 'home' })} />}
-        {screen.kind === 'cardTypes' && <CardTypes onBack={() => setScreen({ kind: 'home' })} />}
+        {screen.kind === 'cardTypes' && (
+          <CardTypes
+            onBack={() => setScreen({ kind: 'home' })}
+            onTeach={() => setScreen({ kind: 'teachCard' })}
+          />
+        )}
+        {screen.kind === 'teachCard' && (
+          <TeachCard onBack={() => setScreen({ kind: 'cardTypes' })} />
+        )}
         {screen.kind === 'manage' && (
           <ManageEvents
             {...(screen.preselect && { preselect: screen.preselect })}

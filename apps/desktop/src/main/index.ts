@@ -75,6 +75,9 @@ function registerIpc(): void {
   handle(IPC.importCardProfile, (e) =>
     cardProfileHandlers.import(BrowserWindow.fromWebContents(e.sender)),
   );
+  handle(IPC.saveTaughtCard, (_e, profile: unknown, blank: unknown) =>
+    cardProfileHandlers.teach(profile, blank),
+  );
   handle(IPC.saveCardShare, (e, id: string, credit: unknown) =>
     cardProfileHandlers.save(id, credit, BrowserWindow.fromWebContents(e.sender)),
   );

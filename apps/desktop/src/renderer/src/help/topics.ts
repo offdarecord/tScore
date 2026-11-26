@@ -24,6 +24,7 @@ export const HELP_TOPICS = {
   results: { page: 'results' },
   series: { page: 'series' },
   cardTypes: { page: 'card-types' },
+  teachCard: { page: 'card-types', anchor: 'teach-tscore-your-card' },
   checklist: { page: 'checklist' },
   errors: { page: 'errors' },
 } as const satisfies Record<string, HelpTopic>;

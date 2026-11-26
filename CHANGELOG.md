@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.8.0](https://github.com/offdarecord/tScore/compare/v0.7.1...v0.8.0) (2026-11-26)
+
+
+### Added
+
+* "results brought to you by tScore" credit on results PDFs and the big screen ([#119](https://github.com/offdarecord/tScore/issues/119)) ([43cd68d](https://github.com/offdarecord/tScore/commit/43cd68dc97a4b1983cb6e6ea7aee8e4fb8ad9922))
+* a downloadable test trial kit, and a check against its answer key ([#102](https://github.com/offdarecord/tScore/issues/102)) ([34797d1](https://github.com/offdarecord/tScore/commit/34797d1e1405f821248a190dcb1a23014acf9994))
+* a Teach a card wizard so a club can describe its own scorecard ([#136](https://github.com/offdarecord/tScore/issues/136)) ([f09ac42](https://github.com/offdarecord/tScore/commit/f09ac4215aeccc052a7254b455e185ad6a33abc4))
+* card profiles describe marking style, correction rules, locator and trust level ([#128](https://github.com/offdarecord/tScore/issues/128)) ([e3915ec](https://github.com/offdarecord/tScore/commit/e3915ecebcc75b222cf20cd44b0df9889738e4bc))
+* card reader reads marks as change from a blank card ([#133](https://github.com/offdarecord/tScore/issues/133)) ([e868e02](https://github.com/offdarecord/tScore/commit/e868e028c67c92d5fae589b38422c78517a460af))
+* error messages and the rest of core's wording from the message file ([#118](https://github.com/offdarecord/tScore/issues/118)) ([a841e91](https://github.com/offdarecord/tScore/commit/a841e91a8a0572cb18e27bcf7ee4ee244df2ad94))
+* event setup and riders wording from the message file ([#113](https://github.com/offdarecord/tScore/issues/113)) ([29baa0c](https://github.com/offdarecord/tScore/commit/29baa0cbce4a7a8e39361272440ce28a473f4809))
+* event-day screens' wording from the message file ([#114](https://github.com/offdarecord/tScore/issues/114)) ([94ef887](https://github.com/offdarecord/tScore/commit/94ef887cb2a96aefb6c68a03473c47a81bcbfb1b))
+* macOS beta: an unsigned Mac app for Apple silicon and Intel ([#127](https://github.com/offdarecord/tScore/issues/127)) ([61a9258](https://github.com/offdarecord/tScore/commit/61a9258a6495823f0a1ac9aa0aa85ba0d3e00529))
+* main-process wording and core results phrases from the message file ([#117](https://github.com/offdarecord/tScore/issues/117)) ([5f77366](https://github.com/offdarecord/tScore/commit/5f77366ea0e1bc4111d7057d731f5532f7ccacfe))
+* manage events, and tidy up old ones: remove card scans or delete the event ([#100](https://github.com/offdarecord/tScore/issues/100)) ([dfbbfb9](https://github.com/offdarecord/tScore/commit/dfbbfb9473b48c3545edb1e33e7b2858e7361b9d))
+* observer and section names, and a thank-you block on the results PDF ([#103](https://github.com/offdarecord/tScore/issues/103)) ([10328bf](https://github.com/offdarecord/tScore/commit/10328bff73c39f41069e34ce97eef71b21377ebc))
+* organising club's logo in event setup, results PDF and big screen ([#120](https://github.com/offdarecord/tScore/issues/120)) ([50083cd](https://github.com/offdarecord/tScore/commit/50083cd4e82985da37fa685cf9f5838a82c20e52))
+* results, series, labels, manage events and the rest from the message file ([#115](https://github.com/offdarecord/tScore/issues/115)) ([7977ccc](https://github.com/offdarecord/tScore/commit/7977ccc7ad3275e5cc02c6a3d6b81d0a5098eb1a))
+* screens' wording from one message file, starting with home, navigation and help ([#112](https://github.com/offdarecord/tScore/issues/112)) ([5251e72](https://github.com/offdarecord/tScore/commit/5251e7263c7ba27ddbc24cba68f7bf4345f848cd))
+* series matches riders by licence number, then by name ([#132](https://github.com/offdarecord/tScore/issues/132)) ([95b4104](https://github.com/offdarecord/tScore/commit/95b41042bc308245798c7bfe6f5bb5415747dbb4))
+* share and import card profiles as .tscore-card files ([#134](https://github.com/offdarecord/tScore/issues/134)) ([6ac3c8b](https://github.com/offdarecord/tScore/commit/6ac3c8bcea6e9b275153686d1b6153774b4c2a93))
+* tScore icon for the website's browser tab and bookmarks ([#121](https://github.com/offdarecord/tScore/issues/121)) ([e951276](https://github.com/offdarecord/tScore/commit/e9512760fa25248be4f76f1e59771ec300c80625))
+
 ## [0.7.1](https://github.com/offdarecord/tScore/compare/v0.7.0...v0.7.1) (2026-11-25)
 
 

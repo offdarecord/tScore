@@ -215,3 +215,113 @@ describe('series points', () => {
     expect(html).toContain('Round 3 is not final yet');
   });
 });
+
+describe('series matching by licence number (#125)', () => {
+  type Licences = Record<number, (string | null)[]>;
+  const withLicences = (rounds: [Results, Licences?][], r: SeriesRules = rules) =>
+    computeSeries(
+      rounds.map(([results, lic], i) => ({
+        round: i + 1,
+        results,
+        ...(lic && { licences: new Map(Object.entries(lic).map(([n, l]) => [Number(n), l])) }),
+      })),
+      r,
+    );
+  const lines = (t: ReturnType<typeof computeSeries>) =>
+    t.classes.flatMap((c) => c.rows.map((r) => [c.name, r.name, r.rounds, r.total]));
+
+  it('matches one licence under two names as one rider, shown by the latest name, and notes it', () => {
+    const t = withLicences([
+      [round({ Clubman: [entry('Sam Stone', 4, 1)] }), { 4: ['VT-10442'] }],
+      [round({ Clubman: [entry('Samuel Stone', 17, 2)] }), { 17: [' vt-10442 '] }],
+    ]);
+    expect(lines(t)).toEqual([['Clubman', 'Samuel Stone', [25, 22], 47]]);
+    expect(t.classes[0]!.rows[0]!.number).toBe(17);
+    expect(t.checks).toEqual([
+      { kind: 'licence_names', class: 'Clubman', names: ['Sam Stone', 'Samuel Stone'] },
+    ]);
+  });
+
+  it('keeps one name under two licences apart, and notes it rather than guessing', () => {
+    const t = withLicences([
+      [round({ Clubman: [entry('Jo Park', 1, 1)] }), { 1: ['111'] }],
+      [round({ Clubman: [entry('Jo Park', 2, 1)] }), { 2: ['222'] }],
+      // Without a licence, which Jo Park? Not guessed: a line by name.
+      [round({ Clubman: [entry('Jo Park', 3, 1)] }), {}],
+    ]);
+    expect(lines(t)).toEqual([
+      ['Clubman', 'Jo Park', [25, null, null], 25],
+      ['Clubman', 'Jo Park', [null, 25, null], 25],
+      ['Clubman', 'Jo Park', [null, null, 25], 25],
+    ]);
+    expect(t.checks).toEqual([{ kind: 'name_licences', class: 'Clubman', names: ['Jo Park'] }]);
+  });
+
+  it('matches riders without a licence by name, exactly as before', () => {
+    const plain = [
+      round({ T3: [entry('Avery Stone', 1, 1), entry('Blake River', 2, 2)] }),
+      round({ T3: [entry('avery  stone', 9, 2), entry('Blake River', 2, 1)] }),
+    ];
+    const before = tally(plain);
+    // Files older than licence numbers (no map), and entries with blank or "N/A" ones.
+    const t = withLicences([[plain[0]!], [plain[1]!, { 9: [null], 2: ['N/A'] }]]);
+    expect(t.classes).toEqual(before.classes);
+    expect(t.checks).toEqual([]);
+  });
+
+  it('joins a round without a licence to the one licensed rider of that name', () => {
+    const t = withLicences([
+      [round({ T2: [entry('Rory Vale', 5, 2)] }), { 5: ['5501'] }],
+      [round({ T2: [entry('Rory Vale', 5, 1)] })],
+      [round({ T2: [entry('Rory J Vale', 8, 1)] }), { 8: ['5501'] }],
+    ]);
+    expect(lines(t)).toEqual([['T2', 'Rory J Vale', [22, 25, 25], 72]]);
+  });
+
+  it('matches a sidecar pair by licence only when both riders have one', () => {
+    const pair = (driver: string, passenger: string, n: number, position: number) =>
+      entry(`${driver} & ${passenger}`, n, position, {
+        riders: [{ name: driver }, { name: passenger }],
+      });
+    const t = withLicences([
+      [
+        round({
+          Sidecar: [pair('Ash Moor', 'Bo Lake', 1, 1), pair('Cy Dunn', 'Di Reed', 2, 2)],
+        }),
+        { 1: ['A1', 'B2'], 2: ['C3', null] },
+      ],
+      [
+        round({
+          Sidecar: [pair('Ashley Moor', 'Bo Lake', 3, 2), pair('Cy Dunn', 'Di Reed', 4, 1)],
+        }),
+        { 3: ['a1', 'b2'], 4: ['C3', 'D4'] },
+      ],
+    ]);
+    expect(lines(t)).toEqual([
+      ['Sidecar', 'Ashley Moor & Bo Lake', [25, 22], 47],
+      // One rider without a licence in round 1: matched by names, as now.
+      ['Sidecar', 'Cy Dunn & Di Reed', [22, 25], 47],
+    ]);
+  });
+
+  it('never puts a licence number in the tally, its checks, the CSV or the printable page', () => {
+    const t = withLicences([
+      [
+        round({ T1: [entry('Sam Stone', 4, 1), entry('Jo Park', 1, 2)] }),
+        { 4: ['ZQ-90817'], 1: ['ZQ-55501'] },
+      ],
+      [
+        round({ T1: [entry('Samuel Stone', 17, 1), entry('Jo Park', 2, 2)] }),
+        { 17: ['ZQ-90817'], 2: ['ZQ-55502'] },
+      ],
+    ]);
+    const opts = { name: 'Winter Series', roundLabels: ['Rd 1', 'Rd 2'], rules, footer: 'tScore' };
+    const outputs = [JSON.stringify(t), seriesCsv(t, opts), seriesHtml(t, opts)];
+    expect(t.checks).toHaveLength(2);
+    for (const out of outputs) {
+      expect(out).toContain('Samuel Stone');
+      for (const licence of ['ZQ-90817', 'ZQ-55501', 'ZQ-55502', '90817', '55501', '55502'])
+        expect(out).not.toContain(licence);
+    }
+  });
+});

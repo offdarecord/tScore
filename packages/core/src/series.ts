@@ -10,9 +10,10 @@
  * - an equal total shares the place (1, 2, 2, 4), or is split by most round wins, then the
  *   better result in the latest round.
  *
- * One tally per class, matched by class name across rounds. Riders are matched by name (not
- * number, which can change between events); a rider who changes class has a separate line in
- * each class.
+ * One tally per class, matched by class name across rounds. Riders are matched by licence
+ * number where the entry has one (#125), otherwise by name (not number, which can change between
+ * events); a rider who changes class has a separate line in each class. Licence numbers are used
+ * only for matching: they never reach the tally, its checks, the PDF or the CSV.
  */
 import type { Results } from './generated/results.js';
 import { BOM, csvField, esc, headHtml } from './results/output.js';
@@ -39,6 +40,11 @@ export interface SeriesRound {
   /** Round number, from 1, in date order. */
   readonly round: number;
   readonly results: Results;
+  /**
+   * Licence numbers by rider number, one per rider on the entry (null where it has none), from
+   * the round's entry list. Only for matching riders across rounds; never shown or saved.
+   */
+  readonly licences?: ReadonlyMap<number, readonly (string | null)[]>;
 }
 
 export interface SeriesRow {
@@ -63,9 +69,24 @@ export interface SeriesClass {
   readonly rows: readonly SeriesRow[];
 }
 
+/**
+ * Something for the series keeper to check in the entry lists (#125), never guessed at:
+ * - `licence_names`: one licence number under different names (matched as one rider);
+ * - `name_licences`: one name under different licence numbers (kept as separate lines).
+ * Names only: never the licence numbers.
+ */
+export interface SeriesCheck {
+  readonly kind: 'licence_names' | 'name_licences';
+  readonly class: string;
+  /** The names as entered, in round order; for `name_licences`, the one name. */
+  readonly names: readonly string[];
+}
+
 export interface SeriesTally {
   readonly rounds: number;
   readonly classes: readonly SeriesClass[];
+  /** Riders the keeper should check: matching never guesses past these. */
+  readonly checks: readonly SeriesCheck[];
 }
 
 /** Points for one entry in one round, or null if it isn't in the series. */
@@ -91,6 +112,23 @@ export function riderKey(e: Entry): string {
     .join(' & ');
 }
 
+/** A licence number as compared: no spaces, upper case; null if it has no digit ("N/A"). */
+function licenceKey(raw: string | null | undefined): string | null {
+  const s = raw?.replace(/\s+/g, '').toUpperCase();
+  return s && /\d/.test(s) ? s : null;
+}
+
+/** The entry's licences, joined: only when every rider on it has one (both of a sidecar pair). */
+function entryLicence(
+  e: Entry,
+  licences: ReadonlyMap<number, readonly (string | null)[]> | undefined,
+): string | null {
+  const found = licences?.get(e.number);
+  if (!found || found.length !== e.riders.length) return null;
+  const keys = found.map(licenceKey);
+  return keys.every((k) => k !== null) ? keys.join(' & ') : null;
+}
+
 const bestSum = (points: readonly (number | null)[], n: number | undefined) => {
   const ridden = points.filter((p): p is number => p !== null).sort((a, b) => b - a);
   return (n === undefined ? ridden : ridden.slice(0, n)).reduce((s, p) => s + p, 0);
@@ -111,6 +149,68 @@ function displayName(e: Entry, initial: boolean): string {
     .join(' & ');
 }
 
+/** One scoring entry in one round, as matched. */
+interface Item {
+  readonly index: number;
+  readonly entry: Entry;
+  readonly pts: number;
+  /** Every rider's licence, joined, or null when any rider on the entry has none. */
+  readonly licence: string | null;
+  /** The name key (`riderKey`). */
+  readonly key: string;
+  /** The name as shown. */
+  readonly shown: string;
+}
+
+/**
+ * One class's entries grouped into riders (#125), each group in round order:
+ * 1. entries with licence numbers are one rider per licence (both riders' for a sidecar),
+ *    whatever the names;
+ * 2. an entry without one joins the licensed rider of the same name, when exactly one has it.
+ *    When two licences share the name it isn't guessed, and it matches by name alone;
+ * 3. otherwise entries match by name, as before licence numbers were used.
+ * A licence under two names, or a name under two licences, goes to `check`.
+ */
+function matchRiders(
+  items: readonly Item[],
+  check: (c: Omit<SeriesCheck, 'class'>) => void,
+): Item[][] {
+  const groups: Item[][] = [];
+  const add = (index: Map<string, Item[]>, key: string, item: Item) => {
+    let group = index.get(key);
+    if (!group) {
+      index.set(key, (group = []));
+      groups.push(group);
+    }
+    group.push(item);
+  };
+  const byLicence = new Map<string, Item[]>();
+  for (const item of items) if (item.licence !== null) add(byLicence, item.licence, item);
+
+  // Licensed riders by name key: who an entry without a licence could be.
+  const licensedNames = new Map<string, Item[][]>();
+  for (const group of byLicence.values()) {
+    const keys = [...new Set(group.map((i) => i.key))];
+    const names = [...new Set(group.map((i) => i.shown))];
+    if (keys.length > 1 && names.length > 1) check({ kind: 'licence_names', names });
+    for (const key of keys) licensedNames.set(key, [...(licensedNames.get(key) ?? []), group]);
+  }
+  for (const [key, found] of licensedNames) {
+    if (found.length < 2) continue;
+    const shown = found[0]?.find((i) => i.key === key)?.shown ?? key;
+    check({ kind: 'name_licences', names: [shown] });
+  }
+
+  const byName = new Map<string, Item[]>();
+  for (const item of items) {
+    if (item.licence !== null) continue;
+    const found = licensedNames.get(item.key);
+    if (found?.length === 1 && found[0]) found[0].push(item);
+    else add(byName, item.key, item);
+  }
+  return groups.map((g) => g.sort((a, b) => a.index - b.index));
+}
+
 /** The tally after the given rounds (round numbers from 1, any order in). */
 export function computeSeries(
   rounds: readonly SeriesRound[],
@@ -121,39 +221,51 @@ export function computeSeries(
   const ordered = [...rounds].sort((a, b) => a.round - b.round);
   const count = ordered.length;
   const winPoints = rules.points[0];
-  // Class order: as first seen, in round order.
-  const classes = new Map<
-    string,
-    Map<string, { name: string; number: number; club?: string; rounds: (number | null)[] }>
-  >();
-
+  // Every scoring entry, by class (class order: as first seen, in round order).
+  const entries = new Map<string, Item[]>();
   ordered.forEach((round, index) => {
     for (const cls of round.results.classes) {
       for (const e of cls.entries) {
         const pts = roundPoints(e, rules);
         if (pts === null) continue;
-        let riders = classes.get(cls.name);
-        if (!riders) classes.set(cls.name, (riders = new Map()));
-        const key = riderKey(e);
-        let row = riders.get(key);
-        if (!row) {
-          row = { name: '', number: 0, rounds: Array<number | null>(count).fill(null) };
-          riders.set(key, row);
-        }
-        // Two entries for one name in a round (unlikely): keep the better.
-        row.rounds[index] = Math.max(row.rounds[index] ?? 0, pts);
-        row.name = displayName(e, juniors.has(cls.name));
-        row.number = e.number;
-        if (e.club !== undefined) row.club = e.club;
-        else delete row.club;
+        let items = entries.get(cls.name);
+        if (!items) entries.set(cls.name, (items = []));
+        items.push({
+          index,
+          entry: e,
+          pts,
+          licence: entryLicence(e, round.licences),
+          key: riderKey(e),
+          shown: displayName(e, juniors.has(cls.name)),
+        });
       }
     }
   });
 
+  type Row = { name: string; number: number; club?: string; rounds: (number | null)[] };
+  const checks: SeriesCheck[] = [];
+  const classes = [...entries].map(([cls, items]): [string, Row[]] => [
+    cls,
+    matchRiders(items, (c) => checks.push({ ...c, class: cls })).map((group) => {
+      const row: Row = { name: '', number: 0, rounds: Array<number | null>(count).fill(null) };
+      // In round order, so the name, number and club shown are the latest round's.
+      for (const { index, entry: e, pts, shown } of group) {
+        // Two entries for one rider in a round (unlikely): keep the better.
+        row.rounds[index] = Math.max(row.rounds[index] ?? 0, pts);
+        row.name = shown;
+        row.number = e.number;
+        if (e.club !== undefined) row.club = e.club;
+        else delete row.club;
+      }
+      return row;
+    }),
+  ]);
+
   return {
     rounds: count,
-    classes: [...classes].map(([name, riders]) => {
-      const rows = [...riders.values()].map((r) => ({
+    checks,
+    classes: classes.map(([name, riders]) => {
+      const rows = riders.map((r) => ({
         ...r,
         total: bestSum(r.rounds, undefined),
         counted: bestSum(r.rounds, rules.bestOf),

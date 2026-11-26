@@ -1,7 +1,7 @@
 import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { DEFAULT_SERIES_POINTS, newEventSetup } from '@tscore/core';
+import { DEFAULT_SERIES_POINTS, newEventSetup, type EntryInput } from '@tscore/core';
 import { afterEach, describe, expect, it } from 'vitest';
 import { EventLibrary } from './library.js';
 import { deleteSeries, listSeries, readSeriesRound, saveSeries, SERIES_FORMAT } from './series.js';
@@ -74,5 +74,41 @@ describe('series on this laptop', () => {
     expect(() => saveSeries(lib.eventsDir, { ...setup, name: '  ' })).toThrow(
       expect.objectContaining({ code: 'STORE_SERIES_NAME' }),
     );
+  });
+});
+
+describe('a round file with licence numbers (#125)', () => {
+  it('reads rider number → licences from the entry list, only with final results', () => {
+    const lib = laptop();
+    const store = lib.create({ ...newEventSetup('2027-03-06'), event: { name: 'R2', code: 'R2' } });
+    const entry = (number: number, riders: EntryInput['riders']): EntryInput => ({
+      number,
+      riders,
+      competitionStatus: 'competitive',
+      status: 'riding',
+      classes: ['Trial 4'],
+    });
+    store.addEntry(entry(4, [{ givenName: 'Sam', familyName: 'Stone', licence: 'VT-10442' }]));
+    store.addEntry(entry(5, [{ givenName: 'Jo', familyName: 'Park' }]));
+    store.addEntry(
+      entry(6, [
+        { givenName: 'Ash', familyName: 'Moor', licence: 'A1' },
+        { givenName: 'Bo', familyName: 'Lake' },
+      ]),
+    );
+    expect(readSeriesRound(store.folder).licences).toBeUndefined();
+
+    const results = { schema: 'tscore.results/1', classes: [] };
+    store.markFinal(1, results);
+    const round = readSeriesRound(store.folder);
+    expect(round.licences).toEqual(
+      new Map([
+        [4, ['VT-10442']],
+        [5, [null]],
+        [6, ['A1', null]],
+      ]),
+    );
+    // The final results it read still hold no licence numbers.
+    expect(JSON.stringify(round.results)).not.toContain('10442');
   });
 });

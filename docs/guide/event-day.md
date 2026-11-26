@@ -28,9 +28,26 @@ tScore shows its reading of every card, and a person checks it against the card 
 **Enter** to save it (or **Esc** to read it again). No card of an assisted type is ever saved
 by itself.
 
+tScore compares each box with how the card looks blank, so the printed number is never taken
+for a mark. That lets it read cards marked with a pen poked through the number, or ink over
+it, as well as punched ones. Cards marked by pen or ink stay assisted until they have been
+tested on real cards.
+
 To try it without a camera, choose **Practice card**: it puts a test card for the first rider on
 the list "under the camera". **Practice card with an unclear row** shows what happens when a
-card needs a look.
+card needs a look. **Practice card: mark its corners** rehearses marking corners (below).
+
+### Marking a card's corners
+
+If a card isn't found by itself, choose **Mark the corners** (or press **M**). The picture
+stops, and you mark the card's four corners on it: top-left, top-right, bottom-right, then
+bottom-left, going round clockwise. The line above the picture says which corner is next.
+Click each corner, or move the cross with the arrow keys (hold **Shift** for small steps) and
+press **Enter**. **Backspace** takes the last corner back; **Esc** stops. tScore straightens the
+card from its corners and reads it as usual. If the corners don't fit the card (marked in the
+wrong order, or only part of the card), it says so and you mark them again.
+
+Some card types have no feature tScore can find by itself. Those are always read this way.
 
 ## Review queue
 

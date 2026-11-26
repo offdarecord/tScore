@@ -46,6 +46,12 @@ export interface SeriesRoundInfo {
   readonly state: 'final' | 'provisional' | 'reopened' | 'missing' | 'unreadable';
   readonly revision?: number;
   readonly results?: Results;
+  /**
+   * With final results: each rider number's licence numbers (one per rider, null for none), from
+   * the round's entry list (#125). Only for matching riders across rounds: never shown, saved
+   * or logged.
+   */
+  readonly licences?: ReadonlyMap<number, readonly (string | null)[]>;
   /** The round's junior classes, for surnames as an initial in anything shared. */
   readonly juniorClasses: readonly string[];
   /** The organising club, and its logo as a data URI (#111). */
@@ -92,12 +98,39 @@ export function readSeriesRound(folder: string): SeriesRoundInfo {
       state: 'final',
       revision: final.revision,
       results: JSON.parse(final.results_json) as Results,
+      licences: licencesOf(db),
     };
   } catch {
     return { ...blank, state: 'unreadable' };
   } finally {
     db?.close();
   }
+}
+
+/**
+ * Rider number → licence numbers, from the entry list (each rider in `riders_json` may carry a
+ * `licence`; files from before licences were imported simply have none). A rider whose names
+ * can't be read has none, so it matches by name.
+ */
+function licencesOf(db: DatabaseSync): Map<number, (string | null)[]> {
+  const rows = db.prepare('SELECT number, riders_json FROM entry').all() as {
+    number: number;
+    riders_json: string;
+  }[];
+  const licences = new Map<number, (string | null)[]>();
+  for (const { number, riders_json } of rows) {
+    try {
+      const riders = JSON.parse(riders_json) as { licence?: unknown }[];
+      if (!Array.isArray(riders)) continue;
+      licences.set(
+        number,
+        riders.map((r) => (typeof r?.licence === 'string' && r.licence.trim() ? r.licence : null)),
+      );
+    } catch {
+      // Not readable: matched by name.
+    }
+  }
+  return licences;
 }
 
 /** A round's club logo, from files new enough to have one (schema 8). */

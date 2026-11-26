@@ -38,8 +38,14 @@ async function stub(kind: 'showOpenDialog' | 'showSaveDialog', path: string) {
   );
 }
 
-/** A one-lap round with two riders, typed in and marked final (or left provisional). */
-async function round(name: string, date: string, cards: [number, string][], final = true) {
+/** A one-lap round with its riders (two by default), typed in and marked final (or left provisional). */
+async function round(
+  name: string,
+  date: string,
+  cards: [number, string][],
+  final = true,
+  riders = ['1,Avery,Stone,Trial 3,,,', '2,Blake,River,Trial 3,,,'],
+) {
   await window.getByRole('button', { name: 'New event' }).click();
   await window.getByLabel('Event name').fill(name);
   await window.getByLabel(/^Date\b/).fill(date);
@@ -49,19 +55,15 @@ async function round(name: string, date: string, cards: [number, string][], fina
   const csv = join(run.userData, 'riders.csv');
   writeFileSync(
     csv,
-    [
-      'Number,Given name,Family name,Class,Club,Competition status',
-      '1,Avery,Stone,Trial 3,,',
-      '2,Blake,River,Trial 3,,',
-    ].join('\r\n'),
+    ['Number,Given name,Family name,Class,Club,Competition status,Licence', ...riders].join('\r\n'),
   );
   await stub('showOpenDialog', csv);
   await nav()
     .getByRole('button', { name: /Riders/ })
     .click();
   await window.getByRole('button', { name: 'Import from entry list…' }).click();
-  await window.getByRole('button', { name: 'Import 2 riders' }).click();
-  await expect(window.getByText('2 riders imported.')).toBeVisible();
+  await window.getByRole('button', { name: `Import ${riders.length} riders` }).click();
+  await expect(window.getByText(`${riders.length} riders imported.`)).toBeVisible();
   for (const [number, scores] of cards) {
     await nav().getByRole('button', { name: 'Manual entry' }).click();
     const rider = window.getByLabel('Rider: number or name');
@@ -131,6 +133,89 @@ test('a series adds up final rounds, leaves out rounds not final, and saves a CS
   await expect(window.getByRole('status').filter({ hasText: 'Saved' })).toBeVisible();
   const csv = readFileSync(file, 'utf8');
   expect(csv).toContain('Trial 3,1,Blake River,2,,22,25,47');
+
+  await window.mouse.move(700, 20);
+  const axe = await new AxeBuilder({ page: window })
+    .setLegacyMode(true)
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+    .analyze();
+  expect(
+    axe.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`),
+  ).toEqual([]);
+});
+
+test('a series matches riders by licence number, then by name, and lists clashes to check', async () => {
+  // Invented riders and licence numbers. Sam Stone is entered as Samuel at round 2; two
+  // different Jo Parks; Blake River has no licence and matches by name.
+  await round(
+    'Spring Round 1',
+    '2027-09-04',
+    [
+      [1, '0000000000'],
+      [2, '0000000001'],
+      [3, '0000000002'],
+    ],
+    true,
+    ['1,Sam,Stone,Trial 3,,,VT-10442', '2,Jo,Park,Trial 3,,,QX-31111', '3,Blake,River,Trial 3,,,'],
+  );
+  await round(
+    'Spring Round 2',
+    '2027-10-02',
+    [
+      [1, '0000000000'],
+      [2, '0000000005'],
+      [3, '0000000001'],
+    ],
+    true,
+    [
+      '1,Samuel,Stone,Trial 3,,,vt-10442',
+      '2,Jo,Park,Trial 3,,,QX-32222',
+      '3,Blake,River,Trial 3,,,',
+    ],
+  );
+
+  await window.getByRole('button', { name: 'Series points' }).click();
+  await window.getByLabel('Series name').fill('Spring Series 2027');
+  await window.getByRole('button', { name: 'Make series' }).click();
+  const add = window.getByLabel('Add a round from your events');
+  for (const name of ['Spring Round 1', 'Spring Round 2']) {
+    await add.selectOption({ label: await add.locator('option', { hasText: name }).innerText() });
+    await window.getByRole('button', { name: 'Add round' }).click();
+    await expect(window.getByText(new RegExp(`^Round \\d: ${name}`))).toBeVisible();
+  }
+
+  const tally = window.getByRole('region', { name: /Points after 2 rounds/ });
+  // One line for Sam / Samuel Stone, shown by the latest round's name.
+  await expect(tally.getByRole('row', { name: /Stone/ })).toHaveCount(1);
+  await expect(tally.getByRole('row', { name: /Samuel Stone/ })).toContainText('50');
+  await expect(tally.getByRole('row', { name: /Blake River/ })).toContainText('42');
+  // Two licences under one name: not guessed, two lines.
+  await expect(tally.getByRole('row', { name: /Jo Park/ })).toHaveCount(2);
+
+  const checks = window.getByRole('region', { name: 'Check these riders in the entry lists' });
+  await expect(checks).toContainText(
+    'Trial 3: one licence number is entered as Sam Stone and Samuel Stone. Counted as one rider.',
+  );
+  await expect(checks).toContainText(
+    'Trial 3: Jo Park has a different licence number in different rounds. Counted as separate riders.',
+  );
+
+  const file = join(run.userData, 'spring.csv');
+  await stub('showSaveDialog', file);
+  await window.getByRole('button', { name: 'Save CSV…' }).click();
+  await expect(window.getByRole('status').filter({ hasText: 'Saved' })).toBeVisible();
+  const csv = readFileSync(file, 'utf8');
+  expect(csv).toContain('Trial 3,1,Samuel Stone,1,,25,25,50');
+  expect(csv).not.toContain('Sam Stone');
+
+  const pdf = join(run.userData, 'spring.pdf');
+  await stub('showSaveDialog', pdf);
+  await window.getByRole('button', { name: 'Save PDF…' }).click();
+  await expect(window.getByRole('status').filter({ hasText: 'spring.pdf' })).toBeVisible();
+  const page = await window.locator('body').innerText();
+  for (const out of [csv, page, readFileSync(pdf, 'latin1')]) {
+    for (const licence of ['10442', '31111', '32222']) expect(out).not.toContain(licence);
+  }
 
   await window.mouse.move(700, 20);
   const axe = await new AxeBuilder({ page: window })

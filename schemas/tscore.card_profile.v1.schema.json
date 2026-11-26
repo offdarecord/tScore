@@ -72,6 +72,17 @@
           "type": "number",
           "exclusiveMinimum": 0,
           "maximum": 10
+        },
+        "on_card": {
+          "description": "Where the grid sits on the card, so it can be read from the card's four corners (the manual-corners locator, and the fallback when a card can't be found by itself): one grid unit, and the grid's origin (the column's centre line, the bottom of the last row) from the card's bottom-left corner, all in millimetres.",
+          "type": "object",
+          "required": ["unit_mm", "origin_x_mm", "origin_y_mm"],
+          "additionalProperties": false,
+          "properties": {
+            "unit_mm": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
+            "origin_x_mm": { "type": "number", "minimum": -300, "maximum": 300 },
+            "origin_y_mm": { "type": "number", "minimum": -400, "maximum": 400 }
+          }
         }
       }
     },
@@ -83,11 +94,11 @@
       "items": { "$ref": "#/$defs/Column" }
     },
     "locator": {
-      "description": "How the card is found in the picture. black-column: the solid black section column (regional-16). card-edges, corner-markers, manual-corners: not read yet.",
+      "description": "How the card is found in the picture. black-column: the solid black section column (regional-16). manual-corners: the desk clicks the card's four corners on the camera picture (needs grid.on_card). card-edges, corner-markers: not read yet.",
       "enum": ["black-column", "card-edges", "corner-markers", "manual-corners"]
     },
     "marking_style": {
-      "description": "How observers mark a score. punch: a hole punched through the card. pen-hole: a hole made with a pen. ink: a mark in ink. Only punch is read so far.",
+      "description": "How observers mark a score. punch: a hole punched through the card. pen-hole: a hole made with a pen. ink: a mark in ink. Each is read as change from the blank card, so the printed digit never counts as a mark; each has its own starting thresholds.",
       "enum": ["punch", "pen-hole", "ink"]
     },
     "correction_rules": {
@@ -145,7 +156,7 @@
       "additionalProperties": false,
       "properties": {
         "mark": {
-          "description": "A cell darker than this (0 = paper, 1 = as dark as the reference black) counts as marked.",
+          "description": "A cell changed from the blank card by more than this (0 = as blank, 1 = as dark as the reference black right across the cell) counts as marked.",
           "type": "number",
           "exclusiveMinimum": 0,
           "exclusiveMaximum": 1
@@ -157,7 +168,7 @@
           "maximum": 1
         },
         "colour_channel": {
-          "description": "Which colour the reader measures darkness in. luma: ordinary brightness.",
+          "description": "Which colour the reader measures change in. luma: ordinary brightness, which sees black, blue and red ink. For ink, one colour can be chosen instead: red sees blue ink most strongly, but not red ink.",
           "enum": ["luma", "red", "green", "blue"]
         },
         "tuned_from": { "$ref": "#/$defs/TunedFrom" }

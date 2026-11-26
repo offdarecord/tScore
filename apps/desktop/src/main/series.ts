@@ -49,7 +49,12 @@ function stateWords(r: SeriesRoundInfo): string {
 
 function build(setup: SeriesSetup, juniorInitials: boolean) {
   const rounds = orderedRounds(setup);
-  const final = rounds.flatMap((r, i) => (r.results ? [{ round: i + 1, results: r.results }] : []));
+  // Licence numbers go in only to match riders across rounds (#125); they never come out.
+  const final = rounds.flatMap((r, i) =>
+    r.results
+      ? [{ round: i + 1, results: r.results, ...(r.licences && { licences: r.licences }) }]
+      : [],
+  );
   const tally = computeSeries(final, setup.rules, {
     ...(juniorInitials && {
       juniorSurnameInitialClasses: [...new Set(rounds.flatMap((r) => r.juniorClasses))],

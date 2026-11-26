@@ -80,6 +80,20 @@ export interface SeriesCheck {
   readonly class: string;
   /** The names as entered, in round order; for `name_licences`, the one name. */
   readonly names: readonly string[];
+  /** For `name_licences`: the name as matched (`riderKey`), to treat as one rider. */
+  readonly key: string;
+  /** For `name_licences`: the keeper chose to treat the name as one rider (`SeriesSameRider`). */
+  readonly combined: boolean;
+}
+
+/**
+ * The keeper's choice that one name in a class is one rider, whatever licence numbers it was
+ * entered with (#125): kept in the series file by name, never by licence number.
+ */
+export interface SeriesSameRider {
+  readonly class: string;
+  /** The name as matched (`riderKey`). */
+  readonly key: string;
 }
 
 export interface SeriesTally {
@@ -169,10 +183,12 @@ interface Item {
  * 2. an entry without one joins the licensed rider of the same name, when exactly one has it.
  *    When two licences share the name it isn't guessed, and it matches by name alone;
  * 3. otherwise entries match by name, as before licence numbers were used.
- * A licence under two names, or a name under two licences, goes to `check`.
+ * A licence under two names, or a name under two licences, goes to `check`. A name the keeper
+ * chose to treat as one rider (`sameRider`, name keys) joins all its licences into one rider.
  */
 function matchRiders(
   items: readonly Item[],
+  sameRider: ReadonlySet<string>,
   check: (c: Omit<SeriesCheck, 'class'>) => void,
 ): Item[][] {
   const groups: Item[][] = [];
@@ -192,23 +208,42 @@ function matchRiders(
   for (const group of byLicence.values()) {
     const keys = [...new Set(group.map((i) => i.key))];
     const names = [...new Set(group.map((i) => i.shown))];
-    if (keys.length > 1 && names.length > 1) check({ kind: 'licence_names', names });
+    if (keys.length > 1 && names.length > 1) {
+      check({ kind: 'licence_names', names, key: keys[0] ?? '', combined: false });
+    }
     for (const key of keys) licensedNames.set(key, [...(licensedNames.get(key) ?? []), group]);
   }
+
+  // Groups joined at the keeper's choice: an emptied group points to the one it joined.
+  const joined = new Map<Item[], Item[]>();
+  const owner = (g: Item[]): Item[] => {
+    const to = joined.get(g);
+    return to ? owner(to) : g;
+  };
   for (const [key, found] of licensedNames) {
     if (found.length < 2) continue;
     const shown = found[0]?.find((i) => i.key === key)?.shown ?? key;
-    check({ kind: 'name_licences', names: [shown] });
+    const combined = sameRider.has(key);
+    check({ kind: 'name_licences', names: [shown], key, combined });
+    if (!combined) continue;
+    const into = owner(found[0] ?? []);
+    for (const g of found.map(owner)) {
+      if (g === into) continue;
+      into.push(...g);
+      g.length = 0;
+      joined.set(g, into);
+    }
   }
 
   const byName = new Map<string, Item[]>();
   for (const item of items) {
     if (item.licence !== null) continue;
-    const found = licensedNames.get(item.key);
-    if (found?.length === 1 && found[0]) found[0].push(item);
+    const found = new Set(licensedNames.get(item.key)?.map(owner));
+    const [only] = found;
+    if (found.size === 1 && only) only.push(item);
     else add(byName, item.key, item);
   }
-  return groups.map((g) => g.sort((a, b) => a.index - b.index));
+  return groups.filter((g) => g.length > 0).map((g) => g.sort((a, b) => a.index - b.index));
 }
 
 /** The tally after the given rounds (round numbers from 1, any order in). */
@@ -216,6 +251,8 @@ export function computeSeries(
   rounds: readonly SeriesRound[],
   rules: SeriesRules,
   privacy: SeriesPrivacy = {},
+  /** Names the keeper chose to treat as one rider, whatever their licence numbers. */
+  sameRider: readonly SeriesSameRider[] = [],
 ): SeriesTally {
   const juniors = new Set(privacy.juniorSurnameInitialClasses ?? []);
   const ordered = [...rounds].sort((a, b) => a.round - b.round);
@@ -246,7 +283,9 @@ export function computeSeries(
   const checks: SeriesCheck[] = [];
   const classes = [...entries].map(([cls, items]): [string, Row[]] => [
     cls,
-    matchRiders(items, (c) => checks.push({ ...c, class: cls })).map((group) => {
+    matchRiders(items, new Set(sameRider.filter((s) => s.class === cls).map((s) => s.key)), (c) =>
+      checks.push({ ...c, class: cls }),
+    ).map((group) => {
       const row: Row = { name: '', number: 0, rounds: Array<number | null>(count).fill(null) };
       // In round order, so the name, number and club shown are the latest round's.
       for (const { index, entry: e, pts, shown } of group) {

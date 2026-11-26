@@ -200,6 +200,19 @@ test('a series matches riders by licence number, then by name, and lists clashes
     'Trial 3: Jo Park has a different licence number in different rounds. Counted as separate riders.',
   );
 
+  // The keeper knows they're one rider: one line, saved in the series file by name only.
+  await checks.getByRole('button', { name: 'Treat as one rider: Jo Park in Trial 3' }).click();
+  await expect(checks).toContainText('Counted as one rider, as you chose.');
+  await expect(tally.getByRole('row', { name: /Jo Park/ })).toHaveCount(1);
+  await expect(tally.getByRole('row', { name: /Jo Park/ })).toContainText('42');
+  const seriesFile = readFileSync(join(run.eventsDir, 'Series', 'Spring Series 2027.json'), 'utf8');
+  expect(seriesFile).toContain('"key": "jo park"');
+  // Undo: apart again.
+  await checks.getByRole('button', { name: 'Keep apart: Jo Park in Trial 3' }).click();
+  await expect(tally.getByRole('row', { name: /Jo Park/ })).toHaveCount(2);
+  await expect(checks).toContainText('Counted as separate riders.');
+  for (const licence of ['10442', '31111', '32222']) expect(seriesFile).not.toContain(licence);
+
   const file = join(run.userData, 'spring.csv');
   await stub('showSaveDialog', file);
   await window.getByRole('button', { name: 'Save CSV…' }).click();

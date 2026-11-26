@@ -47,9 +47,11 @@ these riders in the entry lists**:
 - **One licence number under two names** (for example "Sam Stone" at one round and "Samuel
   Stone" at another): counted as one rider, shown by the latest round's name. Check it isn't a
   mistyped licence number.
-- **One name under two licence numbers**: counted as separate riders. They may be two riders
-  with the same name; if they're one person, ask the club that ran the round to check its
-  entry list.
+- **One name under two licence numbers**: counted as separate riders, as they may be two riders
+  with the same name. If you know they're one person, choose **Treat as one rider**: every
+  line with that name in that class becomes one, and the choice is saved with the series (by
+  name, never by licence number). **Keep apart** undoes it. Also ask the club that ran the
+  round to check its entry list.
 
 A round entered without a licence number for a rider joins the rider with that name, unless
 two licence numbers share the name; then it stays a line of its own.

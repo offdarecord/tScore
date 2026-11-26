@@ -11,6 +11,7 @@ import {
   seriesCsv,
   seriesHtml,
   type SeriesRules,
+  type SeriesSameRider,
 } from '@tscore/core';
 import {
   deleteSeries,
@@ -55,11 +56,16 @@ function build(setup: SeriesSetup, juniorInitials: boolean) {
       ? [{ round: i + 1, results: r.results, ...(r.licences && { licences: r.licences }) }]
       : [],
   );
-  const tally = computeSeries(final, setup.rules, {
-    ...(juniorInitials && {
-      juniorSurnameInitialClasses: [...new Set(rounds.flatMap((r) => r.juniorClasses))],
-    }),
-  });
+  const tally = computeSeries(
+    final,
+    setup.rules,
+    {
+      ...(juniorInitials && {
+        juniorSurnameInitialClasses: [...new Set(rounds.flatMap((r) => r.juniorClasses))],
+      }),
+    },
+    setup.sameRider ?? [],
+  );
   // The tally has a column per counted round; label them with their round number.
   const labels = rounds.flatMap((r, i) =>
     r.results
@@ -147,18 +153,34 @@ function setupOf(eventsDir: string, file: string): SeriesSetup {
 export function updateSeries(
   eventsDir: string,
   file: string,
-  change: { name?: string; rules?: SeriesRules; addRound?: string; removeRound?: string },
+  change: {
+    name?: string;
+    rules?: SeriesRules;
+    addRound?: string;
+    removeRound?: string;
+    sameRider?: SeriesSameRider;
+    notSameRider?: SeriesSameRider;
+  },
 ): void {
   const setup = setupOf(eventsDir, file);
   const rounds = setup.rounds.filter((f) => f !== change.removeRound);
   if (change.addRound && !rounds.includes(change.addRound)) rounds.push(change.addRound);
+  const same = (a: SeriesSameRider) => (b: SeriesSameRider) =>
+    a.class === b.class && a.key === b.key;
+  let sameRider = (setup.sameRider ?? []).filter(
+    (s) => !change.notSameRider || !same(change.notSameRider)(s),
+  );
+  if (change.sameRider && !sameRider.some(same(change.sameRider))) {
+    sameRider = [...sameRider, { class: change.sameRider.class, key: change.sameRider.key }];
+  }
   saveSeries(
     eventsDir,
     {
-      ...setup,
-      ...(change.name !== undefined && { name: change.name }),
-      ...(change.rules && { rules: change.rules }),
+      schema: setup.schema,
+      name: change.name ?? setup.name,
+      rules: change.rules ?? setup.rules,
       rounds,
+      ...(sameRider.length > 0 && { sameRider }),
     },
     file,
   );

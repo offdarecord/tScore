@@ -15,6 +15,7 @@ import type {
   Results,
   CompetitionStatus,
   SeriesRules,
+  SeriesSameRider,
   SeriesTally,
   ValidationIssue,
   TestTrialCheck,
@@ -295,6 +296,10 @@ export interface SeriesChange {
   /** An event folder from the recent list. */
   readonly addRound?: string;
   readonly removeRound?: string;
+  /** Treat one name in a class as one rider, whatever its licence numbers (#125). */
+  readonly sameRider?: SeriesSameRider;
+  /** Undo `sameRider`: keep that name's licence numbers apart again. */
+  readonly notSameRider?: SeriesSameRider;
 }
 
 /** How a suggestion left tScore (never sent by tScore itself). */

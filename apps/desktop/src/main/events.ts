@@ -147,6 +147,15 @@ function ridersOf(store: EventStore): RiderInfo[] {
 
 const isText = (v: unknown): v is string | null => v === null || typeof v === 'string';
 
+/** A "same rider" choice from the window: a class and a name key, both short text. */
+const isSameRider = (v: unknown): v is { class: string; key: string } =>
+  typeof v === 'object' &&
+  v !== null &&
+  typeof (v as { class?: unknown }).class === 'string' &&
+  typeof (v as { key?: unknown }).key === 'string' &&
+  (v as { class: string }).class.length <= 200 &&
+  (v as { key: string }).key.length <= 300;
+
 /** Series rules from the window: whole points that don't go up, a sane best-of, a known tie rule. */
 function checkRules(rules: SeriesRules): void {
   const ok =
@@ -968,6 +977,8 @@ export const eventHandlers = {
         ...(change?.rules && { rules: change.rules }),
         ...(typeof change?.addRound === 'string' && { addRound: change.addRound }),
         ...(typeof change?.removeRound === 'string' && { removeRound: change.removeRound }),
+        ...(isSameRider(change?.sameRider) && { sameRider: change.sameRider }),
+        ...(isSameRider(change?.notSameRider) && { notSameRider: change.notSameRider }),
       });
       return seriesView(eventsDir(), String(file));
     });

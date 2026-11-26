@@ -378,19 +378,51 @@ function SeriesDetail(props: {
           <Text size="sm">{i18next.t('series.checksIntro')}</Text>
           <Stack gap={2} component="ul" m={0} pl="lg">
             {view.tally.checks.map((c) => {
-              const words =
-                c.kind === 'licence_names'
-                  ? i18next.t('series.checkLicenceNames', {
-                      class: c.class,
-                      names: new Intl.ListFormat(i18next.language, { type: 'conjunction' }).format(
-                        c.names,
-                      ),
-                    })
-                  : i18next.t('series.checkNameLicences', { class: c.class, name: c.names[0] });
+              if (c.kind === 'licence_names') {
+                const words = i18next.t('series.checkLicenceNames', {
+                  class: c.class,
+                  names: new Intl.ListFormat(i18next.language, { type: 'conjunction' }).format(
+                    c.names,
+                  ),
+                });
+                return (
+                  <Text key={words} size="sm" component="li">
+                    {words}
+                  </Text>
+                );
+              }
+              const which = { class: c.class, name: c.names[0] };
+              const choice = { class: c.class, key: c.key };
               return (
-                <Text key={words} size="sm" component="li">
-                  {words}
-                </Text>
+                <li key={`${c.class}\n${c.key}`}>
+                  <Group gap="xs" wrap="wrap">
+                    <Text size="sm">
+                      {i18next.t(
+                        c.combined ? 'series.checkNameCombined' : 'series.checkNameLicences',
+                        which,
+                      )}
+                    </Text>
+                    {c.combined ? (
+                      <Button
+                        size="compact-sm"
+                        variant="default"
+                        aria-label={i18next.t('series.keepApartLabel', which)}
+                        onClick={() => void change({ notSameRider: choice })}
+                      >
+                        {i18next.t('series.keepApart')}
+                      </Button>
+                    ) : (
+                      <Button
+                        size="compact-sm"
+                        variant="default"
+                        aria-label={i18next.t('series.sameRiderLabel', which)}
+                        onClick={() => void change({ sameRider: choice })}
+                      >
+                        {i18next.t('series.sameRider')}
+                      </Button>
+                    )}
+                  </Group>
+                </li>
               );
             })}
           </Stack>

@@ -20,6 +20,7 @@ import {
   type EventSetup,
   type Results,
   type SeriesRules,
+  type SeriesSameRider,
 } from '@tscore/core';
 import { StoreError } from './errors.js';
 import { EVENT_FILE } from './event-store.js';
@@ -34,6 +35,11 @@ export interface SeriesSetup {
   /** Event folders, one per round. Rounds are numbered by date. */
   readonly rounds: readonly string[];
   readonly rules: SeriesRules;
+  /**
+   * Names the keeper chose to treat as one rider in a class, whatever licence numbers they were
+   * entered with (#125). By name only: a series file never holds licence numbers.
+   */
+  readonly sameRider?: readonly SeriesSameRider[];
 }
 
 /** A round as the series sees it. */

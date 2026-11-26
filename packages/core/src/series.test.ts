@@ -238,7 +238,13 @@ describe('series matching by licence number (#125)', () => {
     expect(lines(t)).toEqual([['Clubman', 'Samuel Stone', [25, 22], 47]]);
     expect(t.classes[0]!.rows[0]!.number).toBe(17);
     expect(t.checks).toEqual([
-      { kind: 'licence_names', class: 'Clubman', names: ['Sam Stone', 'Samuel Stone'] },
+      {
+        kind: 'licence_names',
+        class: 'Clubman',
+        names: ['Sam Stone', 'Samuel Stone'],
+        key: 'sam stone',
+        combined: false,
+      },
     ]);
   });
 
@@ -254,7 +260,50 @@ describe('series matching by licence number (#125)', () => {
       ['Clubman', 'Jo Park', [null, 25, null], 25],
       ['Clubman', 'Jo Park', [null, null, 25], 25],
     ]);
-    expect(t.checks).toEqual([{ kind: 'name_licences', class: 'Clubman', names: ['Jo Park'] }]);
+    expect(t.checks).toEqual([
+      {
+        kind: 'name_licences',
+        class: 'Clubman',
+        names: ['Jo Park'],
+        key: 'jo park',
+        combined: false,
+      },
+    ]);
+  });
+
+  it('treats one name under two licences as one rider when the keeper chooses, by name only', () => {
+    const rounds = [
+      [
+        round({ Clubman: [entry('Jo Park', 1, 1)], T2: [entry('Jo Park', 7, 1)] }),
+        { 1: ['111'], 7: ['711'] },
+      ],
+      [
+        round({ Clubman: [entry('Jo  PARK', 2, 2)], T2: [entry('Jo Park', 8, 2)] }),
+        { 2: ['222'], 8: ['822'] },
+      ],
+      [round({ Clubman: [entry('Jo Park', 3, 1)] }), {}],
+    ] as [Results, Licences][];
+    const choice = [{ class: 'Clubman', key: 'jo park' }];
+    const t = computeSeries(
+      rounds.map(([results, lic], i) => ({
+        round: i + 1,
+        results,
+        licences: new Map(Object.entries(lic).map(([n, l]) => [Number(n), l])),
+      })),
+      rules,
+      {},
+      choice,
+    );
+    // Clubman only: one line, and the round without a licence joins it. T2 stays apart.
+    expect(lines(t)).toEqual([
+      ['Clubman', 'Jo Park', [25, 22, 25], 72],
+      ['T2', 'Jo Park', [25, null, null], 25],
+      ['T2', 'Jo Park', [null, 22, null], 22],
+    ]);
+    expect(t.checks.map((c) => [c.class, c.kind, c.combined])).toEqual([
+      ['Clubman', 'name_licences', true],
+      ['T2', 'name_licences', false],
+    ]);
   });
 
   it('matches riders without a licence by name, exactly as before', () => {

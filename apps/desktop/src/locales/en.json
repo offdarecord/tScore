@@ -761,7 +761,12 @@
     "checks": "Check these riders in the entry lists",
     "checksIntro": "Riders are matched by licence number, or by name when there isn't one. tScore doesn't guess past these:",
     "checkLicenceNames": "{{class}}: one licence number is entered as {{names}}. Counted as one rider.",
-    "checkNameLicences": "{{class}}: {{name}} has a different licence number in different rounds. Counted as separate riders."
+    "checkNameLicences": "{{class}}: {{name}} has a different licence number in different rounds. Counted as separate riders.",
+    "checkNameCombined": "{{class}}: {{name}} has a different licence number in different rounds. Counted as one rider, as you chose.",
+    "sameRider": "Treat as one rider",
+    "sameRiderLabel": "Treat as one rider: {{name}} in {{class}}",
+    "keepApart": "Keep apart",
+    "keepApartLabel": "Keep apart: {{name}} in {{class}}"
   },
   "labels": {
     "auto": "Automatic",

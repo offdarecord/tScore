@@ -12,6 +12,7 @@ import {
   Title,
 } from '@mantine/core';
 import { useEffect, useState } from 'react';
+import i18next from '../i18n';
 import type {
   AppError,
   LabelLayoutChoice,
@@ -22,24 +23,24 @@ import type {
 } from '../../../shared/ipc';
 import { ErrorAlert } from '../ErrorAlert';
 
-const LAYOUTS: { value: LabelLayoutChoice; label: string }[] = [
-  { value: 'auto', label: 'Automatic' },
-  { value: 'row-per-rider', label: 'One rider per row' },
-  { value: 'packed', label: 'Packed (fewest sheets)' },
-  { value: 'by-lap', label: 'Grouped by lap' },
-];
+const LAYOUTS = [
+  { value: 'auto', label: 'labels.auto' },
+  { value: 'row-per-rider', label: 'labels.rowPerRider' },
+  { value: 'packed', label: 'labels.packed' },
+  { value: 'by-lap', label: 'labels.byLap' },
+] as const satisfies readonly { value: LabelLayoutChoice; label: string }[];
 
-const LAYOUT_WORDS: Record<LabelsView['layout'], string> = {
-  'row-per-rider': 'one rider per row',
-  packed: 'packed',
-  'by-lap': 'grouped by lap',
-};
+const LAYOUT_WORDS = {
+  'row-per-rider': 'labels.usingRowPerRider',
+  packed: 'labels.usingPacked',
+  'by-lap': 'labels.usingByLap',
+} as const satisfies Record<LabelsView['layout'], string>;
 
 const SKIP_WORDS = {
-  not_scored: "isn't scored (minders)",
-  dns: 'is marked DNS',
-  no_laps: 'has no laps in the event setup',
-  unknown_class: "isn't in the event setup",
+  not_scored: 'labels.notScored',
+  dns: 'labels.dns',
+  no_laps: 'labels.noLaps',
+  unknown_class: 'labels.unknownClass',
 } as const;
 
 type Which = 'all' | 'unprinted' | 'rider';
@@ -92,7 +93,7 @@ export function CardLabels({ event }: { readonly event: OpenEvent }) {
     setBusy(false);
     if (!r.ok) setError(r.error);
     else if (r.value) {
-      setSaved(`${r.value.labels} labels saved to ${r.value.path}`);
+      setSaved(i18next.t('labels.saved', { labels: r.value.labels, path: r.value.path }));
       const again = await window.tscore.labels(request);
       if (again.ok) setView(again.value);
     }
@@ -103,7 +104,7 @@ export function CardLabels({ event }: { readonly event: OpenEvent }) {
     setError(null);
     const r = await window.tscore.saveLabelTestPage();
     if (!r.ok) setError(r.error);
-    else if (r.value) setSaved(`Alignment test page saved to ${r.value}`);
+    else if (r.value) setSaved(i18next.t('labels.testSaved', { path: r.value }));
   }
 
   async function open() {
@@ -116,11 +117,8 @@ export function CardLabels({ event }: { readonly event: OpenEvent }) {
   return (
     <Stack gap="lg" maw={1300}>
       <div>
-        <Title order={2}>Card labels</Title>
-        <Text c="dimmed">
-          One sticky label per rider for each lap their class rides. Stick it on the card&apos;s
-          header, above the grid.
-        </Text>
+        <Title order={2}>{i18next.t('labels.title')}</Title>
+        <Text c="dimmed">{i18next.t('labels.intro')}</Text>
       </div>
 
       {error && <ErrorAlert error={error} onClose={() => setError(null)} />}
@@ -129,7 +127,7 @@ export function CardLabels({ event }: { readonly event: OpenEvent }) {
           <Group justify="space-between" wrap="wrap" gap="sm">
             <span>{saved}</span>
             <Button variant="default" size="xs" onClick={() => void open()}>
-              Open in Word
+              {i18next.t('labels.openWord')}
             </Button>
           </Group>
         </Alert>
@@ -137,30 +135,40 @@ export function CardLabels({ event }: { readonly event: OpenEvent }) {
 
       <Group align="flex-start" gap="lg" wrap="wrap">
         <Stack gap="md" w={380} maw="100%">
-          <Paper withBorder radius="md" p="md" component="section" aria-label="What to print">
+          <Paper
+            withBorder
+            radius="md"
+            p="md"
+            component="section"
+            aria-label={i18next.t('labels.whatToPrint')}
+          >
             <Stack gap="md">
               <div>
-                <Text fw={600}>Label sheets</Text>
+                <Text fw={600}>{i18next.t('labels.sheets')}</Text>
                 <Text size="sm">{view?.template.name ?? ' '}</Text>
               </div>
               <Radio.Group
-                label="Which labels"
+                label={i18next.t('labels.which')}
                 value={which}
                 onChange={(v) => setWhich(v as Which)}
               >
                 <Stack gap={6} mt={4}>
-                  <Radio value="all" label="Every rider" />
+                  <Radio value="all" label={i18next.t('labels.every')} />
                   <Radio
                     value="unprinted"
-                    label={`Only labels not printed yet${view ? ` (${view.notPrinted})` : ''}`}
-                    description="Late entries, and laps added since the last print"
+                    label={
+                      view
+                        ? i18next.t('labels.unprintedN', { count: view.notPrinted })
+                        : i18next.t('labels.unprinted')
+                    }
+                    description={i18next.t('labels.unprintedHelp')}
                   />
-                  <Radio value="rider" label="One rider (reprint)" />
+                  <Radio value="rider" label={i18next.t('labels.reprint')} />
                 </Stack>
               </Radio.Group>
               {which === 'rider' && (
                 <NumberInput
-                  label="Rider number"
+                  label={i18next.t('labels.riderNumber')}
                   required
                   min={1}
                   max={9999}
@@ -170,16 +178,16 @@ export function CardLabels({ event }: { readonly event: OpenEvent }) {
                 />
               )}
               <NativeSelect
-                label="Layout"
-                data={LAYOUTS}
+                label={i18next.t('labels.layout')}
+                data={LAYOUTS.map((l) => ({ value: l.value, label: i18next.t(l.label) }))}
                 value={layout}
                 onChange={(e) => setLayout(e.currentTarget.value as LabelLayoutChoice)}
                 {...(layout === 'auto' &&
-                  view && { description: `Using ${LAYOUT_WORDS[view.layout]}` })}
+                  view && { description: i18next.t(LAYOUT_WORDS[view.layout]) })}
               />
               <NumberInput
-                label="Start at label"
-                description="Use up a sheet that's already been started"
+                label={i18next.t('labels.startAt')}
+                description={i18next.t('labels.startAtHelp')}
                 min={1}
                 max={perSheet}
                 allowDecimal={false}
@@ -189,14 +197,14 @@ export function CardLabels({ event }: { readonly event: OpenEvent }) {
                 }
               />
               <Checkbox
-                label="QR code on each label"
-                description="The scan desk reads the rider and lap from it"
+                label={i18next.t('labels.qr')}
+                description={i18next.t('labels.qrHelp')}
                 checked={qr}
                 onChange={(e) => setQr(e.currentTarget.checked)}
               />
               <Checkbox
-                label="Leave out minders"
-                description="Minders aren't scored. Untick to print their labels."
+                label={i18next.t('labels.minders')}
+                description={i18next.t('labels.mindersHelp')}
                 checked={leaveOutMinders}
                 onChange={(e) => setLeaveOutMinders(e.currentTarget.checked)}
               />
@@ -206,11 +214,9 @@ export function CardLabels({ event }: { readonly event: OpenEvent }) {
                 loading={busy}
                 disabled={!request || !view || view.labels === 0}
               >
-                Save Word document…
+                {i18next.t('labels.saveWord')}
               </Button>
-              <Text size="sm">
-                Open it in Microsoft Word and print at 100% (actual size), on the label sheets.
-              </Text>
+              <Text size="sm">{i18next.t('labels.printHelp')}</Text>
             </Stack>
           </Paper>
           {view && (
@@ -223,16 +229,16 @@ export function CardLabels({ event }: { readonly event: OpenEvent }) {
           radius="md"
           p="md"
           component="section"
-          aria-label="Sheet 1 preview"
+          aria-label={i18next.t('labels.preview')}
           style={{ flex: '1 1 520px', minWidth: 0 }}
         >
           <Stack gap="sm">
             <Title order={3} size="h4">
-              Sheet 1 preview
+              {i18next.t('labels.preview')}
             </Title>
             {view && <Sheet view={view} />}
             <Text size="sm" c="dimmed">
-              Dashed outlines show the label edges; they don&apos;t print. Grey labels are skipped.
+              {i18next.t('labels.previewHelp')}
             </Text>
           </Stack>
         </Paper>
@@ -249,13 +255,19 @@ function Summary({ view }: { view: LabelsView }) {
     <Stack gap={6}>
       <Alert color="blue" variant="light" p="sm" role="none">
         <Text fw={700}>
-          {view.labels} labels on {view.sheets} {view.sheets === 1 ? 'sheet' : 'sheets'} for{' '}
-          {view.riders} {view.riders === 1 ? 'rider' : 'riders'}.
+          {i18next.t('labels.summary', {
+            labels: view.labels,
+            sheets: i18next.t('labels.sheetCount', { count: view.sheets }),
+            riders: i18next.t('labels.riderCount', { count: view.riders }),
+          })}
         </Text>
-        {minders > 0 && <Text size="sm">Minders don&apos;t get labels.</Text>}
+        {minders > 0 && <Text size="sm">{i18next.t('labels.noMinders')}</Text>}
         {view.printed > 0 && (
           <Text size="sm">
-            {view.printed} labels printed before; {view.notPrinted} not printed yet.
+            {i18next.t('labels.printedBefore', {
+              printed: view.printed,
+              notPrinted: view.notPrinted,
+            })}
           </Text>
         )}
       </Alert>
@@ -263,10 +275,10 @@ function Summary({ view }: { view: LabelsView }) {
         <Alert color="yellow" variant="light" p="sm" role="none">
           <Group justify="space-between" gap="xs">
             <Text size="sm" fw={600}>
-              {others.length} {others.length === 1 ? 'rider gets' : 'riders get'} no labels
+              {i18next.t('labels.noLabels', { count: others.length })}
             </Text>
             <Button variant="subtle" size="compact-sm" onClick={() => setOpen((o) => !o)}>
-              {open ? 'Hide' : 'Show who'}
+              {open ? i18next.t('labels.hide') : i18next.t('labels.showWho')}
             </Button>
           </Group>
           {open && (
@@ -274,7 +286,12 @@ function Summary({ view }: { view: LabelsView }) {
               {others.map((s) => (
                 <li key={s.number}>
                   <Text size="sm">
-                    {s.number} {s.name}: {s.className || 'no class'} {SKIP_WORDS[s.reason]}
+                    {i18next.t('labels.skipped', {
+                      number: s.number,
+                      name: s.name,
+                      class: s.className || i18next.t('labels.noClass'),
+                      why: i18next.t(SKIP_WORDS[s.reason]),
+                    })}
                   </Text>
                 </li>
               ))}
@@ -308,27 +325,30 @@ function Alignment(props: {
     if (!r.ok) setProblem(r.error.message);
     else {
       props.onSaved({ ...view, offset: r.value });
-      setNote('Saved for this laptop. Labels saved from now on use it.');
+      setNote(i18next.t('labels.alignSaved'));
     }
   }
 
   return (
-    <Paper withBorder radius="md" p="md" component="section" aria-label="Printer alignment">
+    <Paper
+      withBorder
+      radius="md"
+      p="md"
+      component="section"
+      aria-label={i18next.t('labels.alignment')}
+    >
       <Stack gap="sm">
         <Title order={3} size="h5">
-          Printer alignment
+          {i18next.t('labels.alignment')}
         </Title>
-        <Text size="sm">
-          Once per printer: print the test page on plain paper, hold it against a label sheet up to
-          the light, and measure how far the outlines are off.
-        </Text>
+        <Text size="sm">{i18next.t('labels.alignHelp')}</Text>
         <Button variant="default" onClick={props.onTestPage}>
-          Save alignment test page…
+          {i18next.t('labels.saveTest')}
         </Button>
         <Group gap="sm" align="flex-end" wrap="nowrap">
           <NumberInput
-            label="Move right (mm)"
-            description="Negative moves left"
+            label={i18next.t('labels.right')}
+            description={i18next.t('labels.rightHelp')}
             min={-5}
             max={5}
             step={0.5}
@@ -337,8 +357,8 @@ function Alignment(props: {
             onChange={(v) => setX(typeof v === 'number' ? v : '')}
           />
           <NumberInput
-            label="Move down (mm)"
-            description="Negative moves up"
+            label={i18next.t('labels.down')}
+            description={i18next.t('labels.downHelp')}
             min={-5}
             max={5}
             step={0.5}
@@ -348,7 +368,7 @@ function Alignment(props: {
           />
         </Group>
         <Button variant="default" disabled={!changed} onClick={() => void saveOffset()}>
-          Save offset
+          {i18next.t('labels.saveOffset')}
         </Button>
         {note && (
           <Text size="sm" role="status">
@@ -380,12 +400,12 @@ function Sheet({ view }: { view: LabelsView }) {
   return (
     <div
       role="region"
-      aria-label="Label preview, scrolls sideways"
+      aria-label={i18next.t('labels.scrolls')}
       tabIndex={0}
       style={{ overflowX: 'auto' }}
     >
       {view.labels === 0 ? (
-        <Text c="dimmed">No labels to print with these settings.</Text>
+        <Text c="dimmed">{i18next.t('labels.none')}</Text>
       ) : (
         <div
           style={{
@@ -419,7 +439,10 @@ function Sheet({ view }: { view: LabelsView }) {
 }
 
 function Label({ label, days }: { label: LabelPreview; days: number }) {
-  const describe = `Rider ${label.number}, ${days > 1 ? `day ${label.day}, ` : ''}lap ${label.lap}`;
+  const describe =
+    days > 1
+      ? i18next.t('labels.describeDay', { number: label.number, day: label.day, lap: label.lap })
+      : i18next.t('labels.describe', { number: label.number, lap: label.lap });
   const pt = (n: number) => `${(n * 25.4 * PX) / 72}px`;
   return (
     <div

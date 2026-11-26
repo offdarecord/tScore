@@ -1,5 +1,6 @@
 import type { ResultsTypes } from '@tscore/core';
 import { useEffect, useMemo, useState } from 'react';
+import i18next from '../i18n';
 import type { LiveScores as LiveData } from '../../../shared/ipc';
 import './live.css';
 type ClassResults = ResultsTypes.ClassResults;
@@ -29,22 +30,22 @@ const notStarted = (e: Entry) =>
   e.status === 'finished' && e.competition_status !== 'non_competitive' && lapsDone(e) === 0;
 
 export function progressWords(cls: ClassResults, e: Entry): string {
-  if (e.status === 'dns') return 'DNS';
-  if (e.status === 'dnf') return 'DNF';
+  if (e.status === 'dns') return i18next.t('live.dns');
+  if (e.status === 'dnf') return i18next.t('live.dnf');
   const laps = cls.days.reduce((n, d) => n + d.laps, 0);
   const done = lapsDone(e);
   if (e.competition_status === 'non_competitive') return '';
-  if (done === 0) return 'No card in yet';
-  return done >= laps ? 'Finished' : `Lap ${done} of ${laps}`;
+  if (done === 0) return i18next.t('live.noCard');
+  return done >= laps ? i18next.t('live.finished') : i18next.t('live.lapOf', { done, laps });
 }
 
 const place = (e: Entry) =>
   e.position !== null
     ? String(e.position)
     : e.competition_status === 'no_award'
-      ? 'NA'
+      ? i18next.t('live.na')
       : e.competition_status === 'non_competitive'
-        ? 'NC'
+        ? i18next.t('live.nc')
         : '';
 
 const names = (e: Entry) => e.riders.map((r) => r.name).join(' / ');
@@ -131,8 +132,8 @@ export function LiveScores() {
   if (noEvent || !data) {
     return (
       <main className="live" onDoubleClick={() => void window.tscore.toggleLiveFullScreen()}>
-        <h1 className="live-event">{noEvent ? 'Live scores' : ''}</h1>
-        {noEvent && <p className="live-wait">Waiting for the results desk to open an event.</p>}
+        <h1 className="live-event">{noEvent ? i18next.t('live.title') : ''}</h1>
+        {noEvent && <p className="live-wait">{i18next.t('live.waiting')}</p>}
       </main>
     );
   }
@@ -149,8 +150,12 @@ export function LiveScores() {
         </div>
         <p className={final ? 'live-status live-final' : 'live-status live-provisional'}>
           {final
-            ? `FINAL${results.revision > 1 ? ` · REVISION ${results.revision}` : ''}`
-            : `PROVISIONAL${missingCards ? ` · ${missingCards} ${missingCards === 1 ? 'card' : 'cards'} to come` : ''}`}
+            ? results.revision > 1
+              ? i18next.t('live.finalRevision', { revision: results.revision })
+              : i18next.t('live.final')
+            : missingCards
+              ? i18next.t('live.toCome', { count: missingCards })
+              : i18next.t('live.provisional')}
         </p>
       </header>
       {current && (
@@ -159,20 +164,19 @@ export function LiveScores() {
             {current.cls.name}
             {current.pages > 1 && (
               <span className="live-page">
-                {' '}
-                · page {current.page} of {current.pages}
+                {i18next.t('live.page', { page: current.page, pages: current.pages })}
               </span>
             )}
           </h2>
           <table className="live-table">
             <thead>
               <tr>
-                <th scope="col">Pos</th>
-                <th scope="col">No.</th>
-                <th scope="col">Rider</th>
-                <th scope="col">Progress</th>
+                <th scope="col">{i18next.t('live.pos')}</th>
+                <th scope="col">{i18next.t('live.number')}</th>
+                <th scope="col">{i18next.t('live.rider')}</th>
+                <th scope="col">{i18next.t('live.progress')}</th>
                 <th scope="col" className="num">
-                  Total
+                  {i18next.t('live.total')}
                 </th>
               </tr>
             </thead>
@@ -194,7 +198,7 @@ export function LiveScores() {
         </section>
       )}
       <footer className="live-foot">
-        <div className="live-tabs" aria-label="Classes">
+        <div className="live-tabs" aria-label={i18next.t('live.classes')}>
           {results.classes
             .filter((c) => pages.some((p) => p.cls === c))
             .map((c) => (
@@ -207,7 +211,7 @@ export function LiveScores() {
             ))}
         </div>
         {logos.sponsors.length > 0 && (
-          <div className="live-sponsors" aria-label="Sponsors">
+          <div className="live-sponsors" aria-label={i18next.t('live.sponsors')}>
             {logos.sponsors.map((uri, i) => (
               <img key={i} className="live-sponsor" src={uri} alt="" />
             ))}

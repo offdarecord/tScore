@@ -6,32 +6,6 @@ import i18next from 'eslint-plugin-i18next';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
-/** Renderer files whose wording is all in locales/en.json (#64). */
-const TRANSLATED = [
-  'App.tsx',
-  'Home.tsx',
-  'EventShell.tsx',
-  'ColorSchemeSwitch.tsx',
-  'ComingSoonButton.tsx',
-  'ErrorAlert.tsx',
-  'help/Help.tsx',
-  'help/HelpPanel.tsx',
-  'setup/SetupForm.tsx',
-  'setup/SectionsCard.tsx',
-  'setup/BackupCard.tsx',
-  'setup/LogosCard.tsx',
-  'riders/Riders.tsx',
-  'riders/ImportRiders.tsx',
-  'riders/RiderPicker.tsx',
-  'cards/ManualEntry.tsx',
-  'cards/CardPreview.tsx',
-  'scan/ScanDesk.tsx',
-  'scan/ReviewQueue.tsx',
-  'course/Progress.tsx',
-  'course/OnCourse.tsx',
-  'course/shared.tsx',
-];
-
 export default tseslint.config(
   {
     ignores: [
@@ -79,9 +53,9 @@ export default tseslint.config(
     rules: reactHooks.configs.recommended.rules,
   },
   // Screens' wording comes from locales/en.json, never written straight into the markup (#64).
-  // The list grows as screens are converted; when every screen is, it becomes the whole renderer.
   {
-    files: TRANSLATED.map((f) => `apps/desktop/src/renderer/src/${f}`),
+    files: ['apps/desktop/src/renderer/src/**/*.tsx'],
+    ignores: ['**/*.test.tsx'],
     plugins: { i18next },
     rules: {
       'i18next/no-literal-string': [

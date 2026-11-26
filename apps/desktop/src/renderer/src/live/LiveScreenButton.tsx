@@ -1,5 +1,6 @@
 import { Button, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
+import i18next from '../i18n';
 import type { LiveWindowState } from '../../../shared/ipc';
 
 /** Results' "Show live scores": opens or closes the big-screen window. */
@@ -24,13 +25,11 @@ export function LiveScreenButton() {
           )
         }
       >
-        {state.open ? 'Close live scores' : 'Show live scores'}
+        {state.open ? i18next.t('live.close') : i18next.t('live.show')}
       </Button>
       {state.open && (
         <Text size="sm" c="dimmed" role="status" mt={4} maw={360}>
-          {state.secondScreen
-            ? 'Showing full screen on the second screen.'
-            : 'No second screen found: drag the window to the TV, then press F11 for full screen.'}
+          {state.secondScreen ? i18next.t('live.secondScreen') : i18next.t('live.noSecond')}
         </Text>
       )}
     </div>

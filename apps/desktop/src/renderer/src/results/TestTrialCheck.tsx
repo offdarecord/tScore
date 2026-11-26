@@ -2,6 +2,7 @@ import { Alert, Button, List, Modal, Stack, Table, Text } from '@mantine/core';
 import type { TestTrialCheck } from '@tscore/core';
 import { useState } from 'react';
 import type { AppError } from '../../../shared/ipc';
+import i18next from '../i18n';
 
 /** Events made from the Test trial kit say so in their name. */
 export const isTestTrialEvent = (name: string) => /test trial/i.test(name);
@@ -28,19 +29,19 @@ export function TestTrialCheckButton({ onError }: { onError: (e: AppError) => vo
           });
         }}
       >
-        Check a test trial…
+        {i18next.t('testTrial.button')}
       </Button>
       {result && <CheckResult result={result} onClose={() => setResult(null)} />}
     </>
   );
 }
 
-const OUTCOME: Record<TestTrialCheck['results'][number]['outcome'], string> = {
-  right: 'Right',
-  wrong: 'Wrong',
-  missing: 'Not in yet',
-  no_rider: 'Rider not in this event',
-};
+const OUTCOME = {
+  right: 'testTrial.right',
+  wrong: 'testTrial.wrong',
+  missing: 'testTrial.missing',
+  no_rider: 'testTrial.noRider',
+} as const satisfies Record<TestTrialCheck['results'][number]['outcome'], string>;
 
 function CheckResult({ result, onClose }: { result: TestTrialCheck; onClose: () => void }) {
   const all = result.right === result.cards;
@@ -49,26 +50,26 @@ function CheckResult({ result, onClose }: { result: TestTrialCheck; onClose: () 
     <Modal
       opened
       onClose={onClose}
-      title="Test trial check"
+      title={i18next.t('testTrial.title')}
       size="xl"
-      closeButtonProps={{ 'aria-label': 'Close' }}
+      closeButtonProps={{ 'aria-label': i18next.t('testTrial.close') }}
     >
       <Stack gap="md">
         <Alert color={all ? 'green' : 'yellow'} role="status">
           <Text fw={700} fz="lg">
-            Your setup read {result.right} of {result.cards} cards correctly.
+            {i18next.t('testTrial.read', { right: result.right, cards: result.cards })}
           </Text>
-          {all && <Text>Your laptop, camera and printer are ready for an event.</Text>}
+          {all && <Text>{i18next.t('testTrial.ready')}</Text>}
         </Alert>
         {notRight.length > 0 && (
           <Table.ScrollContainer minWidth={560}>
             <Table verticalSpacing={6}>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Card</Table.Th>
-                  <Table.Th>Rider</Table.Th>
-                  <Table.Th>Lap</Table.Th>
-                  <Table.Th>What happened</Table.Th>
+                  <Table.Th>{i18next.t('testTrial.card')}</Table.Th>
+                  <Table.Th>{i18next.t('testTrial.rider')}</Table.Th>
+                  <Table.Th>{i18next.t('testTrial.lap')}</Table.Th>
+                  <Table.Th>{i18next.t('testTrial.what')}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -83,12 +84,18 @@ function CheckResult({ result, onClose }: { result: TestTrialCheck; onClose: () 
                     <Table.Td>
                       {r.outcome === 'wrong'
                         ? r.wrong
-                            .map(
-                              (w) =>
-                                `Section ${w.section}: punched ${w.expected}, ${w.read === null ? 'still to decide' : `read ${w.read}`}`,
+                            .map((w) =>
+                              i18next.t('testTrial.cell', {
+                                section: w.section,
+                                expected: w.expected,
+                                read:
+                                  w.read === null
+                                    ? i18next.t('testTrial.stillToDecide')
+                                    : i18next.t('testTrial.readAs', { value: w.read }),
+                              }),
                             )
                             .join('; ')
-                        : OUTCOME[r.outcome]}
+                        : i18next.t(OUTCOME[r.outcome])}
                     </Table.Td>
                   </Table.Tr>
                 ))}
@@ -98,7 +105,7 @@ function CheckResult({ result, onClose }: { result: TestTrialCheck; onClose: () 
         )}
         {result.hints.length > 0 && (
           <div>
-            <Text fw={700}>What to look at</Text>
+            <Text fw={700}>{i18next.t('testTrial.look')}</Text>
             <List size="sm" spacing={4}>
               {result.hints.map((h) => (
                 <List.Item key={h}>{h}</List.Item>
@@ -107,7 +114,7 @@ function CheckResult({ result, onClose }: { result: TestTrialCheck; onClose: () 
           </div>
         )}
         <Button onClick={onClose} style={{ alignSelf: 'flex-end' }}>
-          Done
+          {i18next.t('testTrial.done')}
         </Button>
       </Stack>
     </Modal>

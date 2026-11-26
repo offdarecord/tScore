@@ -19,15 +19,15 @@ import {
 import { useState } from 'react';
 import type { AppError, Outcome, SuggestionSent } from '../../shared/ipc';
 import { ErrorAlert } from './ErrorAlert';
+import i18next from './i18n';
 
-const DONE: Record<SuggestionSent['via'], string> = {
-  email: 'Your mail app should now be open with the suggestion in it. Check it, then send.',
-  'email-and-clipboard':
-    'It was too long to fit in an email link, so it’s on the clipboard: paste it into the email (Ctrl+V), then send.',
-  clipboard: `Copied. Paste it into an email to ${SUGGESTION_EMAIL}, or a message.`,
-  file: 'Saved. Email it later, or hand it to someone who can.',
-  none: '',
-};
+const DONE = {
+  email: 'suggest.email',
+  'email-and-clipboard': 'suggest.emailAndClipboard',
+  clipboard: 'suggest.clipboard',
+  file: 'suggest.file',
+  none: null,
+} as const satisfies Record<SuggestionSent['via'], string | null>;
 
 /**
  * About → Suggest a feature: the same questions as the public page and the GitHub form. Works
@@ -55,22 +55,19 @@ export function SuggestFeature(props: {
   }
 
   const set = (id: string, value: string) => setAnswers((a) => ({ ...a, [id]: value }));
-  const error_ = (label: string) => (missing.includes(label) ? 'Please answer this one.' : null);
+  const error_ = (label: string) =>
+    missing.includes(label) ? i18next.t('suggest.answerThis') : null;
 
   return (
     <Modal
       opened={props.opened}
       onClose={props.onClose}
-      title="Suggest a feature"
+      title={i18next.t('suggest.title')}
       size="lg"
-      closeButtonProps={{ 'aria-label': 'Close' }}
+      closeButtonProps={{ 'aria-label': i18next.t('suggest.close') }}
     >
       <Stack gap="md">
-        <Text size="sm">
-          Works without internet. Nothing is sent from tScore: email it, copy it, or save it to send
-          later. tScore adds its version, the Windows version and the screen you were on, never
-          event or rider details. Questions marked * are needed.
-        </Text>
+        <Text size="sm">{i18next.t('suggest.intro')}</Text>
         {SUGGESTION_QUESTIONS.map((q) => {
           const common = {
             label: q.label,
@@ -85,7 +82,7 @@ export function SuggestFeature(props: {
                 {...common}
                 value={answers[q.id] ?? ''}
                 onChange={(e) => set(q.id, e.currentTarget.value)}
-                data={[{ value: '', label: 'Choose…' }, ...(q.options ?? [])]}
+                data={[{ value: '', label: i18next.t('suggest.choose') }, ...(q.options ?? [])]}
               />
             );
           }
@@ -112,13 +109,16 @@ export function SuggestFeature(props: {
         })}
         {missing.length > 0 && (
           <Alert color="red" role="alert">
-            Please answer the questions marked * first.
+            {i18next.t('suggest.answerFirst')}
           </Alert>
         )}
         {error && <ErrorAlert error={error} withHelp={false} />}
         {done && (
           <Alert color="green" role="status">
-            {DONE[done.via]}
+            {(() => {
+              const key = DONE[done.via];
+              return key ? i18next.t(key, { email: SUGGESTION_EMAIL }) : '';
+            })()}
             {done.file && (
               <Text size="sm" style={{ wordBreak: 'break-all' }}>
                 {done.file}
@@ -127,16 +127,18 @@ export function SuggestFeature(props: {
           </Alert>
         )}
         <Group gap="sm">
-          <Button onClick={() => void send(window.tscore.emailSuggestion)}>Email…</Button>
+          <Button onClick={() => void send(window.tscore.emailSuggestion)}>
+            {i18next.t('suggest.emailButton')}
+          </Button>
           <Button variant="default" onClick={() => void send(window.tscore.copySuggestion)}>
-            Copy
+            {i18next.t('suggest.copy')}
           </Button>
           <Button variant="default" onClick={() => void send(window.tscore.saveSuggestion)}>
-            Save as file…
+            {i18next.t('suggest.save')}
           </Button>
         </Group>
         <Text size="xs" c="dimmed">
-          Email goes to {SUGGESTION_EMAIL}.
+          {i18next.t('suggest.goesTo', { email: SUGGESTION_EMAIL })}
         </Text>
       </Stack>
     </Modal>

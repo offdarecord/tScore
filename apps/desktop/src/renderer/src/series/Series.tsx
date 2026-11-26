@@ -15,6 +15,8 @@ import {
 } from '@mantine/core';
 import { DEFAULT_SERIES_POINTS, parsePointsScale, type SeriesRules } from '@tscore/core';
 import { useEffect, useState } from 'react';
+import { Trans } from 'react-i18next';
+import i18next from '../i18n';
 import type {
   AppError,
   ExportKind,
@@ -56,26 +58,23 @@ export function Series({ onBack }: { onBack: () => void }) {
     <Stack gap="lg" maw={900}>
       <Group justify="space-between" align="flex-start">
         <div>
-          <Title order={2}>Series points</Title>
-          <Text c="dimmed">
-            A points tally across the rounds of a series, worked out from each round&apos;s final
-            results.
-          </Text>
+          <Title order={2}>{i18next.t('series.title')}</Title>
+          <Text c="dimmed">{i18next.t('series.intro')}</Text>
         </div>
         <Button variant="subtle" color="gray" onClick={onBack}>
-          ← All events
+          {i18next.t('series.allEvents')}
         </Button>
       </Group>
       {error && <ErrorAlert error={error} onClose={() => setError(null)} />}
       <Paper withBorder radius="md" p="lg" component="section" aria-labelledby="series-new">
         <Title order={3} size="h4" id="series-new" mb="sm">
-          New series
+          {i18next.t('series.newSeries')}
         </Title>
         <Group align="flex-end">
           <TextInput
-            label="Series name"
+            label={i18next.t('series.name')}
             required
-            placeholder="e.g. Winter Series 2027"
+            placeholder={i18next.t('series.namePlaceholder')}
             value={name}
             onChange={(e) => setName(e.currentTarget.value)}
             style={{ flex: 1 }}
@@ -86,15 +85,15 @@ export function Series({ onBack }: { onBack: () => void }) {
               setName('');
             }}
           >
-            Make series
+            {i18next.t('series.make')}
           </Button>
         </Group>
       </Paper>
       <section aria-labelledby="series-list">
         <Title order={3} size="h4" id="series-list" mb="sm">
-          Series on this laptop
+          {i18next.t('series.onLaptop')}
         </Title>
-        {list?.length === 0 && <Text c="dimmed">None yet.</Text>}
+        {list?.length === 0 && <Text c="dimmed">{i18next.t('series.none')}</Text>}
         <Stack gap="xs">
           {list?.map((s) => (
             <Group key={s.file} justify="space-between">
@@ -102,7 +101,7 @@ export function Series({ onBack }: { onBack: () => void }) {
                 {s.name}
               </Button>
               <Text size="sm" c="dimmed">
-                {s.rounds} {s.rounds === 1 ? 'round' : 'rounds'}
+                {i18next.t('series.rounds', { count: s.rounds })}
               </Text>
             </Group>
           ))}
@@ -112,13 +111,13 @@ export function Series({ onBack }: { onBack: () => void }) {
   );
 }
 
-const STATE_WORDS: Record<SeriesView['rounds'][number]['state'], string> = {
-  final: 'Final',
-  provisional: 'Not final yet',
-  reopened: 'Reopened',
-  missing: 'Not found',
-  unreadable: "Can't be read",
-};
+const STATE_WORDS = {
+  final: 'series.final',
+  provisional: 'series.provisional',
+  reopened: 'series.reopened',
+  missing: 'series.missing',
+  unreadable: 'series.unreadable',
+} as const satisfies Record<SeriesView['rounds'][number]['state'], string>;
 
 function SeriesDetail(props: {
   view: SeriesView;
@@ -173,27 +172,32 @@ function SeriesDetail(props: {
       <Group justify="space-between" align="flex-start">
         <div>
           <Title order={2}>{view.name}</Title>
-          <Text c="dimmed">Series points. Only rounds with final results count.</Text>
+          <Text c="dimmed">{i18next.t('series.detailIntro')}</Text>
         </div>
         <Button variant="subtle" color="gray" onClick={props.onBack}>
-          ← All series
+          {i18next.t('series.allSeries')}
         </Button>
       </Group>
       {error && <ErrorAlert error={error} onClose={() => setError(null)} />}
 
       <Paper withBorder radius="md" p="lg" component="section" aria-labelledby="rounds-h">
         <Title order={3} size="h4" id="rounds-h" mb="sm">
-          Rounds
+          {i18next.t('series.roundsTitle')}
         </Title>
-        {view.rounds.length === 0 && (
-          <Text c="dimmed">No rounds yet. Add each round&apos;s event.</Text>
-        )}
+        {view.rounds.length === 0 && <Text c="dimmed">{i18next.t('series.noRounds')}</Text>}
         <Stack gap={6}>
           {view.rounds.map((r) => (
             <Group key={r.folder} justify="space-between" wrap="nowrap">
               <Text>
-                <strong>Round {r.round}</strong>: {r.name || r.folder}
-                {r.date ? ` · ${formatDate(r.date)}` : ''}
+                <Trans
+                  i18nKey="series.round"
+                  values={{
+                    round: r.round,
+                    name: r.name || r.folder,
+                    date: r.date ? ` · ${formatDate(r.date)}` : '',
+                  }}
+                  components={{ strong: <strong /> }}
+                />
               </Text>
               <Group gap="xs" wrap="nowrap">
                 <Text
@@ -209,19 +213,19 @@ function SeriesDetail(props: {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {STATE_WORDS[r.state]}
+                  {i18next.t(STATE_WORDS[r.state])}
                   {r.state === 'final' && r.revision && r.revision > 1
-                    ? ` (rev ${r.revision})`
+                    ? i18next.t('series.rev', { revision: r.revision })
                     : ''}
                 </Text>
                 <Button
                   size="compact-sm"
                   variant="subtle"
                   color="gray"
-                  aria-label={`Remove round ${r.round}`}
+                  aria-label={i18next.t('series.removeRound', { round: r.round })}
                   onClick={() => void change({ removeRound: r.folder })}
                 >
-                  Remove
+                  {i18next.t('series.remove')}
                 </Button>
               </Group>
             </Group>
@@ -229,11 +233,16 @@ function SeriesDetail(props: {
         </Stack>
         <Group mt="md" align="flex-end">
           <NativeSelect
-            label="Add a round from your events"
+            label={i18next.t('series.addFromEvents')}
             value={pick}
             onChange={(e) => setPick(e.currentTarget.value)}
             data={[
-              { value: '', label: addable.length ? 'Choose an event…' : 'No other recent events' },
+              {
+                value: '',
+                label: addable.length
+                  ? i18next.t('series.chooseEvent')
+                  : i18next.t('series.noOther'),
+              },
               ...addable.map((r) => ({
                 value: r.folder,
                 label: `${r.date ? `${formatDate(r.date)} · ` : ''}${r.name}`,
@@ -249,7 +258,7 @@ function SeriesDetail(props: {
               setPick('');
             }}
           >
-            Add round
+            {i18next.t('series.addRound')}
           </Button>
           <Button
             variant="default"
@@ -260,24 +269,24 @@ function SeriesDetail(props: {
               })
             }
           >
-            Add from file…
+            {i18next.t('series.addFile')}
           </Button>
         </Group>
       </Paper>
 
       <Paper withBorder radius="md" p="lg" component="section" aria-labelledby="rules-h">
         <Title order={3} size="h4" id="rules-h" mb="sm">
-          Rules
+          {i18next.t('series.rules')}
         </Title>
         <Stack gap="sm">
           <Group align="flex-end">
             <TextInput
-              label="Points for 1st, 2nd, 3rd …"
+              label={i18next.t('series.points')}
               required
-              description="Places past the end score 0."
+              description={i18next.t('series.pointsHelp')}
               value={scale}
               onChange={(e) => setScale(e.currentTarget.value)}
-              error={points ? null : 'Whole numbers, highest first, separated by commas.'}
+              error={points ? null : i18next.t('series.pointsError')}
               style={{ flex: 1 }}
             />
             <Button
@@ -285,19 +294,19 @@ function SeriesDetail(props: {
               disabled={!points || points.join(',') === view.rules.points.join(',')}
               onClick={() => points && rules({ points })}
             >
-              Save points
+              {i18next.t('series.savePoints')}
             </Button>
             <Button
               variant="subtle"
               color="gray"
               onClick={() => rules({ points: [...DEFAULT_SERIES_POINTS] })}
             >
-              Usual points
+              {i18next.t('series.usual')}
             </Button>
           </Group>
           <Group align="flex-start">
             <NativeSelect
-              label="Rounds that count"
+              label={i18next.t('series.count')}
               value={best ? 'best' : 'all'}
               onChange={(e) =>
                 rules(
@@ -307,13 +316,13 @@ function SeriesDetail(props: {
                 )
               }
               data={[
-                { value: 'all', label: 'Every round' },
-                { value: 'best', label: 'Best rounds only' },
+                { value: 'all', label: i18next.t('series.every') },
+                { value: 'best', label: i18next.t('series.bestOnly') },
               ]}
             />
             {best && (
               <NumberInput
-                label="Best how many?"
+                label={i18next.t('series.bestHow')}
                 min={1}
                 max={50}
                 value={view.rules.bestOf}
@@ -322,18 +331,17 @@ function SeriesDetail(props: {
               />
             )}
             <NativeSelect
-              label="Equal totals"
+              label={i18next.t('series.ties')}
               value={view.rules.ties}
               onChange={(e) => rules({ ties: e.currentTarget.value as SeriesRules['ties'] })}
               data={[
-                { value: 'share', label: 'Share the place' },
-                { value: 'split', label: 'Split: most round wins, then latest round' },
+                { value: 'share', label: i18next.t('series.share') },
+                { value: 'split', label: i18next.t('series.split') },
               ]}
             />
           </Group>
           <Text size="sm" c="dimmed">
-            DNF and No award score 0 for the round. A round not ridden is blank. Non-competitive
-            riders take no series points. Riders are matched by name in each class.
+            {i18next.t('series.rulesHelp')}
           </Text>
         </Stack>
       </Paper>
@@ -345,7 +353,7 @@ function SeriesDetail(props: {
           role="status"
           style={{ background: '#fff0de', color: '#6b2e00', border: '2px solid #b35c00' }}
         >
-          <Text fw={800}>Not counted yet</Text>
+          <Text fw={800}>{i18next.t('series.notCounted')}</Text>
           <Stack gap={2}>
             {view.notCounted.map((n) => (
               <Text key={n} size="sm">
@@ -359,23 +367,23 @@ function SeriesDetail(props: {
       <Paper withBorder radius="md" p="lg" component="section" aria-labelledby="tally-h">
         <Group justify="space-between" mb="sm">
           <Title order={3} size="h4" id="tally-h">
-            Points after {view.tally.rounds} {view.tally.rounds === 1 ? 'round' : 'rounds'}
+            {i18next.t('series.after', { count: view.tally.rounds })}
           </Title>
           <Group gap="sm">
             <Checkbox
-              label="Junior surnames as an initial"
+              label={i18next.t('series.initials')}
               checked={initials}
               onChange={(e) => setInitials(e.currentTarget.checked)}
             />
             <Button onClick={() => void save('pdf')} disabled={classes.length === 0}>
-              Save PDF…
+              {i18next.t('series.savePdf')}
             </Button>
             <Button
               variant="default"
               onClick={() => void save('csv')}
               disabled={classes.length === 0}
             >
-              Save CSV…
+              {i18next.t('series.saveCsv')}
             </Button>
           </Group>
         </Group>
@@ -384,15 +392,15 @@ function SeriesDetail(props: {
             color="green"
             role="status"
             withCloseButton
-            closeButtonLabel="Close"
+            closeButtonLabel={i18next.t('series.close')}
             onClose={() => setSaved(null)}
             mb="sm"
           >
-            Saved {saved}
+            {i18next.t('series.saved', { file: saved })}
           </Alert>
         )}
         {classes.length === 0 ? (
-          <Text c="dimmed">No final rounds yet.</Text>
+          <Text c="dimmed">{i18next.t('series.noFinal')}</Text>
         ) : (
           <Tabs value={tab} onChange={setTab}>
             <Tabs.List>
@@ -407,16 +415,20 @@ function SeriesDetail(props: {
                 <Table striped>
                   <Table.Thead>
                     <Table.Tr>
-                      <Table.Th>Place</Table.Th>
-                      <Table.Th>Rider</Table.Th>
-                      <Table.Th ta="right">No.</Table.Th>
+                      <Table.Th>{i18next.t('series.place')}</Table.Th>
+                      <Table.Th>{i18next.t('series.rider')}</Table.Th>
+                      <Table.Th ta="right">{i18next.t('series.number')}</Table.Th>
                       {view.roundLabels.map((l) => (
                         <Table.Th key={l} ta="right">
                           {l}
                         </Table.Th>
                       ))}
-                      <Table.Th ta="right">Total</Table.Th>
-                      {best && <Table.Th ta="right">Best {view.rules.bestOf}</Table.Th>}
+                      <Table.Th ta="right">{i18next.t('series.total')}</Table.Th>
+                      {best && (
+                        <Table.Th ta="right">
+                          {i18next.t('series.best', { n: view.rules.bestOf ?? 0 })}
+                        </Table.Th>
+                      )}
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>

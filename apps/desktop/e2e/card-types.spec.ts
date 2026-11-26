@@ -153,9 +153,15 @@ test('a club card type is imported, shared, and imported the same on another lap
   expect(url).toMatch(/^mailto:tscoreapp@outlook\.com\?subject=tScore%20card%20profile/);
   expect(decodeURIComponent(url)).toContain('example-club-10.tscore-card is attached');
 
+  // Catch the copy in the app: the laptop's clipboard may be in use by something else.
+  await one.app.evaluate(({ clipboard }) => {
+    clipboard.writeText = ((text: string) => {
+      (globalThis as { copied?: string }).copied = text;
+    }) as typeof clipboard.writeText;
+  });
   await share.getByRole('button', { name: 'Copy address' }).click();
   await expect(share.getByRole('status')).toContainText('Copied tscoreapp@outlook.com');
-  expect(await one.app.evaluate(({ clipboard }) => clipboard.readText())).toBe(
+  expect(await one.app.evaluate(() => (globalThis as { copied?: string }).copied)).toBe(
     'tscoreapp@outlook.com',
   );
   await expect(share.getByRole('link', { name: 'Use the New card type form' })).toHaveAttribute(

@@ -20,6 +20,22 @@ win:
       arch: [x64]
   artifactName: tScore-Setup-${version}.${ext}
   # Code signing is added when the certificate is in place (ADR 0011).
+# macOS beta (#61): not signed by Apple yet. "-" signs it ad hoc, which Apple silicon Macs
+# need before macOS will offer Open Anyway (Privacy & Security). No hardened runtime without a
+# Developer ID; notarisation comes with the Apple Developer account.
+mac:
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+  artifactName: tScore-${version}-mac-${arch}.${ext}
+  category: public.app-category.sports
+  identity: '-'
+  hardenedRuntime: false
+  notarize: false
+  extendInfo:
+    NSCameraUsageDescription: tScore uses the document camera to read riders' scorecards.
+dmg:
+  title: tScore ${version}
 nsis:
   oneClick: true
   perMachine: false

@@ -22,7 +22,8 @@ export async function emailSuggestion(text: unknown): Promise<Outcome<Suggestion
   }
   // Too long for a mailto link: some mail apps would cut it off.
   clipboard.writeText(text);
-  const short = suggestionMailto('The suggestion is on the clipboard: paste it here (Ctrl+V).');
+  const paste = process.platform === 'darwin' ? '⌘V' : 'Ctrl+V';
+  const short = suggestionMailto(`The suggestion is on the clipboard: paste it here (${paste}).`);
   if (short) await shell.openExternal(short);
   return { ok: true, value: { via: 'email-and-clipboard' } };
 }

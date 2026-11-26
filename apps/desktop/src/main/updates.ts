@@ -11,6 +11,12 @@ const { autoUpdater } = electronUpdater;
  */
 export function checkForUpdatesWhenSafe(): void {
   if (!app.isPackaged) return;
+  // The Mac beta isn't signed, and macOS won't install an unsigned update: Mac users download
+  // each new version by hand until it is (#61).
+  if (process.platform === 'darwin') {
+    log.info('update check skipped: the Mac beta updates by hand');
+    return;
+  }
   if (isEventOpen()) {
     log.info('update check skipped: event open');
     return;

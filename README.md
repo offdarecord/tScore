@@ -24,6 +24,12 @@ tScore is a Windows desktop app that:
 
 Everything works offline. Every score traces back to a card image and an audit log.
 
+## Use tScore at your club
+
+tScore is free for any club, region or championship. To bring it to yours, start with
+[Bringing tScore to your region](docs/regions/README.md): what it takes, and what to send us. Questions
+and offers of help go to [tscoreapp@outlook.com](mailto:tscoreapp@outlook.com).
+
 Website: **<https://offdarecord.github.io/tScore/>**
 
 ## Download

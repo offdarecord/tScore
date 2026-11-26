@@ -29,10 +29,12 @@
     "check:schemas": "node scripts/gen-schemas.mjs --check",
     "gen:errors": "node scripts/gen-errors.mjs",
     "gen:suggestion": "node scripts/gen-suggestion.mjs",
+    "gen:credit": "node scripts/gen-credit.mjs",
     "check:errors": "node scripts/gen-errors.mjs --check",
+    "check:credit": "node scripts/gen-credit.mjs --check",
     "check:audit": "node scripts/audit.mjs",
     "check:electron": "node scripts/electron-support.mjs",
-    "check": "npm run check:schemas && npm run check:errors && npm run lint && npm run format:check && npm run typecheck && npm test",
+    "check": "npm run check:schemas && npm run check:errors && npm run check:credit && npm run lint && npm run format:check && npm run typecheck && npm test",
     "test:e2e": "npm run test:e2e -w apps/desktop",
     "kit": "node scripts/build-test-trial.mjs"
   },

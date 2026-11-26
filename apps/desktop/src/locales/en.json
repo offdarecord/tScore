@@ -1018,7 +1018,9 @@
     "suggest_example": "Example or picture",
     "suggest_example_help": "Describe it, or attach a photo of a paper form or a screenshot to your email or issue. Please hide riders' names and details.",
     "suggest_contact": "Can we contact you about it?",
-    "suggest_contact_help": "Name and club. Removed before anything is made public."
+    "suggest_contact_help": "Name and club. Removed before anything is made public.",
+    "creditBy": "Results brought to you by",
+    "creditAsk": "Want tScore for your club or region? Get involved:"
   },
   "checkItem": {
     "setup": "Event setup",

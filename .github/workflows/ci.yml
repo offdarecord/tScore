@@ -25,6 +25,8 @@ jobs:
       - run: npm ci
       - name: Generated schema types and validators are up to date
         run: npm run check:schemas
+      - name: The results credit's logo is up to date
+        run: npm run check:credit
       - run: npm run lint
       - run: npm run format:check
       - run: npm run typecheck

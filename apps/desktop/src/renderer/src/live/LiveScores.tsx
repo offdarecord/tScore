@@ -1,6 +1,13 @@
-import type { ResultsTypes } from '@tscore/core';
+import {
+  creditWords,
+  qrMatrix,
+  RESULTS_CREDIT_LOGO,
+  RESULTS_CREDIT_NAME,
+  RESULTS_CREDIT_URL,
+  type ResultsTypes,
+} from '@tscore/core';
 import { useEffect, useMemo, useState } from 'react';
-import i18next from '../i18n';
+import i18next, { coreT } from '../i18n';
 import type { LiveScores as LiveData } from '../../../shared/ipc';
 import './live.css';
 type ClassResults = ResultsTypes.ClassResults;
@@ -217,7 +224,36 @@ export function LiveScores() {
             ))}
           </div>
         )}
+        <Credit />
       </footer>
     </main>
+  );
+}
+
+/** The link to tScore as a QR code: nobody can click the big screen, but a phone can scan it. */
+const CREDIT_QR = qrMatrix(RESULTS_CREDIT_URL);
+
+/** "Results brought to you by tScore" (#110): small, in the corner, always shown. */
+function Credit() {
+  const size = CREDIT_QR.length;
+  return (
+    <div className="live-credit">
+      <span>{creditWords(coreT).by}</span>
+      <img className="live-credit-logo" src={RESULTS_CREDIT_LOGO} alt={RESULTS_CREDIT_NAME} />
+      <svg
+        className="live-credit-qr"
+        viewBox={`-2 -2 ${size + 4} ${size + 4}`}
+        role="img"
+        aria-label={RESULTS_CREDIT_URL}
+      >
+        <rect x={-2} y={-2} width={size + 4} height={size + 4} fill="#ffffff" />
+        <path
+          fill="#000000"
+          d={CREDIT_QR.flatMap((row, y) =>
+            row.flatMap((on, x) => (on ? [`M${x} ${y}h1v1h-1z`] : [])),
+          ).join('')}
+        />
+      </svg>
+    </div>
   );
 }

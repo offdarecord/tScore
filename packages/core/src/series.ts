@@ -16,6 +16,7 @@
  */
 import type { Results } from './generated/results.js';
 import { BOM, csvField, esc } from './results/output.js';
+import { CREDIT_CSS, creditHtml } from './credit.js';
 import { english, type Translate } from './words.js';
 
 type Entry = Results['classes'][number]['entries'][number];
@@ -319,7 +320,7 @@ export function seriesHtml(tally: SeriesTally, opts: SeriesPrintOptions): string
   .n { text-align: right; }
   .place { font-weight: 700; width: 3.5em; }
   .total { font-weight: 700; }
-  footer { margin-top: 14px; color: #444; font-size: 8pt; }
+  footer { margin-top: 14px; color: #444; font-size: 8pt; }${CREDIT_CSS}
 </style></head><body>
 <h1>${esc(opts.name)}</h1>
 <div class="sub">${esc(
@@ -332,5 +333,6 @@ export function seriesHtml(tally: SeriesTally, opts: SeriesPrintOptions): string
 ${opts.notCounted ? `<div class="note">${esc(opts.notCounted)}</div>` : ''}
 ${classes}
 <footer>${esc(rule)}<br>${esc(opts.footer)}</footer>
+${creditHtml(t)}
 </body></html>`;
 }

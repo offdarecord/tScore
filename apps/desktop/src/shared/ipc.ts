@@ -37,6 +37,7 @@ export const IPC = {
   cardProfiles: 'card-profiles:list',
   cardProfileImage: 'card-profiles:image',
   importCardProfile: 'card-profiles:import',
+  saveTaughtCard: 'card-profiles:teach-save',
   saveCardShare: 'card-profiles:share-save',
   emailCardShare: 'card-profiles:share-email',
   showCardShareFile: 'card-profiles:share-show',
@@ -610,6 +611,14 @@ export interface TscoreApi {
   importCardProfile(): Promise<
     Outcome<{ readonly profile: CardProfile; readonly replaced: boolean } | null>
   >;
+  /**
+   * Keeps a card type taught with the Teach a card wizard, with its straightened blank card (a
+   * PNG). Always kept `assisted`.
+   */
+  saveTaughtCard(
+    profile: CardProfile,
+    blank: Uint8Array,
+  ): Promise<Outcome<{ readonly profile: CardProfile; readonly replaced: boolean }>>;
   /** Shows the save dialog, then saves the profile as a `.tscore-card` file. */
   saveCardShare(id: string, credit: CardCredit): Promise<Outcome<CardShareSaved | null>>;
   /** Opens the mail app, addressed to the maintainers, saying which saved file to attach. */

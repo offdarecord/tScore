@@ -524,7 +524,6 @@ export function readCells(
   paper: number,
   black: number,
 ): RowReading[] {
-  const threshold = profile.markThreshold;
   const points = reference.points;
   const rows: RowReading[] = [];
   for (let k = 0; k < profile.rows; k++) {
@@ -543,47 +542,43 @@ export function readCells(
       });
       return Math.min(1, Math.max(0, change / Math.max(room, 1e-9)));
     });
-    const punched = darkness.map((d) => d >= threshold);
-    const holes = darkness.filter((_, i) => punched[i]);
-    const open = darkness.filter((_, i) => !punched[i]);
-    const margin =
-      Math.min(
-        holes.length ? Math.min(...holes) - threshold : 1,
-        open.length ? threshold - Math.max(...open) : 1,
-      ) / Math.max(threshold, 1 - threshold);
-    const decision = decodeRow(profile.values, punched, {
-      inverse: profile.inverseCorrections,
-    });
-    if (decision.kind === 'flag') {
-      rows.push({
-        section,
-        darkness,
-        punched,
-        value: null,
-        inverse: false,
-        flag: decision.flag,
-        margin,
-      });
-    } else if (margin < profile.minMargin || open.some((d) => d > threshold * PARTIAL)) {
-      rows.push({
-        section,
-        darkness,
-        punched,
-        value: null,
-        inverse: decision.inverse,
-        flag: 'LOW_CONF',
-        margin,
-      });
-    } else {
-      rows.push({
-        section,
-        darkness,
-        punched,
-        value: decision.value,
-        inverse: decision.inverse,
-        margin,
-      });
-    }
+    rows.push(decideRow(section, darkness, profile));
   }
   return rows;
+}
+
+/**
+ * Decide a row from each value cell's change from the blank card (0–1): which cells are marked,
+ * how clearly, and the score. Rows marked part-way, or not clearly enough, go to a person.
+ */
+export function decideRow(
+  section: number,
+  darkness: readonly number[],
+  profile: Pick<ReaderProfile, 'values' | 'markThreshold' | 'minMargin' | 'inverseCorrections'>,
+): RowReading {
+  const threshold = profile.markThreshold;
+  const punched = darkness.map((d) => d >= threshold);
+  const holes = darkness.filter((_, i) => punched[i]);
+  const open = darkness.filter((_, i) => !punched[i]);
+  const margin =
+    Math.min(
+      holes.length ? Math.min(...holes) - threshold : 1,
+      open.length ? threshold - Math.max(...open) : 1,
+    ) / Math.max(threshold, 1 - threshold);
+  const decision = decodeRow(profile.values, punched, { inverse: profile.inverseCorrections });
+  if (decision.kind === 'flag') {
+    return { section, darkness, punched, value: null, inverse: false, flag: decision.flag, margin };
+  }
+  if (margin < profile.minMargin || open.some((d) => d > threshold * PARTIAL)) {
+    return {
+      section,
+      darkness,
+      punched,
+      value: null,
+      inverse: decision.inverse,
+      flag: 'LOW_CONF',
+      margin,
+    };
+  }
+  return { section, darkness, punched, value: decision.value, inverse: decision.inverse, margin };
 }

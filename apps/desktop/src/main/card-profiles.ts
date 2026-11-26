@@ -85,6 +85,17 @@ export const cardProfileHandlers = {
     });
   },
 
+  /**
+   * Keep a card type taught with the wizard (#107), by the same path as an imported one: checked,
+   * made `assisted`, with its blank card's picture beside it.
+   */
+  teach(profile: unknown, blank: unknown) {
+    return attempt('keep a taught card type', () => {
+      const bytes = blank instanceof Uint8Array ? blank : null;
+      return cardProfileShelf().save(profile, bytes && { type: 'png', bytes });
+    });
+  },
+
   async save(
     id: unknown,
     credit: unknown,

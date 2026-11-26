@@ -20,7 +20,7 @@ import { ShareCardDialog } from './ShareCardDialog';
  * a club's own card type can be imported from a `.tscore-card` file, and shared with the
  * maintainers so a later release builds it in.
  */
-export function CardTypes({ onBack }: { onBack: () => void }) {
+export function CardTypes({ onBack, onTeach }: { onBack: () => void; onTeach: () => void }) {
   const [list, setList] = useState<CardProfileInfo[] | null>(null);
   const [error, setError] = useState<AppError | null>(null);
   const [done, setDone] = useState<string | null>(null);
@@ -102,6 +102,18 @@ export function CardTypes({ onBack }: { onBack: () => void }) {
         ) : (
           <CardTable cards={imported} onShare={setSharing} />
         )}
+      </Paper>
+
+      <Paper withBorder radius="md" p="lg" component="section" aria-labelledby="card-types-teach">
+        <Group justify="space-between" mb="sm">
+          <Title order={3} size="h4" id="card-types-teach">
+            {i18next.t('teach.title')}
+          </Title>
+          <Button onClick={onTeach}>{i18next.t('cardTypes.teach')}</Button>
+        </Group>
+        <Text size="sm" c="dimmed">
+          {i18next.t('cardTypes.teachIntro')}
+        </Text>
       </Paper>
 
       {sharing && <ShareCardDialog card={sharing} opened onClose={() => setSharing(null)} />}

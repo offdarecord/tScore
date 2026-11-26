@@ -33,7 +33,7 @@ import type {
 } from '../../../shared/ipc';
 import { ErrorAlert } from '../ErrorAlert';
 import { LiveScreenButton } from '../live/LiveScreenButton';
-import i18next from '../i18n';
+import i18next, { coreT } from '../i18n';
 import { isTestTrialEvent, TestTrialCheckButton } from './TestTrialCheck';
 
 type ClassResults = ResultsTypes.ClassResults;
@@ -162,7 +162,7 @@ export function Results({ event }: { readonly event: OpenEvent }) {
               ))}
             </Tabs>
             <Text size="sm" c="dimmed" mt="sm">
-              {tieBreakWords(view.results)} {i18next.t('results.key')}
+              {tieBreakWords(view.results, coreT)} {i18next.t('results.key')}
             </Text>
           </Paper>
 
@@ -248,7 +248,7 @@ function Status(props: { gaps: readonly ResultsGapInfo[]; open: boolean; onToggl
           <Text fw={800} fz="xl">
             {i18next.t('results.provisional')}
           </Text>
-          <Text>{i18next.t('results.mayChange', { gaps: gapWords(gaps) })}</Text>
+          <Text>{i18next.t('results.mayChange', { gaps: gapWords(gaps, coreT) })}</Text>
         </div>
         <Button variant="default" onClick={props.onToggle} aria-expanded={props.open}>
           {props.open ? i18next.t('results.hideMissing') : i18next.t('results.seeMissing')}
@@ -274,8 +274,8 @@ function ClassTable(props: {
   gaps: readonly ResultsGapInfo[];
 }) {
   const { cls, scoreValues } = props;
-  const cols = lapColumns(cls);
-  const places = placeLabels(cls.entries);
+  const cols = lapColumns(cls, coreT);
+  const places = placeLabels(cls.entries, coreT);
   const waiting = new Map<number, number[]>();
   for (const g of props.gaps) {
     if (g.className === cls.name && g.kind === 'missing_card') {
@@ -285,7 +285,10 @@ function ClassTable(props: {
   return (
     <Stack gap={4}>
       <Text>
-        {i18next.t('results.entries', { summary: classSummary(cls), count: cls.entries.length })}
+        {i18next.t('results.entries', {
+          summary: classSummary(cls, coreT),
+          count: cls.entries.length,
+        })}
       </Text>
       {/* On a narrow window the table scrolls sideways; focusable so the keyboard can scroll it. */}
       <div

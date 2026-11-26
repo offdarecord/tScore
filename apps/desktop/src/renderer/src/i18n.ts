@@ -1,6 +1,6 @@
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import { messagesFor, pickLanguage } from '../../shared/i18n';
+import { coreTranslator, messagesFor, pickLanguage } from '../../shared/i18n';
 
 const inBrowser = typeof window !== 'undefined';
 
@@ -26,5 +26,10 @@ void i18next.use(initReactI18next).init({
 
 /** Mac or Windows, for the few words that differ ("Match Windows" or "Match System"). */
 export const isMac = inBrowser && /Mac/i.test(navigator.userAgent);
+
+/** Core's wording (results phrases, …) in the screens' language. */
+export const coreT = coreTranslator((key, options) =>
+  String(i18next.t(key as never, options as never)),
+);
 
 export default i18next;

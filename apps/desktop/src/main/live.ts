@@ -11,6 +11,7 @@
 import { join } from 'node:path';
 import { app, BrowserWindow, screen, shell } from 'electron';
 import { uiLanguage } from './locale';
+import { t } from './i18n';
 import type { LiveWindowState } from '../shared/ipc';
 
 let live: BrowserWindow | null = null;
@@ -38,7 +39,7 @@ export function showLiveWindow(desk: BrowserWindow | null, rendererUrl: string |
     width: other ? area.width : Math.min(1280, area.width - 80),
     height: other ? area.height : Math.min(720, area.height - 80),
     fullscreen: onSecondScreen,
-    title: 'tScore live scores',
+    title: t('dialog.liveTitle'),
     autoHideMenuBar: true,
     backgroundColor: '#ffffff',
     ...(!app.isPackaged && { icon: join(__dirname, '../../build/icon.ico') }),

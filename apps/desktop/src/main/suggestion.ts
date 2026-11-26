@@ -9,6 +9,7 @@ import { publicErrorCode, suggestionMailto } from '@tscore/core';
 import log from 'electron-log/main';
 import { app, clipboard, dialog, shell, type BrowserWindow } from 'electron';
 import type { Outcome, SuggestionSent } from '../shared/ipc';
+import { t } from './i18n';
 
 const isText = (t: unknown): t is string => typeof t === 'string' && t.length < 50_000;
 
@@ -38,9 +39,9 @@ export async function saveSuggestion(
 ): Promise<Outcome<SuggestionSent>> {
   if (!isText(text)) return { ok: true, value: { via: 'none' } };
   const options: Electron.SaveDialogOptions = {
-    title: 'Save the suggestion',
+    title: t('dialog.saveSuggestion'),
     defaultPath: join(app.getPath('documents'), 'tScore feature suggestion.txt'),
-    filters: [{ name: 'Text', extensions: ['txt'] }],
+    filters: [{ name: t('dialog.text'), extensions: ['txt'] }],
   };
   const picked = win
     ? await dialog.showSaveDialog(win, options)

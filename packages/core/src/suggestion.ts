@@ -7,8 +7,10 @@
  * data, rider data or files: the person's own words are the whole suggestion.
  */
 
-/** A tScore-only address (never a personal one). */
-export const SUGGESTION_EMAIL = 'tscoreapp@outlook.com';
+import { CONTACT } from './contact.js';
+
+/** A tScore-only address (never a personal one), from presets/contact.json. */
+export const SUGGESTION_EMAIL = CONTACT.email;
 export const SUGGESTION_SUBJECT = 'tScore feature suggestion';
 /** Some mail apps cut a longer `mailto:` link off. Past this, the text goes via the clipboard. */
 export const MAILTO_MAX = 1800;

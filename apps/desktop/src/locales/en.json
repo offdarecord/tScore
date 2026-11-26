@@ -1190,6 +1190,8 @@
     "BACKUP_PLACE_MISSING": "{{place}} isn't available (is the USB stick plugged in?). Scoring still works, but there's no second copy.",
     "BACKUP_COPY_FAILED": "Couldn't copy the backup to {{place}}: {{problem}}",
     "APP_SAVE_FAILED": "Couldn't save the file: {{problem}}",
+    "CARD_SHARE_BAD_FILE": "That isn't a card profile tScore can use: {{detail}}. Nothing was changed.",
+    "CARD_SHARE_BUILT_IN": "\"{{name}}\" is already built into tScore, so it can't be replaced by a file. Nothing was changed.",
     "STORE_NEWER_FILE": "This event was saved by a newer version of tScore (file version {{fileVersion}}; this version reads up to {{supportedVersion}}). Update tScore to open it.",
     "STORE_DAMAGED": "The event file failed its integrity check ({{detail}}). Restore it from a backup."
   }

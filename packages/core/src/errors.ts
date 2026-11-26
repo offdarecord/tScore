@@ -387,6 +387,22 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
     fix: 'Type the time as hours and minutes, for example 09:30.',
     internal: ['STORE_BAD_TIME'],
   },
+  {
+    code: 'TS-CARD-009',
+    title: "That isn't a card profile tScore can use",
+    meaning:
+      "The file chosen isn't a `.tscore-card` file, or it's damaged or incomplete, or it was changed after it was saved. The message says what's wrong with it. Nothing was imported.",
+    fix: 'Ask whoever sent it to share the card type again from tScore (**Card types**, then **Share…** on its menu) and send the new file. Open it straight from the email or USB stick, without changing it.',
+    internal: ['CARD_SHARE_BAD_FILE'],
+  },
+  {
+    code: 'TS-CARD-010',
+    title: 'That card type is built into tScore',
+    meaning:
+      'The file is for a card type that already comes with tScore. A built-in card type is never replaced by a file, so nothing was imported.',
+    fix: 'Nothing to do: choose the built-in card type. If its readings look wrong, tell the maintainers.',
+    internal: ['CARD_SHARE_BUILT_IN'],
+  },
 
   // Results and penalties
   {

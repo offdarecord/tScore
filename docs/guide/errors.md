@@ -284,6 +284,18 @@ If a problem keeps happening, see [Troubleshooting](troubleshooting.md).
 
 **What to do:** Type the time as hours and minutes, for example 09:30.
 
+### TS-CARD-009
+
+**That isn't a card profile tScore can use.** The file chosen isn't a `.tscore-card` file, or it's damaged or incomplete, or it was changed after it was saved. The message says what's wrong with it. Nothing was imported.
+
+**What to do:** Ask whoever sent it to share the card type again from tScore (**Card types**, then **Share…** on its menu) and send the new file. Open it straight from the email or USB stick, without changing it.
+
+### TS-CARD-010
+
+**That card type is built into tScore.** The file is for a card type that already comes with tScore. A built-in card type is never replaced by a file, so nothing was imported.
+
+**What to do:** Nothing to do: choose the built-in card type. If its readings look wrong, tell the maintainers.
+
 ## Results and penalties
 
 ### TS-RES-001

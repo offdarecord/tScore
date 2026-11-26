@@ -10,16 +10,20 @@ a shared drive.
 
 ## Agree before the first round
 
-The series tally matches riders and classes by name across every round, so the clubs need to use
-the same words:
+The series tally matches classes by name across every round, and riders by licence number (or
+by name when there isn't one), so the clubs need to use the same words:
 
 - **Class names, exactly the same** at every round: "Trial 4 Plus" at one round and "Trial 4+"
   at another make two different classes in the tally. Agree the list in writing before the
   first round. A club that has opened another club's round file (below) can also use
   **Copy from a previous event…** on Event setup to start from its classes.
-- **Riders' names as they enter them.** Riders are matched by name, so a rider entered as "Sam"
-  at one round and "Samuel" at another gets two lines. Rider numbers can differ between rounds:
-  they don't matter to the tally.
+- **Riders' licence numbers in every entry list.** Riders are matched by licence number, so a
+  rider entered as "Sam" at one round and "Samuel" at another is still one line, as long as
+  both entries have the licence number (Ridernet and Entryplace exports include it). Riders
+  without one are matched by name, so "Sam" and "Samuel" would get two lines. Rider numbers can
+  differ between rounds: they don't matter to the tally. Licence numbers are used only for
+  matching: they never appear in the tally, the PDF or the CSV. Anything the keeper should
+  check is listed on the series screen (see [Check these riders](series.md#check-these-riders)).
 - **One series keeper**: the person (and laptop) who keeps the series and publishes the tally.
   The points scale, best-rounds rule and tie rule are set once, on the keeper's laptop (see
   [Series points](series.md#rules)).

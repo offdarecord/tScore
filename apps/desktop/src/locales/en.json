@@ -749,7 +749,7 @@
     "ties": "Equal totals",
     "share": "Share the place",
     "split": "Split: most round wins, then latest round",
-    "rulesHelp": "DNF and No award score 0 for the round. A round not ridden is blank. Non-competitive riders take no series points. Riders are matched by name in each class.",
+    "rulesHelp": "DNF and No award score 0 for the round. A round not ridden is blank. Non-competitive riders take no series points. Riders are matched in each class by licence number, or by name when there isn't one.",
     "notCounted": "Not counted yet",
     "after_one": "Points after 1 round",
     "after_other": "Points after {{count}} rounds",
@@ -771,7 +771,11 @@
     "roundLabel": "Rd {{round}}",
     "roundLabelDate": "Rd {{round}} ({{date}})",
     "notCountedRound": "Round {{round}} ({{name}}): {{state}}",
-    "notCountedYet": "Not counted yet: {{rounds}}."
+    "notCountedYet": "Not counted yet: {{rounds}}.",
+    "checks": "Check these riders in the entry lists",
+    "checksIntro": "Riders are matched by licence number, or by name when there isn't one. tScore doesn't guess past these:",
+    "checkLicenceNames": "{{class}}: one licence number is entered as {{names}}. Counted as one rider.",
+    "checkNameLicences": "{{class}}: {{name}} has a different licence number in different rounds. Counted as separate riders."
   },
   "labels": {
     "auto": "Automatic",

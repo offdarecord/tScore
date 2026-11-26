@@ -30,8 +30,29 @@ one laptop for the tally.
 DNF and No award riders score 0 for the round. A round a rider didn't ride is left blank.
 Non-competitive riders take no series points and aren't listed.
 
-Each class has its own tally, matched by class name. Riders are matched by name, so a new
-number at a later round doesn't matter. A rider who changes class has a line in each class.
+Each class has its own tally, matched by class name. Riders are matched by **licence number**,
+or by name when there isn't one, so a new number at a later round doesn't matter. Licence
+numbers come from each round's entry list (Ridernet and Entryplace exports have them). Sidecar
+pairs match by licence when both riders have one, otherwise by their names. Names match
+ignoring capitals, spaces and accents. A rider who changes class has a line in each class.
+
+Licence numbers are only used for matching. They're never shown in the tally, the PDF or the
+CSV.
+
+### Check these riders
+
+tScore doesn't guess. When a class has one of these, the series screen lists it under **Check
+these riders in the entry lists**:
+
+- **One licence number under two names** (for example "Sam Stone" at one round and "Samuel
+  Stone" at another): counted as one rider, shown by the latest round's name. Check it isn't a
+  mistyped licence number.
+- **One name under two licence numbers**: counted as separate riders. They may be two riders
+  with the same name; if they're one person, ask the club that ran the round to check its
+  entry list.
+
+A round entered without a licence number for a rider joins the rider with that name, unless
+two licence numbers share the name; then it stays a line of its own.
 
 ## Which rounds count
 

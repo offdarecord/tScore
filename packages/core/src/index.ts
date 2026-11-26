@@ -23,6 +23,24 @@ export {
   type CardThresholds,
   type CardTunedFrom,
 } from './card-profiles.js';
+// Sharing card profiles as .tscore-card files (#108).
+export {
+  BLANK_IMAGE_MAX_BYTES,
+  CARD_SHARE_EXTENSION,
+  CARD_SHARE_MAX_BYTES,
+  CARD_SHARE_PROFILE,
+  CardShareError,
+  badCardFile,
+  blankImageName,
+  blankImageType,
+  cardShareFileName,
+  cardShareMailto,
+  importedCardProfile,
+  sharedCardProfile,
+  type BlankImageType,
+  type CardCredit,
+} from './card-share.js';
+export { CONTACT, checkContact, type Contact } from './contact.js';
 export * from './results/index.js';
 
 // Types generated from schemas/ (ADR 0008).

@@ -11,6 +11,7 @@ import {
   MACHINE_MAX,
   NAME_MAX,
   ImportError,
+  CardShareError,
   planImport,
   readEntryList,
   scoringFromSetup,
@@ -35,6 +36,7 @@ import {
 } from '@tscore/store';
 import { app, dialog, type BrowserWindow } from 'electron';
 import log from 'electron-log/main';
+import { cardProfileShelf } from './card-profiles';
 import { t } from './i18n';
 import type {
   AppError,
@@ -113,7 +115,8 @@ function cardDesk(store: EventStore): CardDesk {
       ...(p.lap !== undefined && { lap: p.lap }),
     })),
     scoreValues: scoringFromSetup(store.setup).scoreValues,
-    cardRows: cardProfile(store.setup.event.card_profile)?.rows ?? 16,
+    cardRows:
+      cardProfile(store.setup.event.card_profile, cardProfileShelf().profiles())?.rows ?? 16,
     days: store.setup.days.map((d) => ({ day: d.day, ...(d.date ? { date: d.date } : {}) })),
   };
 }
@@ -287,7 +290,11 @@ function failed(what: string, err: unknown): { ok: false; error: AppError } {
   let error: AppError;
   if (err instanceof SetupError) {
     error = { code: publicErrorCode(err.code), message: err.message, issues: err.issues };
-  } else if (err instanceof StoreError || err instanceof ImportError) {
+  } else if (
+    err instanceof StoreError ||
+    err instanceof ImportError ||
+    err instanceof CardShareError
+  ) {
     // The English is the fallback, so a message missing from the laptop's language still reads.
     const message = err.words
       ? t(err.words.key, { ...err.words.values, defaultValue: err.message })

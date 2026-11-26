@@ -15,7 +15,7 @@ Every skill:
 | ------------------------------------------------------------ | ----------------------------------------------------------------------------------- | ----- |
 | [`/cut-release`](cut-release/SKILL.md)                       | Volunteer-friendly changelog wording, release checks, update verification           | 0 ✅  |
 | [`/triage-feature-request`](triage-feature-request/SKILL.md) | A suggestion → drafted issue and reply, personal details removed, duplicates linked | 0 ✅  |
-| `/add-card-profile`                                          | A new scorecard design → profile JSON + fixtures                                    | 1     |
+| [`/add-card-profile`](add-card-profile/SKILL.md)             | A shared `.tscore-card` file → built-in profile JSON + fixtures, as a pull request  | 1 ✅  |
 | `/add-golden-event`                                          | A past event → anonymised regression test                                           | 1     |
 | `/add-label-template`                                        | New label stock + alignment test print                                              | 2     |
 | `/add-import-mapping`                                        | A new entry-system export                                                           | 2     |

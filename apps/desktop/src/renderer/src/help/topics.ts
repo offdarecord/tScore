@@ -23,6 +23,7 @@ export const HELP_TOPICS = {
   course: { page: 'event-day', anchor: 'still-on-course' },
   results: { page: 'results' },
   series: { page: 'series' },
+  cardTypes: { page: 'card-types' },
   checklist: { page: 'checklist' },
   errors: { page: 'errors' },
 } as const satisfies Record<string, HelpTopic>;

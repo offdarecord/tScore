@@ -31,13 +31,14 @@ interface Props {
   readonly info: AppInfo | null;
   readonly onNew: () => void;
   readonly onSeries: () => void;
+  readonly onCardTypes: () => void;
   /** Manage events, with these events ticked and optionally a dialog open. */
   readonly onManage: (preselect?: string[], action?: ManageAction) => void;
   readonly onOpened: (event: OpenEvent) => void;
 }
 
 /** The start screen: no event open. New event, open one, or pick up a recent one. */
-export function Home({ info, onNew, onSeries, onManage, onOpened }: Props) {
+export function Home({ info, onNew, onSeries, onCardTypes, onManage, onOpened }: Props) {
   const { t } = useTranslation();
   const [recent, setRecent] = useState<RecentEventInfo[] | null>(null);
   const [error, setError] = useState<AppError | null>(null);
@@ -86,6 +87,9 @@ export function Home({ info, onNew, onSeries, onManage, onOpened }: Props) {
           </Button>
           <Button variant="default" onClick={() => onManage()}>
             {t('home.manage')}
+          </Button>
+          <Button variant="default" onClick={onCardTypes}>
+            {t('home.cardTypes')}
           </Button>
         </Group>
       </Group>

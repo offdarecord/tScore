@@ -41,3 +41,11 @@ export {
 export { MOVE_EXTENSION, MOVE_FORMAT, type MoveManifest } from './move.js';
 export { SCHEMA_VERSION } from './migrations.js';
 export { readEntryFile } from './entry-file.js';
+export {
+  CardProfileShelf,
+  packCardShare,
+  unpackCardShare,
+  type BlankImage,
+  type KnownCardProfile,
+  type SharedCard,
+} from './card-profiles.js';

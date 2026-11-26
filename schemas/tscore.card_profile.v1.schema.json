@@ -87,7 +87,7 @@
       "enum": ["black-column", "card-edges", "corner-markers", "manual-corners"]
     },
     "marking_style": {
-      "description": "How observers mark a score. punch: a hole punched through the card. pen-hole: a hole made with a pen. ink: a mark in ink. Only punch is read so far.",
+      "description": "How observers mark a score. punch: a hole punched through the card. pen-hole: a hole made with a pen. ink: a mark in ink. Each is read as change from the blank card, so the printed digit never counts as a mark; each has its own starting thresholds.",
       "enum": ["punch", "pen-hole", "ink"]
     },
     "correction_rules": {
@@ -145,7 +145,7 @@
       "additionalProperties": false,
       "properties": {
         "mark": {
-          "description": "A cell darker than this (0 = paper, 1 = as dark as the reference black) counts as marked.",
+          "description": "A cell changed from the blank card by more than this (0 = as blank, 1 = as dark as the reference black right across the cell) counts as marked.",
           "type": "number",
           "exclusiveMinimum": 0,
           "exclusiveMaximum": 1
@@ -157,7 +157,7 @@
           "maximum": 1
         },
         "colour_channel": {
-          "description": "Which colour the reader measures darkness in. luma: ordinary brightness.",
+          "description": "Which colour the reader measures change in. luma: ordinary brightness, which sees black, blue and red ink. For ink, one colour can be chosen instead: red sees blue ink most strongly, but not red ink.",
           "enum": ["luma", "red", "green", "blue"]
         },
         "tuned_from": { "$ref": "#/$defs/TunedFrom" }

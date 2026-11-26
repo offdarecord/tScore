@@ -1,3 +1,12 @@
+export {
+  blankReferenceFor,
+  blankReferenceFrom,
+  cellPoints,
+  drawnBlankReference,
+  paperReference,
+  type BlankReference,
+  type CellPoint,
+} from './blank-reference.js';
 export { toGrey, type Channel, type GreyImage, type RgbaImage } from './image.js';
 export { parseLabel, readLabel, type LabelId } from './label.js';
 export {
@@ -13,4 +22,10 @@ export {
   type RowReading,
 } from './reader.js';
 export { decodeRow, type RowDecision, type RowFlag } from './row-decision.js';
-export { syntheticCard, type SyntheticCard } from './synthetic.js';
+export {
+  INK_COLOURS,
+  syntheticCard,
+  type InkColour,
+  type SyntheticCard,
+  type SyntheticMarking,
+} from './synthetic.js';

@@ -28,7 +28,9 @@ describe('reading from a card profile', () => {
 
   it('refuses a card it cannot find or read yet', () => {
     expect(() => readerProfile({ ...regional, locator: 'card-edges' })).toThrow(/can't be read/);
-    expect(() => readerProfile({ ...regional, marking_style: 'ink' })).toThrow(/can't be read/);
+    expect(() => readerProfile({ ...regional, locator: 'corner-markers' })).toThrow(
+      /can't be read/,
+    );
   });
 
   it('reads all-but-one holes as a correction only where the card allows it', () => {

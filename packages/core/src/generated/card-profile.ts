@@ -56,7 +56,7 @@ export interface CardProfile {
    */
   locator: 'black-column' | 'card-edges' | 'corner-markers' | 'manual-corners';
   /**
-   * How observers mark a score. punch: a hole punched through the card. pen-hole: a hole made with a pen. ink: a mark in ink. Only punch is read so far.
+   * How observers mark a score. punch: a hole punched through the card. pen-hole: a hole made with a pen. ink: a mark in ink. Each is read as change from the blank card, so the printed digit never counts as a mark; each has its own starting thresholds.
    */
   marking_style: 'punch' | 'pen-hole' | 'ink';
   /**
@@ -102,7 +102,7 @@ export interface Column {
  */
 export interface Thresholds {
   /**
-   * A cell darker than this (0 = paper, 1 = as dark as the reference black) counts as marked.
+   * A cell changed from the blank card by more than this (0 = as blank, 1 = as dark as the reference black right across the cell) counts as marked.
    */
   mark: number;
   /**
@@ -110,7 +110,7 @@ export interface Thresholds {
    */
   confidence_gap: number;
   /**
-   * Which colour the reader measures darkness in. luma: ordinary brightness.
+   * Which colour the reader measures change in. luma: ordinary brightness, which sees black, blue and red ink. For ink, one colour can be chosen instead: red sees blue ink most strongly, but not red ink.
    */
   colour_channel: 'luma' | 'red' | 'green' | 'blue';
   tuned_from: TunedFrom;

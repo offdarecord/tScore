@@ -28,6 +28,11 @@ tScore shows its reading of every card, and a person checks it against the card 
 **Enter** to save it (or **Esc** to read it again). No card of an assisted type is ever saved
 by itself.
 
+tScore compares each box with how the card looks blank, so the printed number is never taken
+for a mark. That lets it read cards marked with a pen poked through the number, or ink over
+it, as well as punched ones. Cards marked by pen or ink stay assisted until they have been
+tested on real cards.
+
 To try it without a camera, choose **Practice card**: it puts a test card for the first rider on
 the list "under the camera". **Practice card with an unclear row** shows what happens when a
 card needs a look.

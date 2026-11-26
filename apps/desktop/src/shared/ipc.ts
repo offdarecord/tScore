@@ -5,6 +5,8 @@
  * validates the sender of every message. Add a channel here first, then implement it.
  */
 import type {
+  CardCredit,
+  CardProfile,
   EntryList,
   EntryStatus,
   EventSetup,
@@ -32,6 +34,13 @@ export const IPC = {
   emailSuggestion: 'suggest:email',
   copySuggestion: 'suggest:copy',
   saveSuggestion: 'suggest:save',
+  cardProfiles: 'card-profiles:list',
+  cardProfileImage: 'card-profiles:image',
+  importCardProfile: 'card-profiles:import',
+  saveCardShare: 'card-profiles:share-save',
+  emailCardShare: 'card-profiles:share-email',
+  showCardShareFile: 'card-profiles:share-show',
+  copyContactEmail: 'card-profiles:copy-address',
   recentEvents: 'events:recent',
   createEvent: 'events:create',
   openEventFile: 'events:open-file',
@@ -295,6 +304,26 @@ export interface SeriesChange {
   /** An event folder from the recent list. */
   readonly addRound?: string;
   readonly removeRound?: string;
+}
+
+/** A card profile this laptop knows (issue #108). */
+export interface CardProfileInfo {
+  readonly profile: CardProfile;
+  /** Shipped with tScore; otherwise imported on this laptop (and always assisted). */
+  readonly builtIn: boolean;
+}
+
+/** A blank card's picture, ready to show. */
+export interface BlankImageView {
+  readonly type: 'png' | 'jpg';
+  /** A `data:` URL. */
+  readonly url: string;
+}
+
+/** A `.tscore-card` file just saved to share. */
+export interface CardShareSaved {
+  readonly file: string;
+  readonly fileName: string;
 }
 
 /** How a suggestion left tScore (never sent by tScore itself). */
@@ -574,6 +603,20 @@ export interface TscoreApi {
   copySuggestion(text: string): Promise<Outcome<SuggestionSent>>;
   /** Shows the save dialog, then saves the suggestion as a text file. */
   saveSuggestion(text: string): Promise<Outcome<SuggestionSent>>;
+  /** Built-in card profiles, then those imported on this laptop. */
+  cardProfiles(): Promise<Outcome<CardProfileInfo[]>>;
+  cardProfileImage(id: string): Promise<Outcome<BlankImageView | null>>;
+  /** Shows the open dialog, then imports a `.tscore-card` file. `null` if the desk cancels. */
+  importCardProfile(): Promise<
+    Outcome<{ readonly profile: CardProfile; readonly replaced: boolean } | null>
+  >;
+  /** Shows the save dialog, then saves the profile as a `.tscore-card` file. */
+  saveCardShare(id: string, credit: CardCredit): Promise<Outcome<CardShareSaved | null>>;
+  /** Opens the mail app, addressed to the maintainers, saying which saved file to attach. */
+  emailCardShare(file: string): Promise<Outcome<void>>;
+  /** Shows a file this session saved to share in Explorer or Finder. */
+  showCardShareFile(file: string): Promise<Outcome<void>>;
+  copyContactEmail(): Promise<Outcome<string>>;
   recentEvents(): Promise<RecentEventInfo[]>;
   createEvent(setup: EventSetup): Promise<Outcome<OpenEvent>>;
   /** Shows the open dialog. `null` if the desk cancels. */

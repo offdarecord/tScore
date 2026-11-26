@@ -4,12 +4,7 @@ import { join } from 'node:path';
 import { CARD_PROFILES, type CardProfile } from '@tscore/core';
 import { strToU8, unzipSync, zipSync } from 'fflate';
 import { describe, expect, it } from 'vitest';
-import {
-  CardProfileShelf,
-  packCardShare,
-  unpackCardShare,
-  type BlankImage,
-} from './card-profiles.js';
+import { CardProfileShelf, packCardShare, type BlankImage } from './card-profiles.js';
 
 /** An invented club card. */
 const CLUB_CARD: CardProfile = {

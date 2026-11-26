@@ -4,6 +4,7 @@ import { newEventSetup } from '@tscore/core';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AppInfo, OpenEvent } from '../../shared/ipc';
+import { CardTypes } from './cards/CardTypes';
 import { ColorSchemeSwitch } from './ColorSchemeSwitch';
 import { EventMain, EventNav, type EventPage } from './EventShell';
 import { today } from './format';
@@ -20,6 +21,7 @@ type Screen =
   | { kind: 'home' }
   | { kind: 'new' }
   | { kind: 'series' }
+  | { kind: 'cardTypes' }
   | { kind: 'manage'; preselect?: string[]; action?: ManageAction }
   | { kind: 'event'; event: OpenEvent; page: EventPage };
 
@@ -54,7 +56,9 @@ const screenName = (s: Screen) =>
         ? 'Series points'
         : s.kind === 'manage'
           ? 'Manage events'
-          : SCREEN_NAMES[s.page.name];
+          : s.kind === 'cardTypes'
+            ? 'Card types'
+            : SCREEN_NAMES[s.page.name];
 
 /** The guide page for the screen in front of the desk. */
 function topicFor(screen: Screen): HelpTopicName {
@@ -62,6 +66,7 @@ function topicFor(screen: Screen): HelpTopicName {
   if (screen.kind === 'new') return 'newEvent';
   if (screen.kind === 'series') return 'series';
   if (screen.kind === 'manage') return 'home';
+  if (screen.kind === 'cardTypes') return 'cardTypes';
   return screen.page.name;
 }
 
@@ -139,6 +144,7 @@ function Shell() {
             info={info}
             onNew={() => setScreen({ kind: 'new' })}
             onSeries={() => setScreen({ kind: 'series' })}
+            onCardTypes={() => setScreen({ kind: 'cardTypes' })}
             onManage={(preselect, action) =>
               setScreen({
                 kind: 'manage',
@@ -150,6 +156,7 @@ function Shell() {
           />
         )}
         {screen.kind === 'series' && <Series onBack={() => setScreen({ kind: 'home' })} />}
+        {screen.kind === 'cardTypes' && <CardTypes onBack={() => setScreen({ kind: 'home' })} />}
         {screen.kind === 'manage' && (
           <ManageEvents
             {...(screen.preselect && { preselect: screen.preselect })}

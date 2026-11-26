@@ -18,6 +18,7 @@ import { closeLiveWindow, liveWindowState, showLiveWindow, toggleLiveFullScreen 
 import { uiLanguage } from './locale';
 import { startLogging } from './logging';
 import { copySuggestion, emailSuggestion, saveSuggestion } from './suggestion';
+import { cardProfileHandlers } from './card-profiles';
 import { manageHandlers } from './manage';
 import { checkForUpdatesWhenSafe } from './updates';
 
@@ -69,6 +70,17 @@ function registerIpc(): void {
   handle(IPC.saveSuggestion, (e, text: string) =>
     saveSuggestion(text, BrowserWindow.fromWebContents(e.sender)),
   );
+  handle(IPC.cardProfiles, () => cardProfileHandlers.list());
+  handle(IPC.cardProfileImage, (_e, id: string) => cardProfileHandlers.image(id));
+  handle(IPC.importCardProfile, (e) =>
+    cardProfileHandlers.import(BrowserWindow.fromWebContents(e.sender)),
+  );
+  handle(IPC.saveCardShare, (e, id: string, credit: unknown) =>
+    cardProfileHandlers.save(id, credit, BrowserWindow.fromWebContents(e.sender)),
+  );
+  handle(IPC.emailCardShare, (_e, file: string) => cardProfileHandlers.email(file));
+  handle(IPC.showCardShareFile, (_e, file: string) => cardProfileHandlers.show(file));
+  handle(IPC.copyContactEmail, () => cardProfileHandlers.copyAddress());
   handle(IPC.recentEvents, () => eventHandlers.recent());
   handle(IPC.listSeries, () => eventHandlers.listSeries());
   handle(IPC.newSeries, (_e, name: string) => eventHandlers.newSeries(name));

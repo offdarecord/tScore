@@ -12,6 +12,10 @@ validated against its JSON Schema in `schemas/` in CI.
 | `label-templates/` | Label stock geometry (e.g. Avery L7651) and content layout                            |
 | `card-profiles/`   | Scorecard designs: size, rows, value columns, locator, marking, trust                 |
 
+`contact.json` holds where people send things to the maintainers: the email address used by
+**Suggest a feature** and by sharing a card type, and the GitHub **New card type** form. It's
+checked by `checkContact` in `packages/core/src/contact.ts`.
+
 Folders are created as the first preset of each kind is added.
 
 **Presets contain no personal data.** No rider names, licence numbers or contact details.

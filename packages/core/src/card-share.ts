@@ -76,7 +76,8 @@ export function importedCardProfile(
   if (typeof data !== 'object' || data === null || Array.isArray(data)) {
     throw badCardFile('it has no card profile in it');
   }
-  const { blank_image: _ignored, ...rest } = data as Record<string, unknown>;
+  const rest: Record<string, unknown> = { ...(data as Record<string, unknown>) };
+  delete rest['blank_image'];
   let profile: CardProfile;
   try {
     profile = checkCardProfile({ ...rest, trust: 'assisted' });
@@ -110,7 +111,8 @@ export function sharedCardProfile(
   image: BlankImageType | null,
   credit?: CardCredit,
 ): CardProfile {
-  const { blank_image: _old, credit: oldCredit, ...rest } = profile;
+  const { credit: oldCredit, ...rest } = profile;
+  delete rest.blank_image;
   const club = credit?.club?.trim().slice(0, 120);
   const state = credit?.state?.trim().slice(0, 60);
   const typed = credit ? { ...(club && { club }), ...(state && { state }) } : undefined;

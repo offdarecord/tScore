@@ -21,3 +21,5 @@ of any screen to open the page for that screen.
 9. [Error codes](errors.md): what each error code means and what to do.
 10. [Try a test trial](test-trial.md): rehearse the whole day at home with the Test trial kit.
 11. [Glossary](glossary.md): trials and tScore words.
+12. [Card types](card-types.md): the scorecards tScore reads, and how to import or share your
+    club's own.

@@ -21,7 +21,12 @@ const EVERY_FIELD: CardProfile = {
   name: 'Example card, 12 sections',
   card: { width_mm: 60, height_mm: 150 },
   rows: 12,
-  grid: { unit: 'column-width', row_pitch: 0.8, cell_radius: 0.2 },
+  grid: {
+    unit: 'column-width',
+    row_pitch: 0.8,
+    cell_radius: 0.2,
+    on_card: { unit_mm: 10, origin_x_mm: 22, origin_y_mm: 12 },
+  },
   columns: [
     { score: 5, across: -2 },
     { score: 3, across: -1.4 },
@@ -158,6 +163,17 @@ describe('card profiles', () => {
     ['part of a row', { rows: 12.5 }],
     ['an unknown grid unit', { grid: { unit: 'inch', row_pitch: 0.8, cell_radius: 0.2 } }],
     ['no row pitch', { grid: { unit: 'column-width', row_pitch: 0, cell_radius: 0.2 } }],
+    [
+      'a grid placed on the card without its unit',
+      {
+        grid: {
+          unit: 'column-width',
+          row_pitch: 0.8,
+          cell_radius: 0.2,
+          on_card: { origin_x_mm: 22, origin_y_mm: 12 },
+        },
+      },
+    ],
     [
       'only two columns',
       {

@@ -43,6 +43,14 @@ export interface CardProfile {
      * Radius of the mark-sized area measured in each cell.
      */
     cell_radius: number;
+    /**
+     * Where the grid sits on the card, so it can be read from the card's four corners (the manual-corners locator, and the fallback when a card can't be found by itself): one grid unit, and the grid's origin (the column's centre line, the bottom of the last row) from the card's bottom-left corner, all in millimetres.
+     */
+    on_card?: {
+      unit_mm: number;
+      origin_x_mm: number;
+      origin_y_mm: number;
+    };
   };
   /**
    * The value columns, left to right, each with the score it stands for. Any order; a card without a 5 simply has no 5 column. At least three, so a correction can be told from a mark.
@@ -52,7 +60,7 @@ export interface CardProfile {
    */
   columns: Column[];
   /**
-   * How the card is found in the picture. black-column: the solid black section column (regional-16). card-edges, corner-markers, manual-corners: not read yet.
+   * How the card is found in the picture. black-column: the solid black section column (regional-16). manual-corners: the desk clicks the card's four corners on the camera picture (needs grid.on_card). card-edges, corner-markers: not read yet.
    */
   locator: 'black-column' | 'card-edges' | 'corner-markers' | 'manual-corners';
   /**

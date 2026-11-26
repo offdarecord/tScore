@@ -476,7 +476,21 @@
     "dns": "Rider {{number}} is marked DNS.",
     "notThatDay": "Rider {{number}}'s class doesn't ride day {{day}}.",
     "laps": "Rider {{number}}'s class rides {{laps}} laps on day {{day}}.",
-    "alreadyIn": "Rider {{number}} lap {{lap}} is already in. To change it, use Manual entry."
+    "alreadyIn": "Rider {{number}} lap {{lap}} is already in. To change it, use Manual entry.",
+    "markCorners": "Mark the corners (M)",
+    "cornersHint": "If a card isn't found by itself, mark its four corners on the picture.",
+    "cornersOnlyHint": "This card type is read from its four corners: mark them on the picture.",
+    "markCornersPrompt": "Place a card on the mat, then press Mark the corners (M).",
+    "practiceCorners": "Practice card: mark its corners",
+    "corner1": "Mark the card's top-left corner (1 of 4).",
+    "corner2": "Mark the card's top-right corner (2 of 4).",
+    "corner3": "Mark the card's bottom-right corner (3 of 4).",
+    "corner4": "Mark the card's bottom-left corner (4 of 4).",
+    "cornersPicture": "Card picture: mark its corners",
+    "cornersHelp": "Click each corner in turn, starting top-left and going round clockwise. Or move the cross with the arrow keys (hold Shift for small steps) and press Enter at each corner. Backspace takes the last corner back; Esc stops.",
+    "undoCorner": "Take the last corner back (Backspace)",
+    "cancelCorners": "Stop marking (Esc)",
+    "cornersDontFit": "Those corners don't fit this card. Mark them again, starting top-left."
   },
   "review": {
     "noPunch": "No hole found",

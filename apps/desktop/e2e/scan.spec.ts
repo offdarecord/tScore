@@ -150,3 +150,108 @@ test('a card is saved once, even while the save is slow', async () => {
   await window.waitForTimeout(1_500);
   await expect(window.getByText(/is already in/)).toHaveCount(0);
 });
+
+/**
+ * Where the practice card's corners are in its picture (640 × 900, column 36 px wide, turned
+ * 4°), from the regional card's profile: 43 × 173 mm, grid origin 19.06, 15.64 mm, 9.773 mm a unit.
+ */
+function practiceCorners() {
+  const px = 36 / 9.773;
+  const a = (4 * Math.PI) / 180;
+  const up = { x: Math.sin(a), y: -Math.cos(a) };
+  const right = { x: -up.y, y: up.x };
+  const mid = { x: 0.5 * 640, y: 0.55 * 900 };
+  const half = (17 * 0.675 * 9.773) / 2;
+  const at = (x: number, y: number) => {
+    const dx = (x - 19.06) * px;
+    const dy = (y - 15.64 - half) * px;
+    return { x: mid.x + right.x * dx + up.x * dy, y: mid.y + right.y * dx + up.y * dy };
+  };
+  return {
+    topLeft: at(0, 173),
+    topRight: at(43, 173),
+    bottomRight: at(43, 0),
+    bottomLeft: at(0, 0),
+  };
+}
+
+test('a card is read from the corners the desk marks, by mouse or keyboard', async () => {
+  await window.getByRole('button', { name: 'New event' }).click();
+  await window.getByLabel('Event name').fill('Example Club Trial');
+  await window.getByLabel(/^Date\b/).fill('2027-02-06');
+  await window.getByRole('button', { name: 'Create event' }).click();
+  const csv = join(run.userData, 'riders.csv');
+  writeFileSync(
+    csv,
+    'Number,Given name,Family name,Class,Club,Competition status\r\n7,Avery,Stone,Trial 3,,\r\n',
+  );
+  await run.app.evaluate(({ dialog }, picked) => {
+    dialog.showOpenDialog = (() =>
+      Promise.resolve({ canceled: false, filePaths: [picked] })) as typeof dialog.showOpenDialog;
+  }, csv);
+  await nav()
+    .getByRole('button', { name: /Riders/ })
+    .click();
+  await window.getByRole('button', { name: 'Import from entry list…' }).click();
+  await window.getByRole('button', { name: 'Import 1 rider' }).click();
+  await expect(window.getByText('1 rider imported.')).toBeVisible();
+
+  await nav().getByRole('button', { name: 'Scan desk' }).click();
+  await window.getByRole('button', { name: 'Practice card: mark its corners' }).click();
+  const status = window.getByRole('status').first();
+  await expect(status).toHaveText("Mark the card's top-left corner (1 of 4).");
+  const picture = window.getByRole('application', { name: 'Card picture: mark its corners' });
+  await expect(picture).toBeFocused();
+  await accessible('Marking corners');
+
+  // Frame pixels to the screen: the picture is fitted into its box, centred.
+  const box = await picture.locator('svg').boundingBox();
+  if (!box) throw new Error('no picture');
+  const scale = Math.min(box.width / 640, box.height / 900);
+  const screen = (p: { x: number; y: number }) => ({
+    x: box.x + (box.width - 640 * scale) / 2 + p.x * scale,
+    y: box.y + (box.height - 900 * scale) / 2 + p.y * scale,
+  });
+  const click = async (p: { x: number; y: number }) => {
+    const s = screen(p);
+    await window.mouse.click(s.x, s.y);
+  };
+  const c = practiceCorners();
+
+  // Round the wrong way: refused, and marked again.
+  for (const p of [c.topRight, c.topLeft, c.bottomLeft, c.bottomRight]) await click(p);
+  await expect(status).toHaveText(
+    "Those corners don't fit this card. Mark them again, starting top-left.",
+  );
+
+  // Top-left, a wrong click taken back with Backspace, then top-right and bottom-right.
+  await click(c.topLeft);
+  await expect(status).toHaveText("Mark the card's top-right corner (2 of 4).");
+  await click(c.bottomLeft);
+  await window.keyboard.press('Backspace');
+  await expect(status).toHaveText("Mark the card's top-right corner (2 of 4).");
+  await click(c.topRight);
+  await click(c.bottomRight);
+  await expect(status).toHaveText("Mark the card's bottom-left corner (4 of 4).");
+
+  // The last by keyboard: the cross starts on the last corner; arrows move it, Enter marks.
+  const step = 0.02 * 900;
+  const fine = 0.0025 * 900;
+  const move = async (d: number, less: string, more: string) => {
+    const key = d < 0 ? less : more;
+    const coarse = Math.trunc(Math.abs(d) / step);
+    for (let i = 0; i < coarse; i++) await window.keyboard.press(key);
+    const small = Math.round((Math.abs(d) - coarse * step) / fine);
+    for (let i = 0; i < small; i++) await window.keyboard.press(`Shift+${key}`);
+  };
+  await move(c.bottomLeft.x - c.bottomRight.x, 'ArrowLeft', 'ArrowRight');
+  await move(c.bottomLeft.y - c.bottomRight.y, 'ArrowUp', 'ArrowDown');
+  await window.keyboard.press('Enter');
+
+  // Read and saved as usual: the label says who it is.
+  await expect(window.getByRole('log', { name: 'Last card' })).toContainText(
+    'Saved rider 7 lap 1:',
+    { timeout: 10_000 },
+  );
+  await expect(picture).toHaveCount(0);
+});

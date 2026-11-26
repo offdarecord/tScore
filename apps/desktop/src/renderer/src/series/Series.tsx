@@ -364,6 +364,39 @@ function SeriesDetail(props: {
         </Paper>
       )}
 
+      {view.tally.checks.length > 0 && (
+        <Paper
+          radius="md"
+          p="md"
+          component="section"
+          aria-labelledby="checks-h"
+          style={{ background: '#fff0de', color: '#6b2e00', border: '2px solid #b35c00' }}
+        >
+          <Text fw={800} id="checks-h">
+            {i18next.t('series.checks')}
+          </Text>
+          <Text size="sm">{i18next.t('series.checksIntro')}</Text>
+          <Stack gap={2} component="ul" m={0} pl="lg">
+            {view.tally.checks.map((c) => {
+              const words =
+                c.kind === 'licence_names'
+                  ? i18next.t('series.checkLicenceNames', {
+                      class: c.class,
+                      names: new Intl.ListFormat(i18next.language, { type: 'conjunction' }).format(
+                        c.names,
+                      ),
+                    })
+                  : i18next.t('series.checkNameLicences', { class: c.class, name: c.names[0] });
+              return (
+                <Text key={words} size="sm" component="li">
+                  {words}
+                </Text>
+              );
+            })}
+          </Stack>
+        </Paper>
+      )}
+
       <Paper withBorder radius="md" p="lg" component="section" aria-labelledby="tally-h">
         <Group justify="space-between" mb="sm">
           <Title order={3} size="h4" id="tally-h">

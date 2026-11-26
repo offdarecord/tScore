@@ -51,6 +51,7 @@ export interface RecentEvent {
 
 const RECENT_FILE = 'recent-events.json';
 const TIDY_FILE = 'tidy-up.json';
+const CLUB_LOGOS_FILE = 'club-logos.json';
 const STATION_FILE = 'station.json';
 const RECENT_MAX = 20;
 
@@ -339,7 +340,38 @@ export class EventLibrary {
     const r = validateEventSetup(setup);
     if (!r.ok) throw new SetupError(r.issues);
     mkdirSync(this.eventsDir, { recursive: true });
-    return this.#use(EventStore.create(this.folderFor(r.value), r.value, this.context()));
+    const store = this.#use(EventStore.create(this.folderFor(r.value), r.value, this.context()));
+    // The organising club's logo, as last chosen on this laptop (#111).
+    const club = r.value.event.club;
+    const logo = club ? this.clubLogo(club) : null;
+    if (logo) {
+      try {
+        store.addLogo('club', logo);
+      } catch {
+        // A remembered logo that is no longer valid is simply not used.
+      }
+    }
+    return store;
+  }
+
+  /** The logo last chosen for this club on this laptop, if any (#111). */
+  clubLogo(club: string): Uint8Array | null {
+    const data = readJson<{ clubs?: Record<string, { data?: unknown }> }>(
+      join(this.#settingsDir, CLUB_LOGOS_FILE),
+    );
+    const saved = data?.clubs?.[clubKey(club)]?.data;
+    return typeof saved === 'string' ? Buffer.from(saved, 'base64') : null;
+  }
+
+  /** Remember a club's logo for its next events on this laptop. */
+  rememberClubLogo(club: string, logo: Uint8Array): void {
+    const key = clubKey(club);
+    if (!key) return;
+    const file = join(this.#settingsDir, CLUB_LOGOS_FILE);
+    const clubs = readJson<{ clubs?: Record<string, unknown> }>(file)?.clubs ?? {};
+    writeJson(file, {
+      clubs: { ...clubs, [key]: { name: club.trim(), data: Buffer.from(logo).toString('base64') } },
+    });
   }
 
   /** Open an event folder (closing any open event). */
@@ -467,6 +499,11 @@ function isStoredRecent(x: unknown): x is StoredRecent {
     typeof r['lastOpened'] === 'string' &&
     (r['date'] === undefined || typeof r['date'] === 'string')
   );
+}
+
+/** Club names match whatever their case and spacing: "Example MCC" is "example  mcc". */
+function clubKey(club: string): string {
+  return club.trim().replace(/\s+/g, ' ').toLowerCase();
 }
 
 /** A settings file, or undefined if it's missing or unreadable (settings are never critical). */

@@ -103,7 +103,7 @@ export function resultsView(store: EventStore): ResultsView {
 }
 
 /** The event's logos as data URIs, for the PDF and the big screen. */
-export function logoUris(store: EventStore): { event?: string; sponsors: string[] } {
+export function logoUris(store: EventStore): { event?: string; club?: string; sponsors: string[] } {
   const uri = (id: string, mime: string) => {
     const data = store.logoData(id);
     return data ? `data:${mime};base64,${Buffer.from(data).toString('base64')}` : undefined;
@@ -111,8 +111,11 @@ export function logoUris(store: EventStore): { event?: string; sponsors: string[
   const all = store.logos();
   const event = all.find((l) => l.role === 'event');
   const eventUri = event && uri(event.id, event.mime);
+  const club = all.find((l) => l.role === 'club');
+  const clubUri = club && uri(club.id, club.mime);
   return {
     ...(eventUri && { event: eventUri }),
+    ...(clubUri && { club: clubUri }),
     sponsors: all.flatMap((l) => {
       const u = l.role === 'sponsor' ? uri(l.id, l.mime) : undefined;
       return u ? [u] : [];

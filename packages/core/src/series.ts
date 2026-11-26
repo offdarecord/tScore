@@ -15,7 +15,7 @@
  * each class.
  */
 import type { Results } from './generated/results.js';
-import { BOM, csvField, esc } from './results/output.js';
+import { BOM, csvField, esc, headHtml } from './results/output.js';
 import { CREDIT_CSS, creditHtml } from './credit.js';
 import { english, type Translate } from './words.js';
 
@@ -216,6 +216,8 @@ export interface SeriesPrintOptions {
   readonly t?: Translate;
   /** The page's language, e.g. "en-AU". */
   readonly lang?: string;
+  /** The organising club's logo (#111), when every round is the same club's. */
+  readonly clubLogo?: string;
 }
 
 const placeWords = (r: SeriesRow) => `${r.place}${r.shared ? '=' : ''}`;
@@ -320,16 +322,21 @@ export function seriesHtml(tally: SeriesTally, opts: SeriesPrintOptions): string
   .n { text-align: right; }
   .place { font-weight: 700; width: 3.5em; }
   .total { font-weight: 700; }
-  footer { margin-top: 14px; color: #444; font-size: 8pt; }${CREDIT_CSS}
+  footer { margin-top: 14px; color: #444; font-size: 8pt; }
+  .head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .event-logo { max-height: 20mm; max-width: 45mm; object-fit: contain; }${CREDIT_CSS}
 </style></head><body>
-<h1>${esc(opts.name)}</h1>
+${headHtml(
+  opts.clubLogo ? { club: opts.clubLogo } : undefined,
+  `<h1>${esc(opts.name)}</h1>
 <div class="sub">${esc(
     t(
       'core.seriesAfter',
       tally.rounds === 1 ? 'Series points after 1 round' : 'Series points after {{count}} rounds',
       { count: tally.rounds },
     ),
-  )}</div>
+  )}</div>`,
+)}
 ${opts.notCounted ? `<div class="note">${esc(opts.notCounted)}</div>` : ''}
 ${classes}
 <footer>${esc(rule)}<br>${esc(opts.footer)}</footer>

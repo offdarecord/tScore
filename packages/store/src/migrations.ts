@@ -161,6 +161,21 @@ export const MIGRATIONS: readonly string[] = [
     added_at  TEXT NOT NULL
   ) STRICT;
   `,
+  // 8: the organising club's logo (#111), beside the event logo. SQLite can't change a CHECK, so
+  // the table is rebuilt with the same rows.
+  `
+  CREATE TABLE logo_new (
+    id        TEXT PRIMARY KEY,
+    role      TEXT NOT NULL CHECK (role IN ('event', 'club', 'sponsor')),
+    position  INTEGER NOT NULL,
+    mime      TEXT NOT NULL CHECK (mime IN ('image/png', 'image/jpeg')),
+    data      BLOB NOT NULL,
+    added_at  TEXT NOT NULL
+  ) STRICT;
+  INSERT INTO logo_new SELECT id, role, position, mime, data, added_at FROM logo;
+  DROP TABLE logo;
+  ALTER TABLE logo_new RENAME TO logo;
+  `,
 ];
 
 /** The schema version a fresh event file gets, and the newest this build can open. */

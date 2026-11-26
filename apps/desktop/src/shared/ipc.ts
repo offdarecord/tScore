@@ -309,13 +309,17 @@ export interface LiveScores {
   /** Expected cards not in yet. */
   readonly missingCards: number;
   /** Data URIs. */
-  readonly logos: { readonly event?: string; readonly sponsors: readonly string[] };
+  readonly logos: {
+    readonly event?: string;
+    readonly club?: string;
+    readonly sponsors: readonly string[];
+  };
 }
 
 /** A logo on Event setup, with its picture as a data URI. */
 export interface LogoView {
   readonly id: string;
-  readonly role: 'event' | 'sponsor';
+  readonly role: 'event' | 'club' | 'sponsor';
   readonly uri: string;
   readonly bytes: number;
 }
@@ -643,7 +647,7 @@ export interface TscoreApi {
   markFinal(): Promise<Outcome<ResultsView>>;
   logos(): Promise<Outcome<LogoView[]>>;
   /** Shows the open dialog for a PNG or JPEG. The logos after, or `null` if cancelled. */
-  chooseLogo(role: 'event' | 'sponsor'): Promise<Outcome<LogoView[] | null>>;
+  chooseLogo(role: 'event' | 'club' | 'sponsor'): Promise<Outcome<LogoView[] | null>>;
   removeLogo(id: string): Promise<Outcome<LogoView[]>>;
   /** The big screen's content, or null with no event open. */
   liveScores(): Promise<Outcome<LiveScores | null>>;

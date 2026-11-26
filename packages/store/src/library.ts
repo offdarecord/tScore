@@ -145,7 +145,10 @@ export class EventLibrary {
    */
   saveForMove(file: string): { bytes: number; files: number } {
     const store = this.#current;
-    if (!store) throw new StoreError('STORE_NO_EVENT', 'No event is open.');
+    if (!store)
+      throw new StoreError('STORE_NO_EVENT', 'No event is open.', {
+        key: 'errors.STORE_NO_EVENT_2',
+      });
     return this.#pack(store, file);
   }
 
@@ -252,6 +255,7 @@ export class EventLibrary {
       throw new StoreError(
         'STORE_CONFIRM_CODE',
         `Type the event's code, ${info.code}, to delete it.`,
+        { key: 'errors.STORE_CONFIRM_CODE', values: { code: info.code } },
       );
     }
     return info;
@@ -301,14 +305,21 @@ export class EventLibrary {
 
   /** A folder Manage events lists, and not the open event: anything else is refused. */
   #managed(folder: string): ManagedEvent {
-    if (typeof folder !== 'string') throw new StoreError('APP_BAD_REQUEST', 'No event chosen.');
+    if (typeof folder !== 'string')
+      throw new StoreError('APP_BAD_REQUEST', 'No event chosen.', {
+        key: 'errors.APP_BAD_REQUEST',
+      });
     const key = folderKey(folder);
     const info = this.manageList().find((e) => folderKey(e.folder) === key);
     if (!info) {
-      throw new StoreError('STORE_NOT_MANAGED', "That folder isn't one of this laptop's events.");
+      throw new StoreError('STORE_NOT_MANAGED', "That folder isn't one of this laptop's events.", {
+        key: 'errors.STORE_NOT_MANAGED',
+      });
     }
     if (this.isOpen(info.folder)) {
-      throw new StoreError('STORE_EVENT_OPEN', 'Close the event first, then tidy it up.');
+      throw new StoreError('STORE_EVENT_OPEN', 'Close the event first, then tidy it up.', {
+        key: 'errors.STORE_EVENT_OPEN',
+      });
     }
     return info;
   }
@@ -342,7 +353,10 @@ export class EventLibrary {
   /** Save a changed setup for the open event, and refresh its recent-list entry. */
   updateSetup(setup: unknown): EventStore {
     const store = this.#current;
-    if (!store) throw new StoreError('STORE_NO_EVENT', 'No event is open.');
+    if (!store)
+      throw new StoreError('STORE_NO_EVENT', 'No event is open.', {
+        key: 'errors.STORE_NO_EVENT_2',
+      });
     store.updateSetup(setup);
     this.#remember(store);
     return store;

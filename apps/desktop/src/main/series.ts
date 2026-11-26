@@ -77,7 +77,10 @@ export function seriesSummaries(eventsDir: string): SeriesSummary[] {
 
 export function seriesView(eventsDir: string, file: string): SeriesView {
   const found = listSeries(eventsDir).find((s) => s.file === file);
-  if (!found) throw new StoreError('APP_NO_SERIES', "That series isn't on this laptop any more.");
+  if (!found)
+    throw new StoreError('APP_NO_SERIES', "That series isn't on this laptop any more.", {
+      key: 'errors.APP_NO_SERIES',
+    });
   const { rounds, tally, labels, notCounted } = build(found.setup, false);
   return {
     file,
@@ -105,7 +108,10 @@ export function newSeries(eventsDir: string, name: string): string {
 
 function setupOf(eventsDir: string, file: string): SeriesSetup {
   const found = listSeries(eventsDir).find((s) => s.file === file);
-  if (!found) throw new StoreError('APP_NO_SERIES', "That series isn't on this laptop any more.");
+  if (!found)
+    throw new StoreError('APP_NO_SERIES', "That series isn't on this laptop any more.", {
+      key: 'errors.APP_NO_SERIES',
+    });
   return found.setup;
 }
 

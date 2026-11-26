@@ -46,6 +46,7 @@ export function setLabelOffset(offset: LabelOffset): LabelOffset {
       throw new StoreError(
         'APP_BAD_REQUEST',
         `Printer offsets are between −${MAX_OFFSET} and +${MAX_OFFSET} mm.`,
+        { key: 'errors.APP_BAD_REQUEST_25', values: { max: MAX_OFFSET } },
       );
     }
     return Math.round(v * 10) / 10;
@@ -67,7 +68,9 @@ function checkRequest(request: LabelRequest): LabelRequest {
     typeof r.minders !== 'boolean' ||
     !(r.which === 'all' || r.which === 'unprinted' || (r.which && whole(r.which.rider)))
   ) {
-    throw new StoreError('APP_BAD_REQUEST', 'Those label settings are incomplete.');
+    throw new StoreError('APP_BAD_REQUEST', 'Those label settings are incomplete.', {
+      key: 'errors.APP_BAD_REQUEST_26',
+    });
   }
   return r as LabelRequest;
 }
@@ -165,7 +168,9 @@ export async function saveLabels(
   const checked = checkRequest(request);
   const { template, plan: p } = plan(store, checked);
   if (p.labels === 0) {
-    throw new StoreError('APP_NO_LABELS', 'There are no labels to print with these settings.');
+    throw new StoreError('APP_NO_LABELS', 'There are no labels to print with these settings.', {
+      key: 'errors.APP_NO_LABELS',
+    });
   }
   const code = store.setup.event.code;
   const what =

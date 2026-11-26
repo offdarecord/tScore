@@ -223,7 +223,10 @@ export class EventStore {
     this.#ctx = ctx;
     const row = db.prepare('SELECT id, setup_json FROM event').get() as
       { id: string; setup_json: string } | undefined;
-    if (!row) throw new StoreError('STORE_NO_EVENT', 'The event file has no event in it.');
+    if (!row)
+      throw new StoreError('STORE_NO_EVENT', 'The event file has no event in it.', {
+        key: 'errors.STORE_NO_EVENT',
+      });
     this.eventId = row.id;
     this.#setup = JSON.parse(row.setup_json) as EventSetup;
   }
@@ -235,6 +238,7 @@ export class EventStore {
       throw new StoreError(
         'STORE_FOLDER_NOT_EMPTY',
         `The folder for a new event must be empty: ${folder}`,
+        { key: 'errors.STORE_FOLDER_NOT_EMPTY', values: { folder } },
       );
     }
     makeFolders(folder);
@@ -260,7 +264,10 @@ export class EventStore {
   static open(folder: string, ctx: StoreContext): EventStore {
     const file = join(folder, EVENT_FILE);
     if (!existsSync(file)) {
-      throw new StoreError('STORE_NOT_AN_EVENT', `No tScore event in this folder: ${folder}`);
+      throw new StoreError('STORE_NOT_AN_EVENT', `No tScore event in this folder: ${folder}`, {
+        key: 'errors.STORE_NOT_AN_EVENT',
+        values: { folder },
+      });
     }
     makeFolders(folder);
     const db = openDatabase(file, {
@@ -314,7 +321,11 @@ export class EventStore {
   entry(number: number): EntryInput {
     const row = this.#db.prepare('SELECT * FROM entry WHERE number = ?').get(number) as
       EntryRow | undefined;
-    if (!row) throw new StoreError('STORE_NO_RIDER', `There's no rider number ${number}.`);
+    if (!row)
+      throw new StoreError('STORE_NO_RIDER', `There's no rider number ${number}.`, {
+        key: 'errors.STORE_NO_RIDER',
+        values: { number },
+      });
     return toEntry(row, this.#penaltiesByNumber().get(number));
   }
 
@@ -391,6 +402,7 @@ export class EventStore {
           throw new StoreError(
             'STORE_DUPLICATE_RIDER',
             `Rider number ${entry.number} is already entered.`,
+            { key: 'errors.STORE_DUPLICATE_RIDER', values: { number: entry.number } },
           );
         }
         throw err;
@@ -445,16 +457,22 @@ export class EventStore {
       throw new StoreError(
         'STORE_BAD_NAME',
         current.length === 2 ? 'Give the driver and the passenger a name.' : 'Give one name.',
+        { key: current.length === 2 ? 'errors.STORE_BAD_NAME_PAIR' : 'errors.STORE_BAD_NAME_ONE' },
       );
     }
     const riders = current.map((p, i) => {
       const givenName = tidyText(names[i]?.givenName ?? '');
       const familyName = tidyText(names[i]?.familyName ?? '');
       if (!givenName && !familyName) {
-        throw new StoreError('STORE_BAD_NAME', 'A rider needs a first name or a surname.');
+        throw new StoreError('STORE_BAD_NAME', 'A rider needs a first name or a surname.', {
+          key: 'errors.STORE_BAD_NAME',
+        });
       }
       if (givenName.length > NAME_MAX || familyName.length > NAME_MAX) {
-        throw new StoreError('STORE_BAD_NAME', `Names can be up to ${NAME_MAX} characters.`);
+        throw new StoreError('STORE_BAD_NAME', `Names can be up to ${NAME_MAX} characters.`, {
+          key: 'errors.STORE_BAD_NAME_2',
+          values: { NAME_MAX },
+        });
       }
       return { ...p, givenName, familyName };
     });
@@ -468,7 +486,10 @@ export class EventStore {
     this.#assertOpen();
     const value = tidyText(club ?? '');
     if (value.length > CLUB_MAX) {
-      throw new StoreError('STORE_BAD_CLUB', `A club can be up to ${CLUB_MAX} characters.`);
+      throw new StoreError('STORE_BAD_CLUB', `A club can be up to ${CLUB_MAX} characters.`, {
+        key: 'errors.STORE_BAD_CLUB',
+        values: { CLUB_MAX },
+      });
     }
     this.#updateEntry(number, 'entry.club', 'club', value || null, (e) => e.club ?? null);
   }
@@ -480,6 +501,7 @@ export class EventStore {
       throw new StoreError(
         'STORE_BAD_MACHINE',
         `A machine can be up to ${MACHINE_MAX} characters.`,
+        { key: 'errors.STORE_BAD_MACHINE', values: { MACHINE_MAX } },
       );
     }
     this.#updateEntry(number, 'entry.machine', 'machine', value || null, (e) => e.machine ?? null);
@@ -499,6 +521,16 @@ export class EventStore {
       throw new StoreError(
         'STORE_WRONG_SECTION_COUNT',
         `Rider ${card.number}, day ${card.day} lap ${card.lap}: ${card.scores.length} scores, but the class rides ${sections} sections.`,
+        {
+          key: 'errors.STORE_WRONG_SECTION_COUNT',
+          values: {
+            number: card.number,
+            day: card.day,
+            lap: card.lap,
+            card: card.scores.length,
+            sections,
+          },
+        },
       );
     }
     card.scores.forEach((v, i) => this.#checkScore(v, card, i + 1));
@@ -528,6 +560,10 @@ export class EventStore {
           throw new StoreError(
             'STORE_DUPLICATE_CARD',
             `The card for rider ${card.number}, day ${card.day} lap ${card.lap} is already in.`,
+            {
+              key: 'errors.STORE_DUPLICATE_CARD',
+              values: { number: card.number, day: card.day, lap: card.lap },
+            },
           );
         }
         throw err;
@@ -615,7 +651,10 @@ export class EventStore {
       )
       .get(card, change.section) as { id: string; value: number | null } | undefined;
     if (!current) {
-      throw new StoreError('STORE_NO_SECTION', `Section ${change.section} isn't on this card.`);
+      throw new StoreError('STORE_NO_SECTION', `Section ${change.section} isn't on this card.`, {
+        key: 'errors.STORE_NO_SECTION',
+        values: { section: change.section },
+      });
     }
     if (current.value === change.value) return;
     this.#tx(() => {
@@ -646,6 +685,16 @@ export class EventStore {
       throw new StoreError(
         'STORE_WRONG_SECTION_COUNT',
         `Rider ${change.number}, day ${change.day} lap ${change.lap}: ${change.scores.length} scores, but the class rides ${sections} sections.`,
+        {
+          key: 'errors.STORE_WRONG_SECTION_COUNT_2',
+          values: {
+            number: change.number,
+            day: change.day,
+            lap: change.lap,
+            change: change.scores.length,
+            sections,
+          },
+        },
       );
     }
     change.scores.forEach((v, i) => this.#checkScore(v, change, i + 1));
@@ -842,7 +891,9 @@ export class EventStore {
         .prepare('UPDATE penalty SET removed_at = ? WHERE id = ? AND removed_at IS NULL')
         .run(stamp(this.#ctx), id);
       if (r.changes === 0)
-        throw new StoreError('STORE_NO_PENALTY', 'That penalty is not in force.');
+        throw new StoreError('STORE_NO_PENALTY', 'That penalty is not in force.', {
+          key: 'errors.STORE_NO_PENALTY',
+        });
       this.#audit('penalty.remove', id, {});
     });
   }
@@ -894,11 +945,15 @@ export class EventStore {
    */
   addLogo(role: LogoRole, data: Uint8Array): LogoInfo {
     const mime = imageType(data);
-    if (!mime) throw new StoreError('STORE_LOGO_TYPE', 'A logo must be a PNG or JPEG picture.');
+    if (!mime)
+      throw new StoreError('STORE_LOGO_TYPE', 'A logo must be a PNG or JPEG picture.', {
+        key: 'errors.STORE_LOGO_TYPE',
+      });
     if (data.length > LOGO_MAX_BYTES) {
       throw new StoreError(
         'STORE_LOGO_SIZE',
         `That picture is ${(data.length / 1_000_000).toFixed(1)} MB. Logos can be up to 1 MB: save a smaller copy.`,
+        { key: 'errors.STORE_LOGO_SIZE', values: { size: (data.length / 1_000_000).toFixed(1) } },
       );
     }
     return this.#tx(() => {
@@ -908,6 +963,7 @@ export class EventStore {
         throw new StoreError(
           'STORE_LOGO_COUNT',
           `There can be up to ${LOGO_MAX_SPONSORS} sponsor logos. Remove one first.`,
+          { key: 'errors.STORE_LOGO_COUNT', values: { LOGO_MAX_SPONSORS } },
         );
       }
       const { next } = this.#db
@@ -957,7 +1013,11 @@ export class EventStore {
     const row = this.#db
       .prepare('SELECT results_json FROM results_final WHERE revision = ?')
       .get(revision) as { results_json: string } | undefined;
-    if (!row) throw new StoreError('STORE_NO_REVISION', `There's no revision ${revision}.`);
+    if (!row)
+      throw new StoreError('STORE_NO_REVISION', `There's no revision ${revision}.`, {
+        key: 'errors.STORE_NO_REVISION',
+        values: { revision },
+      });
     return JSON.parse(row.results_json) as unknown;
   }
 
@@ -973,7 +1033,9 @@ export class EventStore {
   markFinal(revision: number, results: unknown): void {
     this.#assertOpen();
     if (revision !== this.nextRevision()) {
-      throw new StoreError('STORE_REVISION_CHANGED', 'The results changed. Try again.');
+      throw new StoreError('STORE_REVISION_CHANGED', 'The results changed. Try again.', {
+        key: 'errors.STORE_REVISION_CHANGED',
+      });
     }
     this.#tx(() => {
       this.#db
@@ -996,11 +1058,15 @@ export class EventStore {
   reopenResults(reason: string): void {
     const state = this.finalState();
     if (!state || state.reopened) {
-      throw new StoreError('STORE_NOT_FINAL', "The results aren't final.");
+      throw new StoreError('STORE_NOT_FINAL', "The results aren't final.", {
+        key: 'errors.STORE_NOT_FINAL',
+      });
     }
     const why = tidyText(reason);
     if (!why || why.length > 300) {
-      throw new StoreError('STORE_NEED_REASON', 'Say why the results are being reopened.');
+      throw new StoreError('STORE_NEED_REASON', 'Say why the results are being reopened.', {
+        key: 'errors.STORE_NEED_REASON',
+      });
     }
     this.#tx(() => {
       this.#db
@@ -1045,7 +1111,10 @@ export class EventStore {
       ...(s.event.permit !== undefined && { permit: s.event.permit }),
       days: s.days.map((d) => {
         if (!d.date) {
-          throw new StoreError('STORE_NO_DATE', `Set the date for day ${d.day} in Event setup.`);
+          throw new StoreError('STORE_NO_DATE', `Set the date for day ${d.day} in Event setup.`, {
+            key: 'errors.STORE_NO_DATE',
+            values: { day: d.day },
+          });
         }
         return { day: d.day, date: d.date };
       }),
@@ -1115,6 +1184,7 @@ export class EventStore {
       throw new StoreError(
         'STORE_RESULTS_FINAL',
         `Results are final (revision ${state.revision}). Reopen them on the Results screen to change anything that affects them.`,
+        { key: 'errors.STORE_RESULTS_FINAL', values: { revision: state.revision } },
       );
     }
   }
@@ -1182,6 +1252,7 @@ export class EventStore {
           throw new StoreError(
             'STORE_CLASS_IN_USE',
             `Class "${c}" has riders (rider ${e.number}), so it can't be removed or renamed. Move its riders to another class first.`,
+            { key: 'errors.STORE_CLASS_IN_USE', values: { name: c, number: e.number } },
           );
         }
       }
@@ -1194,6 +1265,10 @@ export class EventStore {
         throw new StoreError(
           'STORE_CARD_IN_USE',
           `Rider ${card.number} already has a card for day ${card.day} lap ${card.lap}, so that lap can't be removed.`,
+          {
+            key: 'errors.STORE_CARD_IN_USE',
+            values: { number: card.number, day: card.day, lap: card.lap },
+          },
         );
       }
       const scoredTo = card.scores.reduce<number>((n, s, i) => (s === null ? n : i + 1), 0);
@@ -1201,6 +1276,10 @@ export class EventStore {
         throw new StoreError(
           'STORE_CARD_IN_USE',
           `Rider ${card.number}'s card for day ${card.day} lap ${card.lap} has scores up to section ${scoredTo}, so this class needs at least ${scoredTo} sections.`,
+          {
+            key: 'errors.STORE_CARD_IN_USE_2',
+            values: { number: card.number, day: card.day, lap: card.lap, scoredTo },
+          },
         );
       }
     }
@@ -1212,11 +1291,18 @@ export class EventStore {
 
   #checkClasses(number: number, classes: readonly string[]): void {
     if (classes.length < 1 || classes.length > 2) {
-      throw new StoreError('STORE_CLASS_COUNT', `Rider ${number} must be in one or two classes.`);
+      throw new StoreError('STORE_CLASS_COUNT', `Rider ${number} must be in one or two classes.`, {
+        key: 'errors.STORE_CLASS_COUNT',
+        values: { number },
+      });
     }
     const known = this.#classes();
     for (const c of classes) {
-      if (!known.has(c)) throw new StoreError('STORE_NO_CLASS', `There's no class called "${c}".`);
+      if (!known.has(c))
+        throw new StoreError('STORE_NO_CLASS', `There's no class called "${c}".`, {
+          key: 'errors.STORE_NO_CLASS',
+          values: { name: c },
+        });
     }
   }
 
@@ -1226,12 +1312,16 @@ export class EventStore {
     const cls = this.#classes().get(entry.classes[0] ?? '');
     const d = cls?.days.find((x) => x.day === day);
     if (!d) {
-      throw new StoreError('STORE_NO_DAY', `Rider ${number}'s class doesn't ride on day ${day}.`);
+      throw new StoreError('STORE_NO_DAY', `Rider ${number}'s class doesn't ride on day ${day}.`, {
+        key: 'errors.STORE_NO_DAY',
+        values: { number, day },
+      });
     }
     if (lap < 1 || lap > d.laps) {
       throw new StoreError(
         'STORE_NO_LAP',
         `Rider ${number}'s class rides ${d.laps} laps on day ${day}; there's no lap ${lap}.`,
+        { key: 'errors.STORE_NO_LAP', values: { number, laps: d.laps, day, lap } },
       );
     }
     return d.sections;
@@ -1248,6 +1338,17 @@ export class EventStore {
       throw new StoreError(
         'STORE_BAD_SCORE',
         `Rider ${where.number}, day ${where.day} lap ${where.lap} section ${section}: ${value} isn't a score (allowed: ${allowed.join(', ')}).`,
+        {
+          key: 'errors.STORE_BAD_SCORE',
+          values: {
+            number: where.number,
+            day: where.day,
+            lap: where.lap,
+            section,
+            value,
+            allowed: allowed.join(', '),
+          },
+        },
       );
     }
   }
@@ -1260,6 +1361,7 @@ export class EventStore {
       throw new StoreError(
         'STORE_NO_CARD',
         `There's no card yet for rider ${number}, day ${day} lap ${lap}.`,
+        { key: 'errors.STORE_NO_CARD', values: { number, day, lap } },
       );
     }
     return row.id;
@@ -1324,7 +1426,10 @@ function checkSetup(setup: unknown): EventSetup {
 function checkTime(value: string): string {
   const t = Date.parse(value);
   if (typeof value !== 'string' || Number.isNaN(t)) {
-    throw new StoreError('STORE_BAD_TIME', `"${String(value)}" isn't a time.`);
+    throw new StoreError('STORE_BAD_TIME', `"${String(value)}" isn't a time.`, {
+      key: 'errors.STORE_BAD_TIME',
+      values: { value: String(value) },
+    });
   }
   return new Date(t).toISOString();
 }

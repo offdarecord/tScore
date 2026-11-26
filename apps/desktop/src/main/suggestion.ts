@@ -56,7 +56,7 @@ export async function saveSuggestion(
       ok: false,
       error: {
         code: publicErrorCode('APP_SAVE_FAILED'),
-        message: `Couldn't save the file: ${(err as Error).message}`,
+        message: t('errors.APP_SAVE_FAILED', { problem: (err as Error).message }),
       },
     };
   }

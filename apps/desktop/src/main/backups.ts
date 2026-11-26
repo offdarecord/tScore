@@ -22,6 +22,7 @@ import { basename, join } from 'node:path';
 import type { EventStore } from '@tscore/store';
 import { app } from 'electron';
 import log from 'electron-log/main';
+import { t } from './i18n';
 import type { BackupStatus } from '../shared/ipc';
 
 const EVERY_MS = 5 * 60_000;
@@ -58,7 +59,7 @@ function copyToSecondPlace(store: EventStore, file: string): string | undefined 
   const place = secondPlace();
   if (!place) return undefined;
   if (!existsSync(place)) {
-    return `${place} isn't available (is the USB stick plugged in?). Scoring still works, but there's no second copy.`;
+    return t('errors.BACKUP_PLACE_MISSING', { place });
   }
   try {
     const dir = join(place, 'tScore backups', basename(store.folder));
@@ -70,7 +71,7 @@ function copyToSecondPlace(store: EventStore, file: string): string | undefined 
     for (const old of autos.slice(0, Math.max(0, autos.length - KEEP))) rmSync(join(dir, old));
     return undefined;
   } catch (err) {
-    return `Couldn't copy the backup to ${place}: ${(err as Error).message}`;
+    return t('errors.BACKUP_COPY_FAILED', { place, problem: (err as Error).message });
   }
 }
 

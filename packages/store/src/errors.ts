@@ -1,12 +1,23 @@
 import type { ValidationIssue } from '@tscore/core';
 
-/** Base class for event store errors. `code` is stable and shown in support bundles (ADR 0012). */
+/** A message's key in the app's message files, and the values it fills in (#64). */
+export interface MessageRef {
+  readonly key: string;
+  readonly values?: Readonly<Record<string, string | number | boolean | null | undefined>>;
+}
+
+/**
+ * Base class for event store errors. `code` is stable and shown in support bundles (ADR 0012).
+ * `message` is the English; `words` lets the app show it in the laptop's language.
+ */
 export class StoreError extends Error {
   readonly code: string;
-  constructor(code: string, message: string) {
+  readonly words: MessageRef | undefined;
+  constructor(code: string, message: string, words?: MessageRef) {
     super(message);
     this.name = 'StoreError';
     this.code = code;
+    this.words = words;
   }
 }
 
@@ -19,6 +30,7 @@ export class NewerFileError extends StoreError {
       'STORE_NEWER_FILE',
       `This event was saved by a newer version of tScore (file version ${fileVersion}; this ` +
         `version reads up to ${supportedVersion}). Update tScore to open it.`,
+      { key: 'errors.STORE_NEWER_FILE', values: { fileVersion, supportedVersion } },
     );
     this.fileVersion = fileVersion;
     this.supportedVersion = supportedVersion;
@@ -31,6 +43,7 @@ export class DamagedFileError extends StoreError {
     super(
       'STORE_DAMAGED',
       `The event file failed its integrity check (${detail}). Restore it from a backup.`,
+      { key: 'errors.STORE_DAMAGED', values: { detail } },
     );
   }
 }

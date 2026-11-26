@@ -20,7 +20,13 @@ export {
   type ScoreVersion,
   type StoreContext,
 } from './event-store.js';
-export { StoreError, NewerFileError, DamagedFileError, SetupError } from './errors.js';
+export {
+  StoreError,
+  NewerFileError,
+  DamagedFileError,
+  SetupError,
+  type MessageRef,
+} from './errors.js';
 export { EventLibrary, type LibraryOptions, type RecentEvent, type TidyPrefs } from './library.js';
 export { SCANS_REMOVED, SMALL_COPY_MAX_BYTES, type ManagedEvent } from './manage.js';
 export {

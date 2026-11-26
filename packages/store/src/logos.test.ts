@@ -1,9 +1,10 @@
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 import { newEventSetup } from '@tscore/core';
 import { afterEach, describe, expect, it } from 'vitest';
-import { EventStore, LOGO_MAX_SPONSORS } from './event-store.js';
+import { EVENT_FILE, EventStore, LOGO_MAX_SPONSORS } from './event-store.js';
 
 const PNG = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]);
 const JPEG = Uint8Array.from([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3]);
@@ -69,5 +70,51 @@ describe('logos', () => {
     for (let i = 0; i < LOGO_MAX_SPONSORS; i++) s.addLogo('sponsor', PNG);
     expect(code(() => s.addLogo('sponsor', PNG))).toBe('STORE_LOGO_COUNT');
     expect(s.logos()).toHaveLength(LOGO_MAX_SPONSORS);
+  });
+});
+
+describe('the club logo (#111)', () => {
+  it('keeps one club logo beside the event logo, a new one replacing it', () => {
+    const s = store();
+    s.addLogo('event', PNG);
+    s.addLogo('club', PNG);
+    const replaced = s.addLogo('club', JPEG);
+    expect(s.logos().map((l) => [l.role, l.mime])).toEqual([
+      ['club', 'image/jpeg'],
+      ['event', 'image/png'],
+    ]);
+    expect(s.logoData(replaced.id)).toEqual(JPEG);
+    expect(s.auditLog().filter((a) => a.kind === 'logo.add')).toHaveLength(3);
+  });
+
+  it("keeps an older file's logos when it gains club logos", () => {
+    const s = store();
+    s.addLogo('event', PNG);
+    s.addLogo('sponsor', JPEG);
+    const folder = s.folder;
+    s.close();
+    stores.pop();
+    // Put the file back to schema 7: the logo table without 'club'.
+    const db = new DatabaseSync(join(folder, EVENT_FILE));
+    db.exec(`
+      CREATE TABLE logo_old (
+        id TEXT PRIMARY KEY,
+        role TEXT NOT NULL CHECK (role IN ('event', 'sponsor')),
+        position INTEGER NOT NULL,
+        mime TEXT NOT NULL CHECK (mime IN ('image/png', 'image/jpeg')),
+        data BLOB NOT NULL,
+        added_at TEXT NOT NULL
+      ) STRICT;
+      INSERT INTO logo_old SELECT * FROM logo;
+      DROP TABLE logo;
+      ALTER TABLE logo_old RENAME TO logo;
+      PRAGMA user_version = 7;
+    `);
+    db.close();
+    const reopened = EventStore.open(folder, { stationId: 'test', appVersion: '0.0.0-test' });
+    stores.push(reopened);
+    expect(reopened.logos().map((l) => l.role)).toEqual(['event', 'sponsor']);
+    reopened.addLogo('club', PNG);
+    expect(reopened.logos().map((l) => l.role)).toEqual(['club', 'event', 'sponsor']);
   });
 });

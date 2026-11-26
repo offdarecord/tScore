@@ -152,6 +152,7 @@ export function LiveScores() {
     <main className="live" onDoubleClick={() => void window.tscore.toggleLiveFullScreen()}>
       <header className="live-head">
         <div className="live-title">
+          {logos.club && <img className="live-logo live-club-logo" src={logos.club} alt="" />}
           {logos.event && <img className="live-logo" src={logos.event} alt="" />}
           <h1 className="live-event">{results.event.name}</h1>
         </div>

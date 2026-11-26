@@ -84,3 +84,43 @@ test('the event and sponsor logos are chosen on Event setup and shown on the big
   ).toBeVisible();
   if (process.env.TSCORE_SHOT) await screen.screenshot({ path: process.env.TSCORE_SHOT });
 });
+
+test("the club logo is shown beside the event's and filled in for the club's next event", async () => {
+  await window.getByRole('button', { name: 'New event' }).click();
+  await window.getByLabel('Event name').fill('Example Club Trial');
+  await window.getByLabel('Club').fill('Example MCC');
+  await window.getByLabel(/^Date\b/).fill('2027-02-06');
+  await window.getByRole('button', { name: 'Create event' }).click();
+  const card = window.getByRole('region', { name: 'Logos' });
+  await expect(card).toContainText("Example MCC's next events get it automatically");
+
+  const logo = join(run.userData, 'badge.png');
+  writeFileSync(logo, PNG);
+  await pick(logo);
+  await card.getByRole('button', { name: 'Choose club logo…' }).click();
+  await expect(card.getByRole('img', { name: 'club logo' })).toBeVisible();
+  await card.getByRole('button', { name: 'Choose event logo…' }).click();
+
+  await window
+    .getByRole('navigation', { name: 'Event' })
+    .getByRole('button', { name: 'Results' })
+    .click();
+  const opened = run.app.waitForEvent('window');
+  await window.getByRole('button', { name: 'Show live scores' }).click();
+  const screen = await opened;
+  await expect(screen.locator('img.live-logo')).toHaveCount(2);
+  await expect(screen.locator('img.live-club-logo')).toHaveCount(1);
+
+  // The club's next event on this laptop starts with its logo.
+  await run.app.close();
+  run = await launchApp(run);
+  ({ window } = run);
+  await window.getByRole('button', { name: 'New event' }).click();
+  await window.getByLabel('Event name').fill('Example Club Trial 2');
+  await window.getByLabel('Club').fill('example mcc');
+  await window.getByLabel(/^Date\b/).fill('2027-03-06');
+  await window.getByRole('button', { name: 'Create event' }).click();
+  const next = window.getByRole('region', { name: 'Logos' });
+  await expect(next.getByRole('img', { name: 'club logo' })).toBeVisible();
+  await expect(next.getByRole('img', { name: 'event logo' })).toHaveCount(0);
+});

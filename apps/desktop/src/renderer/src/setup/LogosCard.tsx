@@ -6,7 +6,10 @@ import { ErrorAlert } from '../ErrorAlert';
 
 const MAX_SPONSORS = 8;
 
-/** Event setup's "Logos": the event logo and sponsor logos for the results PDF and big screen. */
+/**
+ * Event setup's "Logos": the organising club's logo, the event logo and sponsor logos for the
+ * results PDF and big screen. The club logo is remembered on this laptop for the club (#111).
+ */
 export function LogosCard({ event }: { event: OpenEvent }) {
   const { t } = useTranslation();
   const [logos, setLogos] = useState<LogoView[] | null>(null);
@@ -28,7 +31,9 @@ export function LogosCard({ event }: { event: OpenEvent }) {
 
   if (!logos) return error ? <ErrorAlert error={error} /> : null;
   const eventLogo = logos.find((l) => l.role === 'event');
+  const clubLogo = logos.find((l) => l.role === 'club');
   const sponsors = logos.filter((l) => l.role === 'sponsor');
+  const club = event.setup.event.club?.trim();
 
   return (
     <Paper withBorder radius="md" p="lg" component="section" aria-labelledby="logos-heading">
@@ -42,6 +47,28 @@ export function LogosCard({ event }: { event: OpenEvent }) {
           </Text>
         </div>
         {error && <ErrorAlert error={error} onClose={() => setError(null)} />}
+        <div>
+          <Text fw={600}>{t('logos.club')}</Text>
+          <Text size="sm" c="dimmed">
+            {club ? t('logos.clubRemembered', { club }) : t('logos.clubNoName')}
+          </Text>
+          {clubLogo ? (
+            <Logo
+              logo={clubLogo}
+              name={t('logos.clubName')}
+              onRemove={(id) => void run(window.tscore.removeLogo(id))}
+            />
+          ) : (
+            <Text size="sm">{t('logos.none')}</Text>
+          )}
+          <Button
+            mt="xs"
+            variant="default"
+            onClick={() => void run(window.tscore.chooseLogo('club'))}
+          >
+            {clubLogo ? t('logos.changeClub') : t('logos.chooseClub')}
+          </Button>
+        </div>
         <div>
           <Text fw={600}>{t('logos.event')}</Text>
           {eventLogo ? (

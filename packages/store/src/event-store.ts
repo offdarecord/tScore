@@ -35,7 +35,7 @@ export const EVENT_FILE = 'event.sqlite';
 export const LOGO_MAX_BYTES = 1_000_000;
 export const LOGO_MAX_SPONSORS = 8;
 
-export type LogoRole = 'event' | 'sponsor';
+export type LogoRole = 'event' | 'club' | 'sponsor';
 
 export interface LogoInfo {
   readonly id: string;
@@ -923,7 +923,7 @@ export class EventStore {
 
   // ---- Logos ----
 
-  /** The event logo (at most one) and sponsor logos in order, without their pictures. */
+  /** The event and club logos (at most one each) and sponsor logos in order, without pictures. */
   logos(): LogoInfo[] {
     return this.#db
       .prepare(
@@ -940,7 +940,7 @@ export class EventStore {
   }
 
   /**
-   * Set the event logo (replacing any) or add a sponsor logo. Only PNG or JPEG, checked from
+   * Set the event or club logo (replacing any) or add a sponsor logo. Only PNG or JPEG, checked from
    * the picture itself, up to LOGO_MAX_BYTES; at most LOGO_MAX_SPONSORS sponsors.
    */
   addLogo(role: LogoRole, data: Uint8Array): LogoInfo {
@@ -957,8 +957,8 @@ export class EventStore {
       );
     }
     return this.#tx(() => {
-      if (role === 'event') {
-        this.#db.prepare("DELETE FROM logo WHERE role = 'event'").run();
+      if (role === 'event' || role === 'club') {
+        this.#db.prepare('DELETE FROM logo WHERE role = ?').run(role);
       } else if (this.logos().filter((l) => l.role === 'sponsor').length >= LOGO_MAX_SPONSORS) {
         throw new StoreError(
           'STORE_LOGO_COUNT',

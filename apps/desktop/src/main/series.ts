@@ -76,7 +76,19 @@ function build(setup: SeriesSetup, juniorInitials: boolean) {
           }),
     )
     .filter(Boolean);
-  return { rounds, tally, labels, notCounted };
+  return { rounds, tally, labels, notCounted, clubLogo: seriesClubLogo(rounds) };
+}
+
+/**
+ * The club logo for the series PDF (#111): only when every round that names a club names the
+ * same one (a championship across clubs shows none), from the latest round that has it.
+ */
+function seriesClubLogo(rounds: readonly SeriesRoundInfo[]): string | undefined {
+  const clubs = new Set(
+    rounds.flatMap((r) => (r.club ? [r.club.trim().replace(/\s+/g, ' ').toLowerCase()] : [])),
+  );
+  if (clubs.size !== 1) return undefined;
+  return rounds.toReversed().find((r) => r.clubLogo)?.clubLogo;
 }
 
 export function seriesSummaries(eventsDir: string): SeriesSummary[] {
@@ -174,7 +186,7 @@ export async function exportSeries(
     ? await dialog.showSaveDialog(win, options)
     : await dialog.showSaveDialog(options);
   if (picked.canceled || !picked.filePath) return null;
-  const { tally, labels, notCounted } = build(setup, juniorInitials);
+  const { tally, labels, notCounted, clubLogo } = build(setup, juniorInitials);
   const opts = {
     name: setup.name,
     roundLabels: labels,
@@ -188,6 +200,7 @@ export async function exportSeries(
     }),
     t: coreT,
     lang: pageLanguage(),
+    ...(clubLogo && { clubLogo }),
   };
   if (kind === 'csv') writeFileSync(picked.filePath, seriesCsv(tally, opts), 'utf8');
   else writeFileSync(picked.filePath, await pdfOf(seriesHtml(tally, opts)));

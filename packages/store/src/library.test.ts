@@ -188,3 +188,36 @@ describe('backups and restore', () => {
     expect(closed).toEqual(['BC1', 'BC2']);
   });
 });
+
+describe("a club's logo, remembered on this laptop (#111)", () => {
+  const PNG = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]);
+  const clubSetup = (code: string, club: string) => ({
+    ...setup(code),
+    event: { ...setup(code).event, club },
+  });
+
+  it("fills in a new event's club logo for the same club, whatever the case and spacing", () => {
+    const { lib } = library();
+    lib.rememberClubLogo('Example  MCC', PNG);
+    const same = lib.create(clubSetup('CL1', ' example mcc '));
+    const logos = same.logos();
+    expect(logos.map((l) => l.role)).toEqual(['club']);
+    expect(same.logoData(logos[0]!.id)).toEqual(PNG);
+  });
+
+  it("doesn't for another club or an event with no club", () => {
+    const { lib } = library();
+    lib.rememberClubLogo('Example MCC', PNG);
+    expect(lib.create(clubSetup('CL2', 'Another MCC')).logos()).toEqual([]);
+    expect(lib.create(setup('CL3')).logos()).toEqual([]);
+  });
+
+  it('remembers the latest logo for the club', () => {
+    const { lib } = library();
+    const JPEG = Uint8Array.from([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3]);
+    lib.rememberClubLogo('Example MCC', PNG);
+    lib.rememberClubLogo('Example MCC', JPEG);
+    expect(lib.clubLogo('EXAMPLE MCC')).toEqual(Buffer.from(JPEG));
+    expect(lib.clubLogo('Another MCC')).toBeNull();
+  });
+});

@@ -166,7 +166,7 @@ function registerIpc(): void {
   handle(IPC.course, (_e, day?: number) => eventHandlers.course(day));
   handle(IPC.liveScores, () => eventHandlers.liveScores());
   handle(IPC.logos, () => eventHandlers.logos());
-  handle(IPC.chooseLogo, (e, role: 'event' | 'sponsor') =>
+  handle(IPC.chooseLogo, (e, role: 'event' | 'club' | 'sponsor') =>
     eventHandlers.chooseLogo(role, BrowserWindow.fromWebContents(e.sender)),
   );
   handle(IPC.removeLogo, (_e, id: string) => eventHandlers.removeLogo(id));

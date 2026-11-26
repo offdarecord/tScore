@@ -48,6 +48,9 @@ export interface SeriesRoundInfo {
   readonly results?: Results;
   /** The round's junior classes, for surnames as an initial in anything shared. */
   readonly juniorClasses: readonly string[];
+  /** The organising club, and its logo as a data URI (#111). */
+  readonly club?: string;
+  readonly clubLogo?: string;
 }
 
 /** Read one round from its event folder without changing anything. */
@@ -72,6 +75,8 @@ export function readSeriesRound(folder: string): SeriesRoundInfo {
       code: setup.event.code,
       ...(setup.days[0]?.date !== undefined && { date: setup.days[0].date }),
       juniorClasses: juniorClassesFromSetup(setup),
+      ...(setup.event.club && { club: setup.event.club }),
+      ...clubLogoOf(db, version),
     };
     // Files from before results could be marked final (schema 6) have no final results.
     if (version < 6) return { ...info, state: 'provisional' };
@@ -93,6 +98,16 @@ export function readSeriesRound(folder: string): SeriesRoundInfo {
   } finally {
     db?.close();
   }
+}
+
+/** A round's club logo, from files new enough to have one (schema 8). */
+function clubLogoOf(db: DatabaseSync, version: number): { clubLogo?: string } {
+  if (version < 8) return {};
+  const row = db.prepare("SELECT mime, data FROM logo WHERE role = 'club'").get() as
+    { mime: string; data: Uint8Array } | undefined;
+  return row
+    ? { clubLogo: `data:${row.mime};base64,${Buffer.from(row.data).toString('base64')}` }
+    : {};
 }
 
 /** The series saved on this laptop, by name. */

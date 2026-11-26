@@ -277,6 +277,14 @@ export async function attemptAsync<T>(what: string, fn: () => Promise<T>): Promi
   }
 }
 
+/** Remember the event's club logo for the club's next events, whichever was filled in first. */
+function rememberClubLogo(store: EventStore): void {
+  const club = store.setup.event.club;
+  const logo = store.logos().find((l) => l.role === 'club');
+  const data = logo && store.logoData(logo.id);
+  if (club && data) events().rememberClubLogo(club, data);
+}
+
 function failed(what: string, err: unknown): { ok: false; error: AppError } {
   let error: AppError;
   if (err instanceof SetupError) {
@@ -461,6 +469,7 @@ export const eventHandlers = {
     return attempt('saving the event setup', () => {
       const store = events().updateSetup(setup);
       log.info('event setup saved', { eventId: store.eventId });
+      rememberClubLogo(store);
       return describe(store);
     });
   },
@@ -882,12 +891,17 @@ export const eventHandlers = {
   },
 
   async chooseLogo(
-    role: 'event' | 'sponsor',
+    role: 'event' | 'club' | 'sponsor',
     win: BrowserWindow | null,
   ): Promise<Outcome<LogoView[] | null>> {
-    if (role !== 'event' && role !== 'sponsor') return { ok: true, value: null };
+    if (role !== 'event' && role !== 'club' && role !== 'sponsor') return { ok: true, value: null };
     const options: Electron.OpenDialogOptions = {
-      title: role === 'event' ? t('dialog.eventLogo') : t('dialog.sponsorLogo'),
+      title:
+        role === 'event'
+          ? t('dialog.eventLogo')
+          : role === 'club'
+            ? t('dialog.clubLogo')
+            : t('dialog.sponsorLogo'),
       properties: ['openFile'],
       filters: [{ name: t('dialog.picture'), extensions: ['png', 'jpg', 'jpeg'] }],
     };
@@ -908,6 +922,8 @@ export const eventHandlers = {
       }
       const added = store.addLogo(role, readFileSync(file));
       log.info('logo added', { role, mime: added.mime, bytes: added.bytes });
+      // The club's next events on this laptop get it too (#111).
+      if (role === 'club') rememberClubLogo(store);
       return logoViews(store);
     });
   },

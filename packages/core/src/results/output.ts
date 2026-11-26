@@ -274,7 +274,12 @@ export interface PrintOptions {
   /** e.g. "tScore 0.5.0, 24 Nov 2026 3:15 pm". */
   readonly footer: string;
   /** Pictures as `data:image/png;base64,…` or JPEG: the event logo by the title, sponsors at the end. */
-  readonly logos?: { readonly event?: string; readonly sponsors?: readonly string[] };
+  readonly logos?: {
+    readonly event?: string;
+    /** The organising club's logo (#111): left of the title, with the event logo on the right. */
+    readonly club?: string;
+    readonly sponsors?: readonly string[];
+  };
   /** Observers and officials to thank, at the end (from thanksFromSetup). */
   readonly thanks?: Thanks;
   /** The wording's language (English when left out). */
@@ -420,6 +425,7 @@ export function resultsHtml(results: Results, opts: PrintOptions): string {
   .total { font-weight: 700; }
   .count { color: #444; }
   .head { display: flex; align-items: center; gap: 12px; }
+  .head .title { flex: 1; }
   .event-logo { max-height: 20mm; max-width: 45mm; object-fit: contain; }
   .sponsors { margin-top: 14px; break-inside: avoid; }
   .sponsors p { margin: 0 0 4px; color: #444; font-size: 8.5pt; }
@@ -432,8 +438,11 @@ export function resultsHtml(results: Results, opts: PrintOptions): string {
   .thanks li span { font-weight: 700; }
   footer { margin-top: 14px; color: #444; font-size: 8pt; }${CREDIT_CSS}
 </style></head><body>
-<div class="head">${logo(opts.logos?.event, 'event-logo')}<div><h1>${esc(ev.name)}</h1>
-<div class="sub">${sub}</div></div></div>
+${headHtml(
+  opts.logos,
+  `<h1>${esc(ev.name)}</h1>
+<div class="sub">${sub}</div>`,
+)}
 ${provisional ? `<div class="provisional">${esc(t('core.provisional', 'PROVISIONAL: {{gaps}} Positions may change.', { gaps: gapWords(opts.gaps, t) }))}</div>` : ''}
 ${final ? `<div class="final"><strong>${esc(results.revision > 1 ? t('core.finalRevision', 'FINAL RESULTS · REVISION {{revision}}', { revision: results.revision }) : t('core.final', 'FINAL RESULTS'))}</strong>${note ? `<div>${esc(t('core.replaces', 'Replaces revision {{revision}} of {{when}}. Reason: {{reason}}', { revision: note.replaces, when: note.replacedAt, reason: note.reason }))}</div>${note.changes.length ? `<ul>${note.changes.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : `<div>${esc(t('core.noChanges', 'No places changed.'))}</div>`}` : ''}</div>` : ''}
 ${classes}
@@ -442,6 +451,21 @@ ${sponsorsHtml(opts.logos?.sponsors, t)}
 <footer>${esc(tieBreakWords(results, t))} ${esc(t('core.footnote', 'NA = No award (scored, not placed). NC = Non-competitive (counts only; scores are not published). DNF = did not finish. DNS = did not start.'))}<br>${esc(opts.footer)}</footer>
 ${creditHtml(t)}
 </body></html>`;
+}
+
+/**
+ * The page header: the club logo on the left and the event logo on the right of the title; with
+ * only one of them, it sits just left of the title.
+ */
+export function headHtml(
+  logos: { readonly event?: string; readonly club?: string } | undefined,
+  title: string,
+): string {
+  const club = logo(logos?.club, 'event-logo');
+  const event = logo(logos?.event, 'event-logo');
+  return club && event
+    ? `<div class="head">${club}<div class="title">${title}</div>${event}</div>`
+    : `<div class="head">${club || event}<div>${title}</div></div>`;
 }
 
 function sponsorsHtml(sponsors: readonly string[] | undefined, t: Translate): string {

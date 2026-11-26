@@ -6,6 +6,7 @@
  * whatever the payload leaves out (a non-competitive rider's scores) can't appear in any of them.
  */
 import type { ClassResults, Entry, Results } from '../generated/results.js';
+import { english, type Translate } from '../words.js';
 import type { ResultsGap } from './compute.js';
 
 /** "1st", "2nd", "3rd", "4th", "11th", "21st"... */
@@ -18,15 +19,16 @@ export function ordinal(n: number): string {
  * What goes in the Place column for each entry, in order. A shared placing gets "=" on every
  * rider in the tie ("2nd=", "2nd="). NA = No award, NC = Non-competitive.
  */
-export function placeLabels(entries: readonly Entry[]): string[] {
+export function placeLabels(entries: readonly Entry[], t: Translate = english): string[] {
   return entries.map((e, i) => {
-    if (e.status === 'dns') return 'DNS';
-    if (e.status === 'dnf') return 'DNF';
-    if (e.competition_status === 'non_competitive') return 'NC';
-    if (e.competition_status === 'no_award') return 'NA';
+    if (e.status === 'dns') return t('core.dns', 'DNS');
+    if (e.status === 'dnf') return t('core.dnf', 'DNF');
+    if (e.competition_status === 'non_competitive') return t('core.nc', 'NC');
+    if (e.competition_status === 'no_award') return t('core.na', 'NA');
     if (e.position === null) return '';
     const tied = e.tied_with_previous === true || entries[i + 1]?.tied_with_previous === true;
-    return `${ordinal(e.position)}${tied ? '=' : ''}`;
+    const place = t('core.place', ordinal(e.position), { count: e.position, ordinal: true });
+    return `${place}${tied ? '=' : ''}`;
   });
 }
 
@@ -37,13 +39,15 @@ export interface LapColumn {
   readonly label: string;
 }
 
-export function lapColumns(cls: ClassResults): LapColumn[] {
+export function lapColumns(cls: ClassResults, t: Translate = english): LapColumn[] {
   const multiDay = cls.days.length > 1;
   return cls.days.flatMap((d) =>
     Array.from({ length: d.laps }, (_, i) => ({
       day: d.day,
       lap: i + 1,
-      label: multiDay ? `D${d.day} L${i + 1}` : `Lap ${i + 1}`,
+      label: multiDay
+        ? t('core.dayLap', 'D{{day}} L{{lap}}', { day: d.day, lap: i + 1 })
+        : t('core.lap', 'Lap {{lap}}', { lap: i + 1 }),
     })),
   );
 }
@@ -63,32 +67,48 @@ export function entryName(e: Entry): string {
 }
 
 /** "10 sections × 4 laps", or one part per day for a multi-day class. */
-export function classSummary(cls: ClassResults): string {
+export function classSummary(cls: ClassResults, t: Translate = english): string {
   const one = (d: ClassResults['days'][number]) =>
-    `${d.sections} sections × ${d.laps} ${d.laps === 1 ? 'lap' : 'laps'}`;
+    t(
+      'core.sectionsLaps',
+      d.laps === 1
+        ? '{{sections}} sections × {{count}} lap'
+        : '{{sections}} sections × {{count}} laps',
+      { sections: d.sections, count: d.laps },
+    );
   if (cls.days.length === 1 && cls.days[0]) return one(cls.days[0]);
-  return cls.days.map((d) => `day ${d.day}: ${one(d)}`).join('; ');
+  return cls.days
+    .map((d) => t('core.onDay', 'day {{day}}: {{what}}', { day: d.day, what: one(d) }))
+    .join('; ');
 }
 
 /** The tie-break rule in words, e.g. "Ties are split by most 0s, then most 1s… then a ride-off." */
-export function tieBreakWords(results: Results): string {
+export function tieBreakWords(results: Results, t: Translate = english): string {
   const { tie_breaks, direction } = results.event.scoring;
   const steps = tie_breaks
-    .filter((t) => t !== 'total')
-    .map((t) => {
-      const most = /^most_(\d+)$/.exec(t);
-      if (most) return `most ${most[1] ?? ''}s`;
-      const fewest = /^fewest_(\d+)$/.exec(t);
-      if (fewest) return `fewest ${fewest[1] ?? ''}s`;
-      if (t === 'ride_off') return 'a ride-off';
-      return t;
+    .filter((b) => b !== 'total')
+    .map((b) => {
+      const most = /^most_(\d+)$/.exec(b);
+      if (most) return t('core.most', 'most {{value}}s', { value: most[1] ?? '' });
+      const fewest = /^fewest_(\d+)$/.exec(b);
+      if (fewest) return t('core.fewest', 'fewest {{value}}s', { value: fewest[1] ?? '' });
+      if (b === 'ride_off') return t('core.rideOff', 'a ride-off');
+      return b;
     });
-  const win = direction === 'high_wins' ? 'Highest total wins.' : 'Lowest total wins.';
-  return steps.length ? `${win} Ties are split by ${steps.join(', then ')}.` : win;
+  const win =
+    direction === 'high_wins'
+      ? t('core.highestWins', 'Highest total wins.')
+      : t('core.lowestWins', 'Lowest total wins.');
+  return steps.length
+    ? t('core.tiesSplit', '{{win}} Ties are split by {{steps}}.', {
+        win,
+        steps: steps.join(t('core.then', ', then ')),
+      })
+    : win;
 }
 
 /** Gaps in plain words: "2 cards still missing and 1 score undecided." Empty when complete. */
-export function gapWords(gaps: readonly ResultsGap[]): string {
+export function gapWords(gaps: readonly ResultsGap[], t: Translate = english): string {
   const missing = gaps.filter((g) => g.kind === 'missing_card');
   // A rider in two classes is listed once per class; count each card once.
   const cards = new Set(missing.map((g) => `${g.number}:${g.day}:${g.lap}`)).size;
@@ -98,9 +118,17 @@ export function gapWords(gaps: readonly ResultsGap[]): string {
       .map((g) => `${g.number}:${g.day}:${g.lap}:${g.section ?? 0}`),
   ).size;
   const parts: string[] = [];
-  if (cards) parts.push(`${cards} ${cards === 1 ? 'card' : 'cards'} still missing`);
-  if (scores) parts.push(`${scores} ${scores === 1 ? 'score' : 'scores'} undecided`);
-  return parts.length ? `${parts.join(' and ')}.` : '';
+  if (cards) {
+    const words = cards === 1 ? '{{count}} card still missing' : '{{count}} cards still missing';
+    parts.push(t('core.cardsMissing', words, { count: cards }));
+  }
+  if (scores) {
+    const words = scores === 1 ? '{{count}} score undecided' : '{{count}} scores undecided';
+    parts.push(t('core.scoresUndecided', words, { count: scores }));
+  }
+  return parts.length
+    ? t('core.gaps', '{{parts}}.', { parts: parts.join(t('core.and', ' and ')) })
+    : '';
 }
 
 // ---- CSV ----
@@ -168,29 +196,51 @@ export function resultsCsv(results: Results): string {
  * "Trial 3: rider 12, 4th → 3rd". Riders added or removed are listed too. By number only, so
  * nothing here can undo the junior-surname rule or show more than the results themselves.
  */
-export function placeChanges(before: Results, after: Results): string[] {
+export function placeChanges(before: Results, after: Results, t: Translate = english): string[] {
   const out: string[] = [];
+  const noPlace = t('core.noPlace', 'no place');
   for (const cls of after.classes) {
     const prev = before.classes.find((c) => c.name === cls.name);
-    const placesNow = placeLabels(cls.entries);
-    const placesThen = prev ? placeLabels(prev.entries) : [];
+    const placesNow = placeLabels(cls.entries, t);
+    const placesThen = prev ? placeLabels(prev.entries, t) : [];
     const then = new Map((prev?.entries ?? []).map((e, i) => [e.number, placesThen[i] ?? '']));
     cls.entries.forEach((e, i) => {
       const was = then.get(e.number);
       const now = placesNow[i] ?? '';
-      const who = `rider ${e.number}`;
-      if (was === undefined) out.push(`${cls.name}: ${who} added, ${now || 'no place'}`);
-      else if (was !== now)
-        out.push(`${cls.name}: ${who}, ${was || 'no place'} → ${now || 'no place'}`);
+      if (was === undefined) {
+        out.push(
+          t('core.riderAdded', '{{class}}: rider {{number}} added, {{place}}', {
+            class: cls.name,
+            number: e.number,
+            place: now || noPlace,
+          }),
+        );
+      } else if (was !== now) {
+        out.push(
+          t('core.riderMoved', '{{class}}: rider {{number}}, {{was}} → {{now}}', {
+            class: cls.name,
+            number: e.number,
+            was: was || noPlace,
+            now: now || noPlace,
+          }),
+        );
+      }
     });
     const nowNumbers = new Set(cls.entries.map((e) => e.number));
     for (const e of prev?.entries ?? []) {
-      if (!nowNumbers.has(e.number)) out.push(`${cls.name}: rider ${e.number} removed`);
+      if (!nowNumbers.has(e.number)) {
+        out.push(
+          t('core.riderRemoved', '{{class}}: rider {{number}} removed', {
+            class: cls.name,
+            number: e.number,
+          }),
+        );
+      }
     }
   }
   for (const prev of before.classes) {
     if (!after.classes.some((c) => c.name === prev.name) && prev.entries.length > 0) {
-      out.push(`${prev.name}: class removed`);
+      out.push(t('core.classRemoved', '{{class}}: class removed', { class: prev.name }));
     }
   }
   return out;
@@ -226,6 +276,10 @@ export interface PrintOptions {
   readonly logos?: { readonly event?: string; readonly sponsors?: readonly string[] };
   /** Observers and officials to thank, at the end (from thanksFromSetup). */
   readonly thanks?: Thanks;
+  /** The wording's language (English when left out). */
+  readonly t?: Translate;
+  /** The page's language, e.g. "en-AU". */
+  readonly lang?: string;
 }
 
 /** Who to thank at the end of the results. */
@@ -270,18 +324,18 @@ export function thanksFromSetup(setup: {
   return { sections, officials };
 }
 
-function thanksHtml(thanks: Thanks | undefined): string {
+function thanksHtml(thanks: Thanks | undefined, t: Translate): string {
   if (!thanks) return '';
   const sections = thanks.sections
     .map((s) => {
-      const where = `${s.day !== undefined ? `Day ${s.day} · ` : ''}Section ${s.section}${s.name ? ` · ${esc(s.name)}` : ''}`;
+      const where = `${s.day !== undefined ? esc(t('core.thanksDay', 'Day {{day}} · ', { day: s.day })) : ''}${esc(t('core.thanksSection', 'Section {{section}}', { section: s.section }))}${s.name ? ` · ${esc(s.name)}` : ''}`;
       return `<li><span>${where}</span>${s.observer ? `: ${esc(s.observer)}` : ''}</li>`;
     })
     .join('');
   const officials = thanks.officials
     .map((o) => `<li><span>${esc(o.role)}</span>: ${esc(o.name)}</li>`)
     .join('');
-  return `<div class="thanks"><h2>Thanks to our observers and officials</h2>${
+  return `<div class="thanks"><h2>${esc(t('core.thanksTitle', 'Thanks to our observers and officials'))}</h2>${
     sections ? `<ul>${sections}</ul>` : ''
   }${officials ? `<ul>${officials}</ul>` : ''}</div>`;
 }
@@ -293,6 +347,7 @@ const logo = (uri: string | undefined, cls: string) =>
 
 /** A complete HTML page for A4 printing: one table per class, provisional marked plainly. */
 export function resultsHtml(results: Results, opts: PrintOptions): string {
+  const t = opts.t ?? english;
   const values = results.event.scoring.score_values;
   const ev = results.event;
   // Missing cards always win: results are never printed FINAL while any are missing.
@@ -304,8 +359,8 @@ export function resultsHtml(results: Results, opts: PrintOptions): string {
   const classes = results.classes
     .filter((c) => c.entries.length > 0)
     .map((cls) => {
-      const cols = lapColumns(cls);
-      const places = placeLabels(cls.entries);
+      const cols = lapColumns(cls, t);
+      const places = placeLabels(cls.entries, t);
       const rows = cls.entries
         .map((e, i) => {
           const muted = e.competition_status !== 'competitive' || e.status !== 'finished';
@@ -328,13 +383,13 @@ export function resultsHtml(results: Results, opts: PrintOptions): string {
         .join('');
       return `
 <section>
-  <h2>${esc(cls.name)} <span>${esc(classSummary(cls))} · ${cls.entries.length} ${cls.entries.length === 1 ? 'entry' : 'entries'}</span></h2>
+  <h2>${esc(cls.name)} <span>${esc(classSummary(cls, t))} · ${esc(t('core.entries', cls.entries.length === 1 ? '{{count}} entry' : '{{count}} entries', { count: cls.entries.length }))}</span></h2>
   <table>
-    <thead><tr><th>Place</th><th class="num">No.</th><th>Rider</th><th>Club</th>${cols
+    <thead><tr><th>${esc(t('core.headPlace', 'Place'))}</th><th class="num">${esc(t('core.headNumber', 'No.'))}</th><th>${esc(t('core.headRider', 'Rider'))}</th><th>${esc(t('core.headClub', 'Club'))}</th>${cols
       .map((c) => `<th class="n">${esc(c.label)}</th>`)
       .join(
         '',
-      )}<th class="n">Pen.</th><th class="n">Total</th>${values.map((v) => `<th class="n">${v}s</th>`).join('')}</tr></thead>
+      )}<th class="n">${esc(t('core.headPen', 'Pen.'))}</th><th class="n">${esc(t('core.headTotal', 'Total'))}</th>${values.map((v) => `<th class="n">${esc(t('core.headCount', '{{value}}s', { value: v }))}</th>`).join('')}</tr></thead>
     <tbody>${rows}</tbody>
   </table>
 </section>`;
@@ -342,7 +397,7 @@ export function resultsHtml(results: Results, opts: PrintOptions): string {
     .join('');
 
   return `<!doctype html>
-<html lang="en-AU"><head><meta charset="utf-8"><title>${esc(ev.name)} results</title>
+<html lang="${esc(opts.lang ?? 'en-AU')}"><head><meta charset="utf-8"><title>${esc(t('core.pageTitle', '{{event}} results', { event: ev.name }))}</title>
 <style>
   @page { size: A4; margin: 14mm 12mm; }
   body { font-family: "Segoe UI", Arial, sans-serif; font-size: 9.5pt; color: #111; margin: 0; }
@@ -378,18 +433,18 @@ export function resultsHtml(results: Results, opts: PrintOptions): string {
 </style></head><body>
 <div class="head">${logo(opts.logos?.event, 'event-logo')}<div><h1>${esc(ev.name)}</h1>
 <div class="sub">${sub}</div></div></div>
-${provisional ? `<div class="provisional">PROVISIONAL: ${esc(gapWords(opts.gaps))} Positions may change.</div>` : ''}
-${final ? `<div class="final"><strong>FINAL RESULTS${results.revision > 1 ? ` · REVISION ${results.revision}` : ''}</strong>${note ? `<div>Replaces revision ${note.replaces} of ${esc(note.replacedAt)}. Reason: ${esc(note.reason)}</div>${note.changes.length ? `<ul>${note.changes.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : '<div>No places changed.</div>'}` : ''}</div>` : ''}
+${provisional ? `<div class="provisional">${esc(t('core.provisional', 'PROVISIONAL: {{gaps}} Positions may change.', { gaps: gapWords(opts.gaps, t) }))}</div>` : ''}
+${final ? `<div class="final"><strong>${esc(results.revision > 1 ? t('core.finalRevision', 'FINAL RESULTS · REVISION {{revision}}', { revision: results.revision }) : t('core.final', 'FINAL RESULTS'))}</strong>${note ? `<div>${esc(t('core.replaces', 'Replaces revision {{revision}} of {{when}}. Reason: {{reason}}', { revision: note.replaces, when: note.replacedAt, reason: note.reason }))}</div>${note.changes.length ? `<ul>${note.changes.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : `<div>${esc(t('core.noChanges', 'No places changed.'))}</div>`}` : ''}</div>` : ''}
 ${classes}
-${thanksHtml(opts.thanks)}
-${sponsorsHtml(opts.logos?.sponsors)}
-<footer>${esc(tieBreakWords(results))} NA = No award (scored, not placed). NC = Non-competitive (counts only; scores are not published). DNF = did not finish. DNS = did not start.<br>${esc(opts.footer)}</footer>
+${thanksHtml(opts.thanks, t)}
+${sponsorsHtml(opts.logos?.sponsors, t)}
+<footer>${esc(tieBreakWords(results, t))} ${esc(t('core.footnote', 'NA = No award (scored, not placed). NC = Non-competitive (counts only; scores are not published). DNF = did not finish. DNS = did not start.'))}<br>${esc(opts.footer)}</footer>
 </body></html>`;
 }
 
-function sponsorsHtml(sponsors: readonly string[] | undefined): string {
+function sponsorsHtml(sponsors: readonly string[] | undefined, t: Translate): string {
   const imgs = (sponsors ?? []).map((u) => logo(u, 'sponsor-logo')).filter(Boolean);
   return imgs.length
-    ? `<div class="sponsors"><p>Supported by</p><div>${imgs.join('')}</div></div>`
+    ? `<div class="sponsors"><p>${esc(t('core.supportedBy', 'Supported by'))}</p><div>${imgs.join('')}</div></div>`
     : '';
 }

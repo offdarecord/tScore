@@ -44,3 +44,4 @@ export * from './errors.js';
 // Progress and still on course (architecture §9).
 export * from './course.js';
 export * from './test-trial.js';
+export * from './words.js';

@@ -7,9 +7,8 @@ import { validateEventSetup } from '@tscore/core';
 import type { EventStore } from '@tscore/store';
 import type { CheckItem, PreEventCheck } from '../shared/ipc';
 import { backupStatus } from './backups';
+import { t } from './i18n';
 import { labelsView } from './labels';
-
-const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 function todayIso(now: Date): string {
   const p = (n: number) => String(n).padStart(2, '0');
@@ -31,19 +30,26 @@ export function preEventCheck(store: EventStore, now = new Date()): PreEventChec
       ? {
           id: 'setup',
           state: 'problem',
-          title: 'Event setup',
+          title: t('checkItem.setup'),
           detail: !valid.ok
-            ? `The setup has ${plural(valid.issues.length, 'problem')}: ${valid.issues[0]?.message ?? ''}`
+            ? t('checkItem.problems', {
+                count: valid.issues.length,
+                first: valid.issues[0]?.message ?? '',
+              })
             : undated > 0
-              ? 'A day has no date.'
-              : 'No class has any laps to ride.',
+              ? t('checkItem.undated')
+              : t('checkItem.noLaps'),
           fix: 'setup',
         }
       : {
           id: 'setup',
           state: 'ok',
-          title: 'Event setup',
-          detail: `${plural(setup.days.length, 'day')}, ${plural(riding, 'class', 'classes')} riding. Lap 1 starts at ${setup.days.map((d) => d.start_time ?? '?').join(' and ')}.`,
+          title: t('checkItem.setup'),
+          detail: t('checkItem.setupOk', {
+            days: t('checkItem.days', { count: setup.days.length }),
+            classes: t('checkItem.classes', { count: riding }),
+            times: setup.days.map((d) => d.start_time ?? '?').join(t('checkItem.and')),
+          }),
         },
   );
 
@@ -61,19 +67,22 @@ export function preEventCheck(store: EventStore, now = new Date()): PreEventChec
     items.push({
       id: 'riders',
       state: 'problem',
-      title: 'Riders',
-      detail: 'No riders yet. Import the entry list.',
+      title: t('checkItem.riders'),
+      detail: t('checkItem.noRiders'),
       fix: 'riders',
     });
   } else if (unknown.length > 0) {
     items.push({
       id: 'riders',
       state: 'problem',
-      title: 'Riders',
-      detail: `${plural(unknown.length, 'rider')} in a class the setup doesn't have (rider ${unknown
-        .slice(0, 5)
-        .map((s) => s.number)
-        .join(', ')}).`,
+      title: t('checkItem.riders'),
+      detail: t('checkItem.unknownClass', {
+        riders: t('checkItem.riderCount', { count: unknown.length }),
+        numbers: unknown
+          .slice(0, 5)
+          .map((s) => s.number)
+          .join(', '),
+      }),
       fix: 'riders',
     });
   } else {
@@ -81,8 +90,11 @@ export function preEventCheck(store: EventStore, now = new Date()): PreEventChec
     items.push({
       id: 'riders',
       state: 'ok',
-      title: 'Riders',
-      detail: `${plural(entries.length, 'rider')} in ${plural(classes, 'class', 'classes')}.`,
+      title: t('checkItem.riders'),
+      detail: t('checkItem.ridersOk', {
+        riders: t('checkItem.riderCount', { count: entries.length }),
+        classes: t('checkItem.classes', { count: classes }),
+      }),
     });
   }
   const wanted = labels.printed + labels.notPrinted;
@@ -91,24 +103,30 @@ export function preEventCheck(store: EventStore, now = new Date()): PreEventChec
       ? {
           id: 'labels',
           state: 'info',
-          title: 'Card labels',
-          detail: 'Printed once riders are in.',
+          title: t('checkItem.labels'),
+          detail: t('checkItem.labelsLater'),
         }
       : labels.notPrinted === 0
         ? {
             id: 'labels',
             state: 'ok',
-            title: 'Card labels',
-            detail: `All ${plural(wanted, 'label')} printed.`,
+            title: t('checkItem.labels'),
+            detail: t('checkItem.allPrinted', {
+              labels: t('checkItem.labelCount', { count: wanted }),
+            }),
           }
         : {
             id: 'labels',
             state: 'warning',
-            title: 'Card labels',
+            title: t('checkItem.labels'),
             detail:
               labels.printed === 0
-                ? `None printed yet (${plural(labels.notPrinted, 'label')}). Riders' cards can still be typed by number.`
-                : `${plural(labels.notPrinted, 'label')} not printed yet: late entries or laps added since.`,
+                ? t('checkItem.nonePrinted', {
+                    labels: t('checkItem.labelCount', { count: labels.notPrinted }),
+                  })
+                : t('checkItem.notPrinted', {
+                    labels: t('checkItem.labelCount', { count: labels.notPrinted }),
+                  }),
             fix: 'labels',
           },
   );
@@ -118,10 +136,10 @@ export function preEventCheck(store: EventStore, now = new Date()): PreEventChec
   items.push({
     id: 'clock',
     state: eventDay ? 'ok' : 'warning',
-    title: 'Clock',
+    title: t('checkItem.clock'),
     detail: eventDay
-      ? `The laptop's date is day ${eventDay.day} of the event. Check its time is right: lap times and "overdue" depend on it.`
-      : `Today isn't one of the event's dates (${setup.days.map((d) => d.date ?? '?').join(', ')}). If you're at the event, set the laptop's date and time before any card comes in.`,
+      ? t('checkItem.clockOk', { day: eventDay.day })
+      : t('checkItem.clockWrong', { dates: setup.days.map((d) => d.date ?? '?').join(', ') }),
     clock: now.toISOString(),
   });
 
@@ -132,23 +150,22 @@ export function preEventCheck(store: EventStore, now = new Date()): PreEventChec
       ? {
           id: 'backups',
           state: 'warning',
-          title: 'Backups',
-          detail:
-            "Backups are kept on this laptop only. Choose a USB stick or another drive for a second copy, so a dead laptop doesn't take the event with it.",
+          title: t('checkItem.backups'),
+          detail: t('checkItem.backupLocal'),
           fix: 'backup',
         }
       : backup.secondPlaceAvailable
         ? {
             id: 'backups',
             state: 'ok',
-            title: 'Backups',
-            detail: `Every backup is also copied to ${backup.secondPlace}.`,
+            title: t('checkItem.backups'),
+            detail: t('checkItem.backupOk', { place: backup.secondPlace }),
           }
         : {
             id: 'backups',
             state: 'problem',
-            title: 'Backups',
-            detail: `${backup.secondPlace} isn't available. Is the USB stick plugged in? Scoring still works, but there's no second copy.`,
+            title: t('checkItem.backups'),
+            detail: t('checkItem.backupMissing', { place: backup.secondPlace }),
             fix: 'backup',
           },
   );
@@ -159,10 +176,10 @@ export function preEventCheck(store: EventStore, now = new Date()): PreEventChec
     items,
     summary:
       problems > 0
-        ? `${plural(problems, 'thing')} to fix before the first card.`
+        ? t('checkItem.toFix', { things: t('checkItem.thing', { count: problems }) })
         : warnings > 0
-          ? `Ready, with ${plural(warnings, 'thing')} to look at.`
-          : 'Ready for the first card.',
+          ? t('checkItem.toLook', { things: t('checkItem.thing', { count: warnings }) })
+          : t('checkItem.ready'),
     ready: problems === 0,
   };
 }

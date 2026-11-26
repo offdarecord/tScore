@@ -64,3 +64,17 @@ export function messagesFor(language: string): Messages {
   if (language === PSEUDO) return pseudoMessages(en);
   return LANGUAGES[language] ?? en;
 }
+
+/**
+ * Core's wording (results phrases, …) through an i18next `t`: the key in the message files, and
+ * the English core passed as the fallback.
+ */
+export function coreTranslator(
+  t: (key: string, options: Record<string, unknown>) => string,
+): (
+  key: string,
+  english: string,
+  values?: Readonly<Record<string, string | number | boolean>>,
+) => string {
+  return (key, english, values) => t(key, { ...values, defaultValue: english });
+}

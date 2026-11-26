@@ -10,6 +10,7 @@ import { EVENT_FILE, MOVE_EXTENSION, type ManagedEvent } from '@tscore/store';
 import type { ManageView, ManagedEventInfo, Outcome } from '../shared/ipc';
 import { secondPlace } from './backups';
 import { attempt, attemptAsync, events } from './events';
+import { t } from './i18n';
 import log from 'electron-log/main';
 
 /** Small copies kept after removing scans: enough to see a questioned card. */
@@ -108,12 +109,12 @@ export const manageHandlers = {
       .manageList()
       .find((e) => key(e.folder) === key(String(folder)));
     const options: Electron.SaveDialogOptions = {
-      title: 'Save a copy of the event',
+      title: t('dialog.saveCopy'),
       defaultPath: join(
         app.getPath('documents'),
         `${found?.firstDate ?? ''} ${found?.code ?? 'event'}.${MOVE_EXTENSION}`.trim(),
       ),
-      filters: [{ name: 'tScore event', extensions: [MOVE_EXTENSION] }],
+      filters: [{ name: t('dialog.tscoreEvent'), extensions: [MOVE_EXTENSION] }],
     };
     const picked = win
       ? await dialog.showSaveDialog(win, options)

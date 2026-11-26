@@ -25,6 +25,7 @@ import {
 import { app, dialog, type BrowserWindow } from 'electron';
 import type { SeriesSummary, SeriesView } from '../shared/ipc';
 import { pdfOf, rememberExport } from './results';
+import { t } from './i18n';
 
 const shortDate = (iso: string) =>
   new Date(`${iso}T12:00:00`).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
@@ -141,15 +142,15 @@ export async function exportSeries(
 ): Promise<string | null> {
   const setup = setupOf(eventsDir, file);
   const options: Electron.SaveDialogOptions = {
-    title: kind === 'pdf' ? 'Save series points as PDF' : 'Save series points as CSV',
+    title: kind === 'pdf' ? t('dialog.seriesPdf') : t('dialog.seriesCsv'),
     defaultPath: join(
       app.getPath('documents'),
       `${setup.name.replace(/[<>:"/\\|?*]/g, '')} points.${kind}`,
     ),
     filters:
       kind === 'pdf'
-        ? [{ name: 'PDF', extensions: ['pdf'] }]
-        : [{ name: 'CSV (Excel)', extensions: ['csv'] }],
+        ? [{ name: t('dialog.pdf'), extensions: ['pdf'] }]
+        : [{ name: t('dialog.csv'), extensions: ['csv'] }],
   };
   const picked = win
     ? await dialog.showSaveDialog(win, options)
@@ -160,10 +161,10 @@ export async function exportSeries(
     name: setup.name,
     roundLabels: labels,
     rules: setup.rules,
-    footer: `Produced by tScore ${app.getVersion()} on ${new Date().toLocaleString('en-AU', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    })}.`,
+    footer: t('dialog.produced', {
+      version: app.getVersion(),
+      when: new Date().toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' }),
+    }),
     ...(notCounted.length && { notCounted: `Not counted yet: ${notCounted.join('; ')}.` }),
   };
   if (kind === 'csv') writeFileSync(picked.filePath, seriesCsv(tally, opts), 'utf8');

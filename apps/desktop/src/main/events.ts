@@ -36,6 +36,7 @@ import {
 } from '@tscore/store';
 import { app, dialog, type BrowserWindow } from 'electron';
 import log from 'electron-log/main';
+import { t } from './i18n';
 import type {
   AppError,
   CardDesk,
@@ -303,10 +304,10 @@ export const eventHandlers = {
 
   async openFile(win: BrowserWindow | null): Promise<Outcome<OpenEvent | null>> {
     const options: Electron.OpenDialogOptions = {
-      title: 'Open an event',
+      title: t('dialog.openEvent'),
       defaultPath: eventsDir(),
       properties: ['openFile'],
-      filters: [{ name: 'tScore event', extensions: ['sqlite', MOVE_EXTENSION] }],
+      filters: [{ name: t('dialog.tscoreEvent'), extensions: ['sqlite', MOVE_EXTENSION] }],
     };
     const picked = win
       ? await dialog.showOpenDialog(win, options)
@@ -332,12 +333,12 @@ export const eventHandlers = {
     const store = library?.current;
     const date = store?.setup.days[0]?.date ?? '';
     const options: Electron.SaveDialogOptions = {
-      title: 'Save a copy for another laptop',
+      title: t('dialog.saveForMove'),
       defaultPath: join(
         app.getPath('documents'),
         `${date} ${store?.setup.event.code ?? 'event'}.${MOVE_EXTENSION}`.trim(),
       ),
-      filters: [{ name: 'tScore event', extensions: [MOVE_EXTENSION] }],
+      filters: [{ name: t('dialog.tscoreEvent'), extensions: [MOVE_EXTENSION] }],
     };
     const picked = win
       ? await dialog.showSaveDialog(win, options)
@@ -395,7 +396,7 @@ export const eventHandlers = {
 
   async chooseBackupPlace(win: BrowserWindow | null): Promise<Outcome<BackupStatus | null>> {
     const options: Electron.OpenDialogOptions = {
-      title: 'Choose where to keep a second copy of every backup',
+      title: t('dialog.secondPlace'),
       properties: ['openDirectory', 'createDirectory'],
     };
     const picked = win
@@ -422,10 +423,10 @@ export const eventHandlers = {
     win: BrowserWindow | null,
   ): Promise<Outcome<{ event: OpenEvent; from: string } | null>> {
     const options: Electron.OpenDialogOptions = {
-      title: 'Restore an event from a backup',
+      title: t('dialog.restore'),
       defaultPath: library?.current ? join(library.current.folder, 'backups') : eventsDir(),
       properties: ['openFile'],
-      filters: [{ name: 'tScore backup', extensions: ['sqlite'] }],
+      filters: [{ name: t('dialog.tscoreBackup'), extensions: ['sqlite'] }],
     };
     const picked = win
       ? await dialog.showOpenDialog(win, options)
@@ -575,10 +576,10 @@ export const eventHandlers = {
 
   async chooseEntryList(win: BrowserWindow | null): Promise<Outcome<EntryListFile | null>> {
     const options: Electron.OpenDialogOptions = {
-      title: 'Import riders from an entry list',
+      title: t('dialog.importRiders'),
       defaultPath: app.getPath('downloads'),
       properties: ['openFile'],
-      filters: [{ name: 'Entry list', extensions: ['xlsx', 'xls', 'csv'] }],
+      filters: [{ name: t('dialog.entryList'), extensions: ['xlsx', 'xls', 'csv'] }],
     };
     const picked = win
       ? await dialog.showOpenDialog(win, options)
@@ -610,9 +611,9 @@ export const eventHandlers = {
   /** Check a Test trial rehearsal against the kit's answer key (#81). */
   async checkTestTrial(win: BrowserWindow | null): Promise<Outcome<TestTrialCheck | null>> {
     const options: Electron.OpenDialogOptions = {
-      title: 'Choose the Test trial answer key',
+      title: t('dialog.answerKey'),
       properties: ['openFile'],
-      filters: [{ name: 'Test trial answer key', extensions: ['json'] }],
+      filters: [{ name: t('dialog.answerKeyType'), extensions: ['json'] }],
     };
     const picked = win
       ? await dialog.showOpenDialog(win, options)
@@ -830,9 +831,9 @@ export const eventHandlers = {
   ): Promise<Outcome<LogoView[] | null>> {
     if (role !== 'event' && role !== 'sponsor') return { ok: true, value: null };
     const options: Electron.OpenDialogOptions = {
-      title: role === 'event' ? 'Choose the event logo' : 'Add a sponsor logo',
+      title: role === 'event' ? t('dialog.eventLogo') : t('dialog.sponsorLogo'),
       properties: ['openFile'],
-      filters: [{ name: 'Picture (PNG or JPEG)', extensions: ['png', 'jpg', 'jpeg'] }],
+      filters: [{ name: t('dialog.picture'), extensions: ['png', 'jpg', 'jpeg'] }],
     };
     const picked = win
       ? await dialog.showOpenDialog(win, options)
@@ -904,10 +905,10 @@ export const eventHandlers = {
     win: BrowserWindow | null,
   ): Promise<Outcome<SeriesView | null>> {
     const options: Electron.OpenDialogOptions = {
-      title: 'Add a round: choose its event file',
+      title: t('dialog.addRound'),
       defaultPath: eventsDir(),
       properties: ['openFile'],
-      filters: [{ name: 'tScore event', extensions: ['sqlite'] }],
+      filters: [{ name: t('dialog.tscoreEvent'), extensions: ['sqlite'] }],
     };
     const picked = win
       ? await dialog.showOpenDialog(win, options)

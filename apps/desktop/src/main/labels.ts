@@ -22,6 +22,7 @@ import { StoreError, type EventStore } from '@tscore/store';
 import { app, dialog, type BrowserWindow } from 'electron';
 import type { LabelOffset, LabelPreview, LabelRequest, LabelsView } from '../shared/ipc';
 import { rememberExport } from './results';
+import { t } from './i18n';
 
 const LAYOUTS: readonly LabelLayoutChoice[] = ['auto', 'row-per-rider', 'packed', 'by-lap'];
 /** Furthest the desk can nudge the labels, in mm: beyond this the sheet is the wrong stock. */
@@ -147,7 +148,7 @@ async function saveAs(
   const options: Electron.SaveDialogOptions = {
     title,
     defaultPath,
-    filters: [{ name: 'Word document', extensions: ['docx'] }],
+    filters: [{ name: t('dialog.wordDocument'), extensions: ['docx'] }],
   };
   const picked = win
     ? await dialog.showSaveDialog(win, options)
@@ -175,7 +176,7 @@ export async function saveLabels(
         : `card labels rider ${checked.which.rider}`;
   const path = await saveAs(
     win,
-    'Save card labels',
+    t('dialog.saveLabels'),
     join(store.folder, 'exports', safe(`${code} ${what}.docx`)),
   );
   if (!path) return null;
@@ -206,7 +207,7 @@ export async function saveLabelTestPage(
   const template = labelTemplate(store.setup.labels?.template);
   const path = await saveAs(
     win,
-    'Save the alignment test page',
+    t('dialog.saveTestPage'),
     join(store.folder, 'exports', safe(`label alignment test ${template.id}.docx`)),
   );
   if (!path) return null;

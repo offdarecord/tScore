@@ -252,9 +252,7 @@ test('results, labels, series, manage events and the rest show their messages tr
   ] as const) {
     await go(page);
     await expect(window.getByRole('heading', { name: pseudo(heading) })).toBeVisible();
-    // The check's item titles (e.g. 'Card labels') come from the main process: stage 5.
-    const here = page === en.nav.check ? sections.filter((x) => x !== 'labels') : sections;
-    expect(await englishShown(window, here)).toEqual([]);
+    expect(await englishShown(window, [...sections, 'checkItem', 'core'])).toEqual([]);
   }
 
   await nav.getByRole('button', { name: pseudo(en.nav.allEvents) }).click();

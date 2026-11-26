@@ -26,6 +26,7 @@ import {
 import { StoreError, type EventStore } from '@tscore/store';
 import { app, BrowserWindow, dialog, shell } from 'electron';
 import type { ExportKind, LiveScores, ResultsView } from '../shared/ipc';
+import { coreT, pageLanguage, t } from './i18n';
 
 /** The last file saved, the only one "Open" may open. */
 let lastExport: string | null = null;
@@ -75,7 +76,7 @@ function revisionNote(store: EventStore, revision: number): RevisionNote | undef
     replaces: replaced.revision,
     replacedAt: timeWords(replaced.markedAt),
     reason: replaced.reopenReason ?? '',
-    changes: placeChanges(before, after),
+    changes: placeChanges(before, after, coreT),
   };
 }
 
@@ -208,12 +209,12 @@ export async function exportResults(
     throw new StoreError('APP_BAD_REQUEST', 'Choose PDF or CSV.');
   }
   const options: Electron.SaveDialogOptions = {
-    title: kind === 'pdf' ? 'Save results as PDF' : 'Save results as CSV',
+    title: kind === 'pdf' ? t('dialog.resultsPdf') : t('dialog.resultsCsv'),
     defaultPath: join(store.folder, 'exports', fileName(store, kind)),
     filters:
       kind === 'pdf'
-        ? [{ name: 'PDF', extensions: ['pdf'] }]
-        : [{ name: 'CSV (Excel)', extensions: ['csv'] }],
+        ? [{ name: t('dialog.pdf'), extensions: ['pdf'] }]
+        : [{ name: t('dialog.csv'), extensions: ['csv'] }],
   };
   const picked = win
     ? await dialog.showSaveDialog(win, options)
@@ -230,13 +231,15 @@ export async function exportResults(
     const html = resultsHtml(results, {
       gaps,
       dates: store.setup.days.flatMap((d) => (d.date ? [dateWords(d.date)] : [])).join(' – '),
-      footer: `Produced by tScore ${app.getVersion()} on ${new Date().toLocaleString('en-AU', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-      })}.${final ? ` Marked final ${timeWords(final.markedAt)}.` : ''}`,
+      footer: `${t('dialog.produced', {
+        version: app.getVersion(),
+        when: new Date().toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' }),
+      })}${final ? t('dialog.markedFinal', { when: timeWords(final.markedAt) }) : ''}`,
       ...(note && { revisionNote: note }),
       logos: logoUris(store),
       ...(thanks && { thanks }),
+      t: coreT,
+      lang: pageLanguage(),
     });
     writeFileSync(picked.filePath, await pdfOf(html));
   }

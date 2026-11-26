@@ -14,7 +14,7 @@ If a problem keeps happening, see [Troubleshooting](troubleshooting.md).
 
 **Something went wrong.** tScore hit a problem it doesn't have a plain message for. Everything saved before it happened is still saved.
 
-**What to do:** Try again. If it happens again, close tScore and open it again. If it keeps happening, tell the maintainers at <https://github.com/offdarecord/tScore/issues>: say what you were doing, give the code, and attach that day's log file from `%APPDATA%\tScore\logs` (it holds rider numbers, never names).
+**What to do:** Try again. If it happens again, close tScore and open it again. If it keeps happening, tell the maintainers at <https://github.com/offdarecord/tScore/issues>: say what you were doing, give the code, and attach the log file: About → Show log folder opens it (it holds rider numbers, never names).
 
 ### TS-APP-002
 

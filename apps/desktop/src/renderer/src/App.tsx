@@ -203,7 +203,12 @@ function Shell() {
         <HelpPanel />
       </AppShell.Aside>
 
-      <Modal opened={aboutOpen} onClose={about.close} title={t('app.aboutTitle')}>
+      <Modal
+        opened={aboutOpen}
+        onClose={about.close}
+        title={t('app.aboutTitle')}
+        closeButtonProps={{ 'aria-label': t('app.close') }}
+      >
         <Stack gap="xs">
           <Text>{t('app.version', { version: info?.version ?? '…' })}</Text>
           <Text fs="italic">{t('app.tagline')}</Text>
@@ -214,6 +219,19 @@ function Shell() {
               arch: info?.arch ?? '',
             })}
           </Text>
+          <Group gap="sm" wrap="nowrap" align="flex-start">
+            <Button
+              variant="default"
+              size="xs"
+              onClick={() => void window.tscore.showLogFolder()}
+              style={{ flexShrink: 0 }}
+            >
+              {t('app.showLogFolder')}
+            </Button>
+            <Text size="xs" c="dimmed" style={{ wordBreak: 'break-all' }}>
+              {t('app.logFile', { path: info?.logFile ?? '' })}
+            </Text>
+          </Group>
           <Text size="xs">
             {t('app.licence')}{' '}
             <Anchor href="https://github.com/offdarecord/tScore" target="_blank">

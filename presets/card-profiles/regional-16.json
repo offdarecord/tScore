@@ -4,7 +4,12 @@
   "name": "Regional card, 16 sections (punched, black section column)",
   "card": { "width_mm": 43, "height_mm": 173 },
   "rows": 16,
-  "grid": { "unit": "column-width", "row_pitch": 0.675, "cell_radius": 0.15 },
+  "grid": {
+    "unit": "column-width",
+    "row_pitch": 0.675,
+    "cell_radius": 0.15,
+    "on_card": { "unit_mm": 9.773, "origin_x_mm": 19.06, "origin_y_mm": 15.64 }
+  },
   "columns": [
     { "score": 0, "across": -1.53 },
     { "score": 1, "across": -1.01 },

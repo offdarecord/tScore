@@ -11,10 +11,14 @@ import {
 } from '@mantine/core';
 import { cardProfile, qrMatrix, qrPayload } from '@tscore/core';
 import {
+  canReadFromCorners,
+  CORNER_ORDER,
   readCard,
+  readCardFromCorners,
   readerProfile,
   readLabel,
   syntheticCard,
+  type CardCorners,
   type CardReading,
   type RgbaImage,
 } from '@tscore/vision';
@@ -24,6 +28,7 @@ import i18next from '../i18n';
 import type { AppError, CardDesk, OpenEvent } from '../../../shared/ipc';
 import { ErrorAlert } from '../ErrorAlert';
 import { pickedText, RiderPicker } from '../riders/RiderPicker';
+import { CornerPicker } from './CornerPicker';
 import { fromLabel, nextLap, SteadyGate, verdict, type Identity, type Verdict } from './scanLogic';
 
 /** How often a frame is read. */
@@ -31,7 +36,17 @@ const EVERY_MS = 250;
 /** Frames are read at most this wide, which keeps each read well under the interval. */
 const READ_WIDTH = 1280;
 
-type Source = { kind: 'camera'; deviceId: string } | { kind: 'practice' };
+type Source =
+  | { kind: 'camera'; deviceId: string }
+  /** corners: practise marking the corners, so the card isn't found by itself. */
+  | { kind: 'practice'; corners?: boolean };
+
+/** A still picture the desk is marking a card's corners on. */
+interface Still {
+  readonly frame: RgbaImage;
+  readonly canvas: HTMLCanvasElement;
+  readonly image: string;
+}
 
 interface Shown {
   readonly id: Identity;
@@ -78,6 +93,15 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
       return null; // A card type the camera can't read yet: Manual entry only.
     }
   }, [profile]);
+  // Cards found by the desk clicking their corners (#106): always for a manual-corners card,
+  // and as the fallback for any card whose profile says where its grid sits.
+  const corners = !!profile && !!reader && canReadFromCorners(profile);
+  const cornersOnly = profile?.locator === 'manual-corners';
+  const [still, setStill] = useState<Still | null>(null);
+  const stillRef = useRef<Still | null>(null);
+  useEffect(() => {
+    stillRef.current = still;
+  }, [still]);
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [source, setSource] = useState<Source | null>(null);
   const [status, setStatus] = useState(() => i18next.t('scan.start'));
@@ -226,6 +250,52 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
     setStatus(i18next.t('scan.lift'));
   }, []);
 
+  /** A card read (found by itself, or from its corners): who it's for, then save or show it. */
+  const take = useCallback(
+    (card: CardReading, got: { frame: RgbaImage; canvas: HTMLCanvasElement }) => {
+      const current = deskRef.current;
+      if (!current || !profile) return;
+      const label = readLabel(got.frame, card.pose);
+      let id = fromLabel(label, event.setup.event.code);
+      if (!id) {
+        const n = Number(typedRef.current);
+        const rider = current.riders.find((x) => x.number === n);
+        if (!rider) {
+          setStatus(i18next.t('scan.noLabel'));
+          setShown(null);
+          return;
+        }
+        const day = current.days.length > 1 ? todayDay(current) : 1;
+        id = { number: n, day, lap: nextLap(rider, day, current.cards), from: 'typed' };
+      }
+      const v = verdict(card, id, current.riders, current.cards, profile);
+      const shownNow: Shown = { id, card, verdict: v, image: null };
+      if (v.kind === 'problem') {
+        setShown(shownNow);
+        setStatus(v.message);
+        waitingForLift.current = true;
+        beep(false);
+        return;
+      }
+      // Taken: wait for lift-off now, not when the save finishes, or the next read (every
+      // quarter second) sees the same card and saves it again.
+      waitingForLift.current = true;
+      got.canvas.toBlob(
+        (blob) => {
+          const withImage = { ...shownNow, image: blob };
+          if (v.kind === 'save') void save(withImage);
+          else {
+            setShown(withImage);
+            setStatus(i18next.t(v.confirm ? 'scan.confirm' : 'scan.needsLook'));
+          }
+        },
+        'image/jpeg',
+        0.85,
+      );
+    },
+    [event.setup.event.code, profile, save],
+  );
+
   // The reading loop.
   useEffect(() => {
     if (!source) return;
@@ -238,6 +308,11 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
         if (!current) return;
         if (!profile || !reader) {
           setStatus(i18next.t('scan.cantReadCard'));
+          return;
+        }
+        if (stillRef.current) return;
+        if (cornersOnly || (source.kind === 'practice' && source.corners)) {
+          if (!waitingForLift.current) setStatus(i18next.t('scan.markCornersPrompt'));
           return;
         }
         const r = got ? readCard(got.frame, reader) : ({ ok: false, reason: 'NO_CARD' } as const);
@@ -269,50 +344,13 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
           setStatus(i18next.t('scan.reading'));
           return;
         }
-        if (!got) return;
-        const label = readLabel(got.frame, r.card.pose);
-        let id = fromLabel(label, event.setup.event.code);
-        if (!id) {
-          const n = Number(typedRef.current);
-          const rider = current.riders.find((x) => x.number === n);
-          if (!rider) {
-            setStatus(i18next.t('scan.noLabel'));
-            setShown(null);
-            return;
-          }
-          const day = current.days.length > 1 ? todayDay(current) : 1;
-          id = { number: n, day, lap: nextLap(rider, day, current.cards), from: 'typed' };
-        }
-        const v = verdict(r.card, id, current.riders, current.cards, profile);
-        const shownNow: Shown = { id, card: r.card, verdict: v, image: null };
-        if (v.kind === 'problem') {
-          setShown(shownNow);
-          setStatus(v.message);
-          waitingForLift.current = true;
-          beep(false);
-          return;
-        }
-        // Taken: wait for lift-off now, not when the save finishes, or the next read (every
-        // quarter second) sees the same card and saves it again.
-        waitingForLift.current = true;
-        got.canvas.toBlob(
-          (blob) => {
-            const withImage = { ...shownNow, image: blob };
-            if (v.kind === 'save') void save(withImage);
-            else {
-              setShown(withImage);
-              setStatus(i18next.t(v.confirm ? 'scan.confirm' : 'scan.needsLook'));
-            }
-          },
-          'image/jpeg',
-          0.85,
-        );
+        if (got) take(r.card, got);
       } finally {
         busy.current = false;
       }
     }, EVERY_MS);
     return () => clearInterval(timer);
-  }, [source, grab, save, event.setup.event.code, profile, reader]);
+  }, [source, grab, take, profile, reader, cornersOnly]);
 
   // Enter sends a card that needs a look to review; Esc reads it again.
   useEffect(() => {
@@ -331,7 +369,55 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
     return () => window.removeEventListener('keydown', keys);
   }, [shown, save]);
 
-  function startPractice(unclear: boolean) {
+  /** Freeze the picture so the desk can mark the card's corners on it. */
+  const markCorners = useCallback(() => {
+    const got = grab();
+    if (!got) return;
+    setShown(null);
+    setStill({ ...got, image: got.canvas.toDataURL('image/jpeg', 0.9) });
+    setStatus(i18next.t('scan.corner1'));
+  }, [grab]);
+
+  const cornerPlaced = useCallback((count: number) => {
+    const next = Math.min(count + 1, CORNER_ORDER.length);
+    setStatus(i18next.t(`scan.corner${next}` as 'scan.corner1'));
+  }, []);
+
+  function cornersMarked(c: CardCorners) {
+    const s = still;
+    if (!s || !profile || !reader) return;
+    const r = readCardFromCorners(s.frame, c, profile, reader);
+    if (!r.ok) {
+      beep(false);
+      setStatus(i18next.t('scan.cornersDontFit'));
+      return;
+    }
+    setStill(null);
+    waitingForLift.current = false;
+    gate.current.reset();
+    take(r.card, s);
+  }
+
+  function cancelCorners() {
+    setStill(null);
+    setStatus(i18next.t('scan.place'));
+  }
+
+  // M marks the corners (when no box is being typed in).
+  useEffect(() => {
+    if (!corners || !source || still) return;
+    const keys = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if ((e.key === 'm' || e.key === 'M') && tag !== 'INPUT' && tag !== 'SELECT') {
+        e.preventDefault();
+        markCorners();
+      }
+    };
+    window.addEventListener('keydown', keys);
+    return () => window.removeEventListener('keydown', keys);
+  }, [corners, source, still, markCorners]);
+
+  function startPractice(unclear: boolean, byCorners = false) {
     const d = deskRef.current;
     const rider = d?.riders.find((r) => r.status !== 'dns' && r.rides[1]);
     if (!d || !rider) {
@@ -367,12 +453,20 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
     setPracticeFrame(canvas.toDataURL('image/png'));
     gate.current.reset();
     waitingForLift.current = false;
-    setSource({ kind: 'practice' });
+    setStill(null);
+    setSource(byCorners ? { kind: 'practice', corners: true } : { kind: 'practice' });
+    if (byCorners) {
+      // Mark the corners on it straight away.
+      setShown(null);
+      setStill({ frame, canvas, image: canvas.toDataURL('image/png') });
+      setStatus(i18next.t('scan.corner1'));
+    }
   }
 
   function liftPractice() {
     practice.current = null;
     setPracticeFrame(null);
+    setStill(null);
   }
 
   return (
@@ -411,6 +505,11 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
         <Button variant="default" onClick={() => startPractice(true)}>
           {t('scan.practiceUnclear')}
         </Button>
+        {corners && (
+          <Button variant="default" onClick={() => startPractice(false, true)}>
+            {t('scan.practiceCorners')}
+          </Button>
+        )}
         {source?.kind === 'practice' && practiceFrame && (
           <Button variant="subtle" color="gray" onClick={liftPractice}>
             {t('scan.liftButton')}
@@ -418,10 +517,27 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
         )}
       </Group>
       <Group align="flex-start" gap="lg" wrap="nowrap">
+        {still && (
+          <CornerPicker
+            image={still.image}
+            width={still.frame.width}
+            height={still.frame.height}
+            onPlaced={cornerPlaced}
+            onDone={cornersMarked}
+            onCancel={cancelCorners}
+          />
+        )}
         <Paper
           withBorder
           radius="md"
-          style={{ width: 480, height: 640, overflow: 'hidden', background: '#000', flex: 'none' }}
+          style={{
+            width: 480,
+            height: 640,
+            overflow: 'hidden',
+            background: '#000',
+            flex: 'none',
+            display: still ? 'none' : undefined,
+          }}
         >
           {source?.kind === 'camera' && (
             <video
@@ -444,6 +560,16 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
           <Text role="status" fz="xl" fw={700}>
             {status}
           </Text>
+          {corners && source && !still && (
+            <Group>
+              <Button variant="default" onClick={markCorners}>
+                {t('scan.markCorners')}
+              </Button>
+              <Text size="sm" c="dimmed">
+                {t(cornersOnly ? 'scan.cornersOnlyHint' : 'scan.cornersHint')}
+              </Text>
+            </Group>
+          )}
           <RiderPicker
             label={t('scan.noLabelRider')}
             placeholder={t('scan.riderPlaceholder')}

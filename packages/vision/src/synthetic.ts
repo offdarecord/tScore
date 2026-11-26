@@ -5,14 +5,30 @@
  *
  * Invented data only: no real card or rider is ever drawn.
  */
+import { PRINT, printedCell } from './blank-reference.js';
 import type { RgbaImage } from './image.js';
 import { REGIONAL_16, type ReaderProfile } from './reader.js';
+
+/** How the scores are marked: punched, poked with a pen, or inked over the digit (#104). */
+export type SyntheticMarking = 'punch' | 'pen-hole' | 'ink';
+
+/** Ink colours, as red, green, blue (how much of each the ink lets through, 0–255). */
+export const INK_COLOURS = {
+  black: [40, 40, 46],
+  blue: [40, 70, 165],
+  red: [190, 40, 45],
+} as const;
+export type InkColour = keyof typeof INK_COLOURS;
 
 export interface SyntheticCard {
   /** Per section (index 0 = section 1): the values punched. Missing = none. */
   readonly punches: readonly (readonly number[])[];
   /** Per section: values whose hole is torn, only partly open. */
   readonly torn?: readonly (readonly number[])[];
+  /** How the `punches` are made (default: punched holes). */
+  readonly marking?: SyntheticMarking;
+  /** The ink's colour, for ink marks (default: black). */
+  readonly ink?: InkColour;
   readonly width?: number;
   readonly height?: number;
   /** Column width in pixels. */
@@ -32,11 +48,10 @@ export interface SyntheticCard {
   readonly label?: readonly (readonly boolean[])[];
 }
 
-const MAT = 22;
-const INK = 18;
-const LINE = 90;
-const RING = 105;
-const GLYPH = 70;
+const { mat: MAT, ink: INK, line: LINE } = PRINT;
+
+/** Ink over the paper: a share (0–1) of light let through, per colour; 1 = no ink. */
+type Tint = readonly [number, number, number];
 
 /** A small, repeatable random number generator (mulberry32). */
 function random(seed: number): () => number {
@@ -57,6 +72,7 @@ function cardAt(
   card: SyntheticCard,
   profile: ReaderProfile,
   paper: number,
+  tint: { value: Tint | null },
 ): number {
   const p = profile.pitch;
   const gridTop = (profile.rows + 1) * p; // 16 rows plus the header row
@@ -83,11 +99,17 @@ function cardAt(
       const r2 = dx * dx + dy * dy;
       const punched = card.punches[k]?.includes(value);
       const torn = card.torn?.[k]?.includes(value);
-      if (punched && r2 < 0.2 * 0.2) return MAT;
+      const marking = card.marking ?? 'punch';
+      if (punched && marking === 'punch' && r2 < 0.2 * 0.2) return MAT;
       // A torn hole: only a sliver is open.
       if (torn && r2 < 0.2 * 0.2 && dx > 0.06) return MAT;
-      if (Math.abs(Math.sqrt(r2) - 0.27) < 0.025) return RING;
-      if (Math.abs(dx) < 0.035 && Math.abs(dy) < 0.12) return GLYPH;
+      if (punched && marking === 'pen-hole' && penHole(dx, dy, k * 7 + c)) return MAT;
+      const printed = printedCell(dx, dy);
+      if (punched && marking === 'ink' && inked(dx, dy, k * 7 + c)) {
+        const [r, g, b] = INK_COLOURS[card.ink ?? 'black'];
+        tint.value = [r / 255, g / 255, b / 255];
+      }
+      if (printed !== null) return printed;
     }
   }
   // The black section column (with the header cell), white numbers in it.
@@ -103,6 +125,26 @@ function cardAt(
     if (Math.abs(u - j * p) < 0.025) return LINE;
   }
   return paper;
+}
+
+/** A pen poked through the digit: a small ragged hole, a little off the cell's centre. */
+function penHole(dx: number, dy: number, cell: number): boolean {
+  const cx = Math.sin(cell * 12.9898) * 0.04;
+  const cy = Math.cos(cell * 78.233) * 0.04;
+  const x = dx - cx;
+  const y = dy - cy;
+  const angle = Math.atan2(y, x);
+  const ragged = 0.085 + 0.015 * Math.sin(angle * 5 + cell);
+  return x * x + y * y < ragged * ragged;
+}
+
+/** Ink scribbled over the digit: slanted strokes across a rough disc. */
+function inked(dx: number, dy: number, cell: number): boolean {
+  const r = Math.sqrt(dx * dx + dy * dy);
+  const angle = Math.atan2(dy, dx);
+  if (r > 0.18 + 0.02 * Math.sin(angle * 3 + cell)) return false;
+  const stroke = (dx + dy * 0.6 + cell * 0.013) / 0.05;
+  return stroke - Math.floor(stroke) < 0.75;
 }
 
 /** Draw the card. */
@@ -128,7 +170,7 @@ export function syntheticCard(
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       // 2 × 2 supersampling for smooth edges.
-      let sum = 0;
+      const sum = [0, 0, 0];
       for (const [ox, oy] of [
         [0.25, 0.25],
         [0.75, 0.25],
@@ -139,13 +181,14 @@ export function syntheticCard(
         const dy = y + oy - bottom.y;
         const u = (dx * up.x + dy * up.y) / W;
         const v = (dx * right.x + dy * right.y) / W;
-        sum += cardAt(u, v, card, profile, paper);
+        const tint: { value: Tint | null } = { value: null };
+        const g = cardAt(u, v, card, profile, paper, tint);
+        for (let ch = 0; ch < 3; ch++) sum[ch] = (sum[ch] ?? 0) + g * (tint.value?.[ch] ?? 1);
       }
-      let g = sum / 4;
-      g *= 1 - shade * (x / width) * 0.6 - shade * (y / height) * 0.4;
-      g += (rand() - 0.5) * 2 * noise;
+      const light = 1 - shade * (x / width) * 0.6 - shade * (y / height) * 0.4;
+      const grain = (rand() - 0.5) * 2 * noise;
       const i = (y * width + x) * 4;
-      data[i] = data[i + 1] = data[i + 2] = g;
+      for (let ch = 0; ch < 3; ch++) data[i + ch] = ((sum[ch] ?? 0) / 4) * light + grain;
       data[i + 3] = 255;
     }
   }

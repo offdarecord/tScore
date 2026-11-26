@@ -24,6 +24,7 @@ import {
   type GreyImage,
   type RgbaImage,
 } from './image.js';
+import { blankReferenceFor, type BlankReference } from './blank-reference.js';
 import { decodeRow, type RowFlag } from './row-decision.js';
 
 /**
@@ -52,14 +53,14 @@ export interface ReaderProfile {
 }
 
 /**
- * The reader's view of a card profile. Only cards this reader can find and read are accepted:
- * the black-column locator and punched holes (other locators and marks come with #104 and #106).
+ * The reader's view of a card profile. Only cards this reader can find are accepted: by their
+ * black section column, or by the four corners the desk clicks (`readCardFromCorners`);
+ * card-edges comes with #130. Punched, pen-hole and ink marks are all read as change from the
+ * blank card, with the profile's thresholds and colour.
  */
 export function readerProfile(profile: CardProfile): ReaderProfile {
-  if (profile.locator !== 'black-column' || profile.marking_style !== 'punch') {
-    throw new Error(
-      `Card profile ${profile.id}: ${profile.locator} cards marked by ${profile.marking_style} can't be read yet.`,
-    );
+  if (profile.locator !== 'black-column' && profile.locator !== 'manual-corners') {
+    throw new Error(`Card profile ${profile.id}: ${profile.locator} cards can't be read yet.`);
   }
   return {
     id: profile.id,
@@ -140,6 +141,13 @@ export type ReadResult =
 export const PUNCH_THRESHOLD = REGIONAL_16.markThreshold;
 /** The regional card's least margin (its profile's `thresholds.confidence_gap`). */
 export const MIN_MARGIN = REGIONAL_16.minMargin;
+
+/**
+ * An unmarked cell must look blank: changed from the blank card by less than this share of the
+ * mark threshold. The printed digit is in the reference, so a blank cell reads near 0; a cell
+ * part-way (a torn or half-made hole, a smudge, a faint mark) goes to a person.
+ */
+const PARTIAL = 0.5;
 
 /** The work size for finding the card: about 320 pixels on the long side. */
 const WORK_SIZE = 320;
@@ -438,11 +446,15 @@ function findPitch(grey: GreyImage, pose: Omit<CardPose, 'pitch'>, profile: Read
  * Read the card in a frame. The column's white section numbers can split it into pieces when
  * the card is small in the frame, so finding it is tried with a growing clean-up radius.
  */
-export function readCard(frame: RgbaImage, profile: ReaderProfile = REGIONAL_16): ReadResult {
+export function readCard(
+  frame: RgbaImage,
+  profile: ReaderProfile = REGIONAL_16,
+  reference: BlankReference = blankReferenceFor(profile),
+): ReadResult {
   const grey = toGrey(frame, profile.channel);
   let last: ReadResult = { ok: false, reason: 'NO_CARD' };
   for (const radius of [1, 2, 3]) {
-    const r = readWith(grey, profile, radius);
+    const r = readWith(grey, profile, reference, radius);
     if (r.ok) return r;
     // Report the most useful reason: cut off, then unsure, then no card.
     const rank = (x: ReadResult) =>
@@ -452,8 +464,12 @@ export function readCard(frame: RgbaImage, profile: ReaderProfile = REGIONAL_16)
   return last;
 }
 
-function readWith(grey: GreyImage, profile: ReaderProfile, radius: number): ReadResult {
-  const threshold = profile.markThreshold;
+function readWith(
+  grey: GreyImage,
+  profile: ReaderProfile,
+  reference: BlankReference,
+  radius: number,
+): ReadResult {
   const found = findColumn(grey, radius);
   if ('reason' in found) return { ok: false, reason: found.reason };
   const { axis } = found;
@@ -491,22 +507,41 @@ function readWith(grey: GreyImage, profile: ReaderProfile, radius: number): Read
   const paper = median(papers);
   if (paper - black < 40) return { ok: false, reason: 'NO_CARD' };
 
+  const rows = readCells(at, profile, reference, pitch, paper, black);
+  return { ok: true, card: { profile: profile.id, pose, rows, paper, black } };
+}
+
+/**
+ * Read every row: each value cell's change from the blank card, then the row's decision.
+ * `at(u, v)` is the frame's brightness at a point on the card, in grid units (u up from the
+ * grid's bottom, v across from its reference line); `paper` and `black` are this card's levels.
+ */
+export function readCells(
+  at: (u: number, v: number) => number,
+  profile: ReaderProfile,
+  reference: BlankReference,
+  pitch: number,
+  paper: number,
+  black: number,
+): RowReading[] {
+  const threshold = profile.markThreshold;
+  const points = reference.points;
   const rows: RowReading[] = [];
   for (let k = 0; k < profile.rows; k++) {
     const section = k + 1;
     const u = (profile.rows - section + 0.5) * pitch;
-    const darkness = profile.cellOffsets.map((v) => {
-      let sum = 0;
-      let n = 0;
-      const rad = profile.cellRadius;
-      for (let dy = -rad; dy <= rad + 1e-9; dy += rad / 3) {
-        for (let dx = -rad; dx <= rad + 1e-9; dx += rad / 3) {
-          if (dx * dx + dy * dy > rad * rad + 1e-9) continue;
-          sum += at(u + dy, v + dx);
-          n++;
-        }
-      }
-      return Math.min(1, Math.max(0, (paper - sum / n) / (paper - black)));
+    // Each cell's change from its blank self, normalised against this card's paper and black:
+    // 0 = as the blank card, 1 = black right across the cell (a punched hole).
+    const darkness = profile.cellOffsets.map((v, c) => {
+      const base = (k * profile.cellOffsets.length + c) * points.length;
+      let change = 0;
+      let room = 0;
+      points.forEach((p, i) => {
+        const blank = black + (reference.levels[base + i] ?? 1) * (paper - black);
+        change += blank - at(u + p.du, v + p.dv);
+        room += blank - black;
+      });
+      return Math.min(1, Math.max(0, change / Math.max(room, 1e-9)));
     });
     const punched = darkness.map((d) => d >= threshold);
     const holes = darkness.filter((_, i) => punched[i]);
@@ -529,7 +564,7 @@ function readWith(grey: GreyImage, profile: ReaderProfile, radius: number): Read
         flag: decision.flag,
         margin,
       });
-    } else if (margin < profile.minMargin) {
+    } else if (margin < profile.minMargin || open.some((d) => d > threshold * PARTIAL)) {
       rows.push({
         section,
         darkness,
@@ -550,5 +585,5 @@ function readWith(grey: GreyImage, profile: ReaderProfile, radius: number): Read
       });
     }
   }
-  return { ok: true, card: { profile: profile.id, pose, rows, paper, black } };
+  return rows;
 }

@@ -65,6 +65,10 @@ For entry systems tScore doesn't know, save the list as **CSV UTF-8** with these
 | `Competition status` | NC           | Optional. `NC` = non-competitive, `NA` = No award       |
 | `Machine`            | Beta Evo 300 | Optional. Make and model; the desk can change it later  |
 
+[Download a sample rider list](https://offdarecord.github.io/tScore/tscore-rider-list-sample.csv)
+with ten invented riders in the default classes: open it in Excel, replace the riders with
+yours, and save it as **CSV UTF-8**. In short:
+
 ```csv
 Number,Given name,Family name,Class,Club,Licence,Competition status,Machine
 1,Avery,Stone,Trial 1,Example MCC,123456,,Beta Evo 300

@@ -1,5 +1,6 @@
 import { Paper, Text, TextInput, UnstyledButton, type TextInputProps } from '@mantine/core';
 import { forwardRef, useMemo, type KeyboardEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { RiderInfo } from '../../../shared/ipc';
 import { riderName } from './Riders';
 
@@ -23,6 +24,7 @@ function RiderPickerInner<R extends RiderInfo>(
   { riders, query, onQueryChange, picked, onPick, ...input }: Props<R>,
   ref: React.ForwardedRef<HTMLInputElement>,
 ) {
+  const { t } = useTranslation();
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!riders || picked || !q) return [];
@@ -55,12 +57,12 @@ function RiderPickerInner<R extends RiderInfo>(
           riders &&
           query.trim() &&
           matches.length === 0 && {
-            error: `No rider matches "${query.trim()}". Check the number, or add them on the Riders screen.`,
+            error: t('picker.noMatch', { query: query.trim() }),
           })}
         styles={{ error: { color: 'light-dark(#a51111, #ffa8a8)', fontSize: 15 } }}
       />
       {matches.length > 0 && (
-        <Paper withBorder mt={4} role="listbox" aria-label="Matching riders">
+        <Paper withBorder mt={4} role="listbox" aria-label={t('picker.matches')}>
           {matches.map((s) => (
             <UnstyledButton
               key={s.number}

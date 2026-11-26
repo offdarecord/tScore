@@ -15,9 +15,11 @@ import {
 } from '@mantine/core';
 import { suggestEventCode, type EventSetup } from '@tscore/core';
 import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import type { AppError, OpenEvent, Outcome } from '../../../shared/ipc';
 import { ComingSoonButton } from '../ComingSoonButton';
 import { RequiredMark } from '../RequiredMark';
+import i18next from '../i18n';
 import { SectionsCard } from './SectionsCard';
 import {
   MAX_DAYS,
@@ -45,6 +47,7 @@ interface Props {
 }
 
 export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }: Props) {
+  const { t } = useTranslation();
   const [base, setBase] = useState(setup);
   const [draft, setDraft] = useState<Draft>(() => toDraft(setup));
   const [codeEdited, setCodeEdited] = useState(mode === 'edit');
@@ -106,23 +109,22 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
       <Group justify="space-between" align="flex-start" wrap="wrap">
         <div>
           <Title order={1} size="h2">
-            {mode === 'new' ? 'New event' : 'Event setup'}
+            {mode === 'new' ? t('setup.newEvent') : t('setup.title')}
           </Title>
           <Text c="dimmed">
-            Everything else (labels, scanning, results) follows from this page. Boxes marked{' '}
-            <RequiredMark /> must be filled in.
+            <Trans i18nKey="setup.intro" components={{ mark: <RequiredMark /> }} />
           </Text>
         </div>
         <Group gap="sm">
-          <ComingSoonButton variant="default">Copy from a previous event…</ComingSoonButton>
-          <ComingSoonButton variant="default">Save as template</ComingSoonButton>
+          <ComingSoonButton variant="default">{t('setup.copyPrevious')}</ComingSoonButton>
+          <ComingSoonButton variant="default">{t('setup.saveTemplate')}</ComingSoonButton>
         </Group>
       </Group>
 
-      <Card title="Event">
+      <Card title={t('setup.event')}>
         <Group align="flex-start" grow wrap="wrap">
           <TextInput
-            label="Event name"
+            label={t('setup.name')}
             required
             data-field="event.name"
             value={draft.name}
@@ -135,9 +137,9 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
             miw={260}
           />
           <TextInput
-            label="Event code"
+            label={t('setup.code')}
             required
-            description="Goes in each label's QR code"
+            description={t('setup.codeHelp')}
             data-field="event.code"
             value={draft.code}
             onChange={(e) => {
@@ -149,7 +151,7 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
             miw={160}
           />
           <TextInput
-            label="Club"
+            label={t('setup.club')}
             value={draft.club}
             onChange={(e) => update({ club: e.currentTarget.value })}
             miw={220}
@@ -157,22 +159,22 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
         </Group>
         <Group align="flex-start" grow wrap="wrap">
           <NativeSelect
-            label="Days"
+            label={t('setup.days')}
             value={String(days)}
             data={Array.from({ length: MAX_DAYS }, (_, i) => ({
               value: String(i + 1),
-              label: i === 0 ? '1 day' : `${i + 1} days`,
+              label: t('setup.day', { count: i + 1 }),
             }))}
             onChange={(e) => update(withDayCount(draft, Number(e.currentTarget.value)))}
           />
           <NativeSelect
-            label="Scorecard"
-            data={[{ value: 'regional-16', label: 'Regional card (16 sections)' }]}
+            label={t('setup.scorecard')}
+            data={[{ value: 'regional-16', label: t('setup.regional16') }]}
             value="regional-16"
             onChange={() => undefined}
           />
           <TextInput
-            label="First rider number"
+            label={t('setup.firstNumber')}
             required
             inputMode="numeric"
             data-field="event.first_rider_number"
@@ -186,7 +188,7 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
           <Group key={i} align="flex-start" grow wrap="wrap">
             <TextInput
               type="date"
-              label={days > 1 ? `Day ${i + 1} date` : 'Date'}
+              label={days > 1 ? t('setup.dayDate', { day: i + 1 }) : t('setup.date')}
               required
               data-field={`days[${i}].date`}
               value={d.date}
@@ -199,7 +201,7 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
             />
             <TextInput
               type="time"
-              label={days > 1 ? `Day ${i + 1}: lap 1 starts` : 'Lap 1 starts'}
+              label={days > 1 ? t('setup.dayLap1', { day: i + 1 }) : t('setup.lap1')}
               required
               data-field={`days[${i}].start_time`}
               value={d.startTime}
@@ -213,24 +215,20 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
           </Group>
         ))}
         <NativeSelect
-          label="Type of trial"
-          description={
-            draft.direction === 'low_wins'
-              ? 'Ties are split by most cleans, then most 1s, 2s and 3s, then fewest 5s'
-              : 'The highest total wins'
-          }
+          label={t('setup.type')}
+          description={draft.direction === 'low_wins' ? t('setup.lowHelp') : t('setup.highHelp')}
           value={draft.direction}
           data={[
-            { value: 'low_wins', label: 'Normal trial: lowest total wins' },
-            { value: 'high_wins', label: 'Gate trial: highest total wins' },
+            { value: 'low_wins', label: t('setup.low') },
+            { value: 'high_wins', label: t('setup.high') },
           ]}
           onChange={(e) => update({ direction: e.currentTarget.value as Draft['direction'] })}
           maw={520}
         />
         <TextInput
-          label="Overdue after (minutes)"
+          label={t('setup.overdue')}
           required
-          description="A rider is overdue this long past their class's average lap. Overdue never marks anyone DNF."
+          description={t('setup.overdueHelp')}
           inputMode="numeric"
           data-field="overdue_margin_minutes"
           value={draft.overdueMargin}
@@ -242,13 +240,13 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
       </Card>
 
       <Card
-        title="Classes"
+        title={t('setup.classes')}
         action={
           <Button
             variant="default"
             onClick={() => update({ classes: [...draft.classes, newClass(days)] })}
           >
-            Add class
+            {t('setup.addClass')}
           </Button>
         }
       >
@@ -257,34 +255,34 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
             <Table.Thead>
               <Table.Tr>
                 <Table.Th rowSpan={days > 1 ? 2 : 1}>
-                  Class <RequiredMark />
+                  {t('setup.class')} <RequiredMark />
                 </Table.Th>
                 {days > 1
                   ? draft.days.map((_, j) => (
                       <Table.Th key={j} colSpan={2} ta="center">
-                        Day {j + 1}
+                        {t('setup.dayN', { day: j + 1 })}
                       </Table.Th>
                     ))
                   : dayHeads()}
-                <Table.Th rowSpan={days > 1 ? 2 : 1}>Junior class</Table.Th>
-                {anyRiders && <Table.Th rowSpan={days > 1 ? 2 : 1}>Riders</Table.Th>}
-                {anyRiders && <Table.Th rowSpan={days > 1 ? 2 : 1}>Labels</Table.Th>}
+                <Table.Th rowSpan={days > 1 ? 2 : 1}>{t('setup.junior')}</Table.Th>
+                {anyRiders && <Table.Th rowSpan={days > 1 ? 2 : 1}>{t('setup.riders')}</Table.Th>}
+                {anyRiders && <Table.Th rowSpan={days > 1 ? 2 : 1}>{t('setup.labels')}</Table.Th>}
                 <Table.Th rowSpan={days > 1 ? 2 : 1}>
-                  <VisuallyHidden>Remove</VisuallyHidden>
+                  <VisuallyHidden>{t('setup.remove')}</VisuallyHidden>
                 </Table.Th>
               </Table.Tr>
               {days > 1 && <Table.Tr>{draft.days.flatMap((_, j) => dayHeads(j))}</Table.Tr>}
             </Table.Thead>
             <Table.Tbody>
               {draft.classes.map((c, i) => {
-                const label = c.name.trim() || `class ${i + 1}`;
+                const label = c.name.trim() || t('setup.classN', { n: i + 1 });
                 const inUse = (ridersByClass[c.original?.name ?? ''] ?? 0) > 0;
                 const classRiders = ridersByClass[c.original?.name ?? ''] ?? 0;
                 return (
                   <Table.Tr key={c.key}>
                     <Table.Td>
                       <TextInput
-                        aria-label={`Name of ${label}`}
+                        aria-label={t('setup.nameOf', { label })}
                         required
                         data-field={`classes[${i}].name`}
                         value={c.name}
@@ -295,13 +293,13 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
                       />
                     </Table.Td>
                     {c.days.map((d, j) => {
-                      const on = days > 1 ? ` on day ${j + 1}` : '';
+                      const on = days > 1 ? t('setup.onDay', { day: j + 1 }) : '';
                       const f = `classes[${i}].days.${j + 1}`;
                       return [
                         <Table.Td key={`s${j}`}>
                           <TextInput
                             inputMode="numeric"
-                            aria-label={`Sections per lap for ${label}${on}`}
+                            aria-label={t('setup.sectionsFor', { label, on })}
                             required
                             data-field={`${f}.sections`}
                             value={d.sections}
@@ -315,7 +313,7 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
                         <Table.Td key={`l${j}`}>
                           <TextInput
                             inputMode="numeric"
-                            aria-label={`Laps for ${label}${on}`}
+                            aria-label={t('setup.lapsFor', { label, on })}
                             required
                             data-field={`${f}.laps`}
                             value={d.laps}
@@ -328,7 +326,7 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
                     })}
                     <Table.Td>
                       <Checkbox
-                        aria-label={`${label} is a junior class`}
+                        aria-label={t('setup.juniorFor', { label })}
                         checked={isJunior(c)}
                         onChange={(e) => updateClass(i, { junior: e.currentTarget.checked })}
                         size="md"
@@ -336,18 +334,18 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
                     </Table.Td>
                     {anyRiders && <Table.Td>{classRiders}</Table.Td>}
                     {anyRiders && (
-                      <Table.Td>{labelsFor(c, classRiders) || 'none (not scored)'}</Table.Td>
+                      <Table.Td>{labelsFor(c, classRiders) || t('setup.notScored')}</Table.Td>
                     )}
                     <Table.Td>
                       <Button
                         variant="subtle"
                         color="red"
-                        aria-label={`Remove ${label}`}
+                        aria-label={t('setup.removeClass', { label })}
                         disabled={inUse}
-                        title={inUse ? 'This class has riders' : undefined}
+                        title={inUse ? t('setup.hasRiders') : undefined}
                         onClick={() => update({ classes: draft.classes.filter((_, j) => j !== i) })}
                       >
-                        Remove
+                        {t('setup.remove')}
                       </Button>
                     </Table.Td>
                   </Table.Tr>
@@ -367,21 +365,24 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
             ))}
         <Text c="dimmed" size="sm">
           {anyRiders
-            ? `Total: ${draft.classes.reduce((n, c) => n + labelsFor(c, ridersByClass[c.original?.name ?? ''] ?? 0), 0)} labels for ${riders} riders. Changes after scanning starts are allowed, and logged.`
-            : 'Riders are added after setup. Set laps to 0 for a class that is not scored, such as minders.'}
+            ? t('setup.total', {
+                labels: draft.classes.reduce(
+                  (n, c) => n + labelsFor(c, ridersByClass[c.original?.name ?? ''] ?? 0),
+                  0,
+                ),
+                riders,
+              })
+            : t('setup.ridersLater')}
         </Text>
       </Card>
 
-      <Card title="Sections and officials">
+      <Card title={t('setup.sectionsCard')}>
         <SectionsCard draft={draft} update={update} errorFor={errorFor} />
       </Card>
 
       <div ref={summaryRef} tabIndex={-1} aria-live="polite">
         {(listed.length > 0 || saveError) && (
-          <Alert
-            color="red"
-            title={listed.length ? 'Fix these before saving' : "The event wasn't saved"}
-          >
+          <Alert color="red" title={listed.length ? t('setup.fixThese') : t('setup.notSaved')}>
             {listed.length > 0 ? (
               <List size="sm" spacing={2}>
                 {listed.map((p, k) => (
@@ -407,16 +408,16 @@ export function SetupForm({ setup, mode, ridersByClass = {}, onSave, onCancel }:
           loading={saving}
           disabled={mode === 'edit' && !dirty}
         >
-          {mode === 'new' ? 'Create event' : 'Save changes'}
+          {mode === 'new' ? t('setup.create') : t('setup.save')}
         </Button>
         {onCancel && (
           <Button size="md" variant="default" onClick={onCancel}>
-            Cancel
+            {t('setup.cancel')}
           </Button>
         )}
         {mode === 'edit' && !dirty && savedAt && tried && (
           <Text c="light-dark(#2b8a3e, #8ce99a)" role="status">
-            Saved
+            {t('setup.saved')}
           </Text>
         )}
       </Group>
@@ -428,10 +429,10 @@ function dayHeads(day?: number) {
   const k = day ?? 0;
   return [
     <Table.Th key={`s${k}`}>
-      Sections per lap <RequiredMark />
+      {i18next.t('setup.sections')} <RequiredMark />
     </Table.Th>,
     <Table.Th key={`l${k}`}>
-      Laps <RequiredMark />
+      {i18next.t('setup.laps')} <RequiredMark />
     </Table.Th>,
   ];
 }

@@ -1,5 +1,6 @@
 import { Alert, Button, Group, Paper, Stack, Text, Title } from '@mantine/core';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { AppError, BackupStatus, OpenEvent, Outcome } from '../../../shared/ipc';
 import { ErrorAlert } from '../ErrorAlert';
 
@@ -15,6 +16,7 @@ const clock = (iso: string) =>
  * optional second place for a copy of every backup (a USB stick or another drive).
  */
 export function BackupCard({ event }: { event: OpenEvent }) {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<BackupStatus | null>(null);
   const [error, setError] = useState<AppError | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -35,9 +37,7 @@ export function BackupCard({ event }: { event: OpenEvent }) {
     if (!r.ok) setError(r.error);
     else if (r.value) {
       const mb = (r.value.bytes / 1_000_000).toFixed(1);
-      setMoved(
-        `Saved and checked: ${r.value.file} (${mb} MB). On the other laptop, choose Open event file… on Home and pick this file.`,
-      );
+      setMoved(t('backup.moved', { file: r.value.file, mb }));
     }
   }
 
@@ -60,35 +60,35 @@ export function BackupCard({ event }: { event: OpenEvent }) {
     <Paper withBorder radius="md" p="lg" component="section" aria-labelledby="backup-heading">
       <Stack gap="md">
         <Title order={2} size="h3" id="backup-heading">
-          Saving and backup
+          {t('backup.title')}
         </Title>
         <div>
-          <Text fw={600}>Event saved in</Text>
+          <Text fw={600}>{t('backup.savedIn')}</Text>
           <Text style={{ wordBreak: 'break-all' }}>{status.folder}</Text>
           <Text size="sm" c="dimmed">
-            Saved as each change is made. Nothing to set.
+            {t('backup.savedAsYouGo')}
           </Text>
         </div>
         <div>
-          <Text fw={600}>Automatic backups</Text>
+          <Text fw={600}>{t('backup.auto')}</Text>
           <Text>
-            A backup is made within five minutes of a change, and when the event closes. The newest
-            20 are kept in the event&apos;s backups folder ({status.backups} there now
-            {status.lastAt ? `; last made ${clock(status.lastAt)}` : ''}).
+            {t('backup.autoHelp', {
+              count: status.backups,
+              last: status.lastAt ? t('backup.lastMade', { time: clock(status.lastAt) }) : '',
+            })}
           </Text>
         </div>
         <div>
-          <Text fw={600}>Second copy</Text>
+          <Text fw={600}>{t('backup.second')}</Text>
           <Text>
             {status.secondPlace
-              ? `Every backup is also copied to ${status.secondPlace}.`
-              : 'None. Choose a USB stick or another drive, so a dead laptop doesn’t take the event with it.'}
+              ? t('backup.secondTo', { place: status.secondPlace })
+              : t('backup.secondNone')}
           </Text>
         </div>
         {missing && (
           <Alert color="red" role="alert">
-            {status.secondPlace} isn&apos;t available. Is the USB stick plugged in? Scoring still
-            works, but there&apos;s no second copy.
+            {t('backup.secondMissing', { place: status.secondPlace })}
           </Alert>
         )}
         {status.problem && !missing && (
@@ -105,38 +105,29 @@ export function BackupCard({ event }: { event: OpenEvent }) {
         <Group gap="sm">
           <Button
             variant="default"
-            onClick={() => void run(window.tscore.backupNow(), 'Backup made.')}
+            onClick={() => void run(window.tscore.backupNow(), t('backup.made'))}
           >
-            Back up now
+            {t('backup.backUpNow')}
           </Button>
           <Button
             variant="default"
-            onClick={() =>
-              void run(
-                window.tscore.chooseBackupPlace(),
-                'Second copy set, and a backup made there.',
-              )
-            }
+            onClick={() => void run(window.tscore.chooseBackupPlace(), t('backup.secondSet'))}
           >
-            {status.secondPlace ? 'Change second copy…' : 'Choose second copy…'}
+            {status.secondPlace ? t('backup.changeSecond') : t('backup.chooseSecond')}
           </Button>
           {status.secondPlace && (
             <Button
               variant="subtle"
               color="gray"
-              onClick={() => void run(window.tscore.clearBackupPlace(), 'No second copy.')}
+              onClick={() => void run(window.tscore.clearBackupPlace(), t('backup.noSecondDone'))}
             >
-              No second copy
+              {t('backup.noSecond')}
             </Button>
           )}
         </Group>
         <div>
-          <Text fw={600}>Move to another laptop</Text>
-          <Text>
-            Saves the whole event, card photos included, as one file to copy to a USB stick. The
-            other laptop checks it&apos;s complete as it opens it. Then carry on scoring on that
-            laptop only.
-          </Text>
+          <Text fw={600}>{t('backup.move')}</Text>
+          <Text>{t('backup.moveHelp')}</Text>
         </div>
         {moved && (
           <Text size="sm" role="status" style={{ wordBreak: 'break-all' }}>
@@ -145,7 +136,7 @@ export function BackupCard({ event }: { event: OpenEvent }) {
         )}
         <Group gap="sm">
           <Button variant="default" onClick={() => void saveForMove()}>
-            Save a copy for another laptop…
+            {t('backup.saveForMove')}
           </Button>
         </Group>
       </Stack>

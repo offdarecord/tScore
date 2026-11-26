@@ -23,6 +23,13 @@ const TRANSLATED = [
   'riders/Riders.tsx',
   'riders/ImportRiders.tsx',
   'riders/RiderPicker.tsx',
+  'cards/ManualEntry.tsx',
+  'cards/CardPreview.tsx',
+  'scan/ScanDesk.tsx',
+  'scan/ReviewQueue.tsx',
+  'course/Progress.tsx',
+  'course/OnCourse.tsx',
+  'course/shared.tsx',
 ];
 
 export default tseslint.config(
@@ -93,7 +100,15 @@ export default tseslint.config(
             ],
           },
           // Symbols, numbers and separators aren't words, nor are code values such as 'dark'.
-          words: { exclude: ['^[\\s\\W\\d]*$', '^[a-z][a-z0-9_-]*$'] },
+          words: {
+            exclude: [
+              '^[\\s\\W\\d]*$',
+              '^[a-z][a-z0-9_-]*$',
+              // Colours: '#c92a2a', 'light-dark(#e3eefa, #1a3049)'.
+              '^#[0-9a-fA-F]{3,8}$',
+              '^light-dark\\(.*\\)$',
+            ],
+          },
         },
       ],
     },

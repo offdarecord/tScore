@@ -18,6 +18,8 @@ import {
   type RgbaImage,
 } from '@tscore/vision';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import i18next from '../i18n';
 import type { AppError, CardDesk, OpenEvent } from '../../../shared/ipc';
 import { ErrorAlert } from '../ErrorAlert';
 import { pickedText, RiderPicker } from '../riders/RiderPicker';
@@ -62,12 +64,13 @@ const CAMERA_KEY = 'tscore.scan.camera';
  * Review queue with its photo when a person needs to look. Then lift it off for the next.
  */
 export function ScanDesk({ event }: { event: OpenEvent }) {
+  const { t } = useTranslation();
   const theme = useMantineTheme();
   const big = theme.other['scanDeskFontSize'] as string;
   const [desk, setDesk] = useState<CardDesk | null>(null);
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [source, setSource] = useState<Source | null>(null);
-  const [status, setStatus] = useState('Choose a camera, or practise with a test card.');
+  const [status, setStatus] = useState(() => i18next.t('scan.start'));
   // A card with no label is for the rider found here: picked from the list, or a whole number typed.
   const [query, setQuery] = useState('');
   const [picked, setPicked] = useState<number | null>(null);
@@ -138,11 +141,9 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
           video.current.srcObject = s;
           void video.current.play();
         }
-        setStatus('Place a card on the mat.');
+        setStatus(i18next.t('scan.place'));
       })
-      .catch(() =>
-        setStatus("Couldn't start that camera. Is it plugged in, or used by another program?"),
-      );
+      .catch(() => setStatus(i18next.t('scan.noCamera')));
     return () => {
       stop = true;
       stream?.getTracks().forEach((t) => t.stop());
@@ -200,15 +201,19 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
     const undecided = v.scores.filter((x) => x === null).length;
     setLast(
       undecided
-        ? `Rider ${s.id.number} lap ${s.id.lap}: sent to Review queue (${undecided} to check).`
-        : `Saved rider ${s.id.number} lap ${s.id.lap}: ${v.scores.join(' ')}.`,
+        ? i18next.t('scan.toReview', { number: s.id.number, lap: s.id.lap, count: undecided })
+        : i18next.t('scan.saved', {
+            number: s.id.number,
+            lap: s.id.lap,
+            scores: v.scores.join(' '),
+          }),
     );
     beep(undecided === 0);
     setShown(null);
     setQuery('');
     setPicked(null);
     waitingForLift.current = true;
-    setStatus('Lift the card off.');
+    setStatus(i18next.t('scan.lift'));
   }, []);
 
   // The reading loop.
@@ -227,7 +232,7 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
           if (!card) {
             waitingForLift.current = false;
             gate.current.reset();
-            setStatus('Place the next card on the mat.');
+            setStatus(i18next.t('scan.placeNext'));
           }
           return;
         }
@@ -235,19 +240,19 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
           gate.current.push(null);
           setStatus(
             r.reason === 'CARD_CUT_OFF'
-              ? 'Move the card into the middle of the mat.'
+              ? i18next.t('scan.cutOff')
               : r.reason === 'TILTED'
-                ? 'Turn the card upright.'
+                ? i18next.t('scan.tilted')
                 : r.reason === 'TOO_SMALL'
-                  ? 'The card is too small in the picture: lower the camera or zoom in.'
+                  ? i18next.t('scan.tooSmall')
                   : r.reason === 'UNSURE'
-                    ? 'Hold the card still…'
-                    : 'Place a card on the mat.',
+                    ? i18next.t('scan.unsure')
+                    : i18next.t('scan.place'),
           );
           return;
         }
         if (!gate.current.push(r.card)) {
-          setStatus('Reading…');
+          setStatus(i18next.t('scan.reading'));
           return;
         }
         if (!got) return;
@@ -257,7 +262,7 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
           const n = Number(typedRef.current);
           const rider = current.riders.find((x) => x.number === n);
           if (!rider) {
-            setStatus('No label: find the rider by number or name.');
+            setStatus(i18next.t('scan.noLabel'));
             setShown(null);
             return;
           }
@@ -282,9 +287,7 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
             if (v.kind === 'save') void save(withImage);
             else {
               setShown(withImage);
-              setStatus(
-                'Needs a look: press Enter to send it to the Review queue, or Esc to read it again.',
-              );
+              setStatus(i18next.t('scan.needsLook'));
             }
           },
           'image/jpeg',
@@ -318,7 +321,7 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
     const d = deskRef.current;
     const rider = d?.riders.find((r) => r.status !== 'dns' && r.rides[1]);
     if (!d || !rider) {
-      setStatus('Import riders first: practice cards use the first rider on the list.');
+      setStatus(i18next.t('scan.importFirst'));
       return;
     }
     const lap = nextLap(rider, 1, d.cards);
@@ -361,16 +364,13 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
   return (
     <Stack gap="lg" maw={1300}>
       <div>
-        <Title order={2}>Scan desk</Title>
-        <Text c="dimmed">
-          Put each card on the black mat under the camera. Clear cards are saved by themselves;
-          anything unclear goes to the Review queue with its photo.
-        </Text>
+        <Title order={2}>{t('scan.title')}</Title>
+        <Text c="dimmed">{t('scan.intro')}</Text>
       </div>
       {error && <ErrorAlert error={error} onClose={() => setError(null)} />}
       <Group align="flex-end" gap="sm">
         <NativeSelect
-          label="Camera"
+          label={t('scan.camera')}
           value={source?.kind === 'camera' ? source.deviceId : ''}
           onChange={(e) => {
             const id = e.currentTarget.value;
@@ -383,20 +383,23 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
             setSource(id ? { kind: 'camera', deviceId: id } : null);
           }}
           data={[
-            { value: '', label: cameras.length ? 'Choose a camera…' : 'No camera found' },
-            ...cameras.map((c, i) => ({ value: c.deviceId, label: c.label || `Camera ${i + 1}` })),
+            { value: '', label: cameras.length ? t('scan.chooseCamera') : t('scan.noneFound') },
+            ...cameras.map((c, i) => ({
+              value: c.deviceId,
+              label: c.label || t('scan.cameraN', { n: i + 1 }),
+            })),
           ]}
           w={320}
         />
         <Button variant="default" onClick={() => startPractice(false)}>
-          Practice card
+          {t('scan.practice')}
         </Button>
         <Button variant="default" onClick={() => startPractice(true)}>
-          Practice card with an unclear row
+          {t('scan.practiceUnclear')}
         </Button>
         {source?.kind === 'practice' && practiceFrame && (
           <Button variant="subtle" color="gray" onClick={liftPractice}>
-            Lift the card off
+            {t('scan.liftButton')}
           </Button>
         )}
       </Group>
@@ -411,14 +414,14 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
               ref={video}
               muted
               playsInline
-              aria-label="Camera view"
+              aria-label={t('scan.cameraView')}
               style={{ width: '100%', height: '100%', objectFit: 'contain' }}
             />
           )}
           {source?.kind === 'practice' && practiceFrame && (
             <img
               src={practiceFrame}
-              alt="Practice card on the mat"
+              alt={t('scan.practiceAlt')}
               style={{ width: '100%', height: '100%', objectFit: 'contain' }}
             />
           )}
@@ -428,8 +431,8 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
             {status}
           </Text>
           <RiderPicker
-            label="Rider for a card with no label: number or name"
-            placeholder="e.g. 17 or Sam"
+            label={t('scan.noLabelRider')}
+            placeholder={t('scan.riderPlaceholder')}
             riders={desk?.riders}
             query={query}
             picked={picked !== null}
@@ -444,13 +447,19 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
             maw={420}
           />
           {shown && (
-            <Paper withBorder radius="md" p="md" component="section" aria-label="Card read">
+            <Paper
+              withBorder
+              radius="md"
+              p="md"
+              component="section"
+              aria-label={t('scan.cardRead')}
+            >
               <Text fz={big} fw={800} lh={1.1}>
                 {shown.id.number}
               </Text>
               <Text fz="lg">
-                {riderName(desk, shown.id.number)} · lap {shown.id.lap}
-                {shown.id.from === 'typed' ? ' (typed)' : ''}
+                {t('scan.lapLine', { name: riderName(desk, shown.id.number), lap: shown.id.lap })}
+                {shown.id.from === 'typed' ? t('scan.typed') : ''}
               </Text>
               <Group gap={6} mt="sm">
                 {shown.card.rows
@@ -480,7 +489,7 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
               </Group>
               {shown.verdict.kind === 'review' && (
                 <Group mt="md">
-                  <Button onClick={() => void save(shown)}>Send to Review queue (Enter)</Button>
+                  <Button onClick={() => void save(shown)}>{t('scan.sendToReview')}</Button>
                   <Button
                     variant="default"
                     onClick={() => {
@@ -489,20 +498,19 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
                       waitingForLift.current = false;
                     }}
                   >
-                    Read again (Esc)
+                    {t('scan.readAgain')}
                   </Button>
                 </Group>
               )}
               {shown.verdict.kind === 'review' && shown.verdict.extraRows.length > 0 && (
                 <Text mt="sm" c="light-dark(#a51111, #ffa8a8)">
-                  Punched past the class&apos;s sections (row {shown.verdict.extraRows.join(', ')}).
-                  Check the card and the class.
+                  {t('scan.extraRows', { rows: shown.verdict.extraRows.join(', ') })}
                 </Text>
               )}
             </Paper>
           )}
           {last && (
-            <Alert color="gray" role="log" aria-label="Last card">
+            <Alert color="gray" role="log" aria-label={t('scan.lastCard')}>
               <Text fz="lg" fw={700}>
                 {last}
               </Text>

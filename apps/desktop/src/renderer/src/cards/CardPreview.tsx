@@ -1,5 +1,6 @@
 import { Text } from '@mantine/core';
 import type { CSSProperties } from 'react';
+import i18next from '../i18n';
 
 interface Props {
   /** Rows on the scorecard (16 on the regional card). */
@@ -132,7 +133,7 @@ export function CardPreview(props: Props) {
               letterSpacing: '0.06em',
             }}
           >
-            SECTN
+            {i18next.t('preview.sectn')}
           </span>
           {right.map((v) => (
             <span key={v} style={cell}>
@@ -201,7 +202,7 @@ export function CardPreview(props: Props) {
             fontWeight: 700,
           }}
         >
-          <span>Lap total</span>
+          <span>{i18next.t('preview.lapTotal')}</span>
           <span style={{ fontSize: 22 }}>{props.total ?? ''}</span>
         </div>
       </div>
@@ -219,7 +220,7 @@ export function CardPreview(props: Props) {
             color: '#495057',
           }}
         >
-          Score
+          {i18next.t('preview.score')}
         </div>
         {Array.from({ length: rows }, (_, i) => {
           const ridden = i < sections;
@@ -251,7 +252,7 @@ export function CardPreview(props: Props) {
                 }}
               >
                 <Text span size="xs" c="dimmed" fw={600}>
-                  S{i + 1}
+                  {i18next.t('preview.section', { n: i + 1 })}
                 </Text>
                 <span style={{ fontSize: 18 }}>{ridden ? (token ?? '') : '–'}</span>
               </div>
@@ -273,7 +274,7 @@ export function CardPreview(props: Props) {
           }}
         >
           <span style={{ fontSize: 11, fontWeight: 600, color: '#495057', lineHeight: 1 }}>
-            TOTAL
+            {i18next.t('preview.total')}
           </span>
           <span style={{ fontSize: 20, fontWeight: 800, lineHeight: 1.1 }}>
             {props.total ?? ''}

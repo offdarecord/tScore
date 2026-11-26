@@ -1,7 +1,7 @@
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { ImportError, planImport, readEntryList } from '@tscore/core';
+import { ImportError, newEventSetup, planImport, readEntryList } from '@tscore/core';
 import { afterEach, describe, expect, it } from 'vitest';
 import * as XLSX from 'xlsx';
 import { readEntryFile } from './entry-file.js';
@@ -135,4 +135,27 @@ describe('importing riders into an event', () => {
     expect(code(() => store?.importEntries([ok, ok]))).toBe('STORE_DUPLICATE_RIDER');
     expect(store.entries()).toEqual([]);
   }); // prettier-ignore
+});
+
+describe("the website's sample rider list", () => {
+  it('imports cleanly into a new event, every column read and every class known', () => {
+    const file = join(__dirname, '../../../site/tscore-rider-list-sample.csv');
+    const list = readEntryList(readEntryFile(file));
+    expect(list.presetId).toBe('tscore-rider-list');
+    const plan = planImport(
+      list,
+      { ...newEventSetup('2027-02-06'), event: { name: 'T', code: 'T1' } },
+      [],
+    );
+    expect(plan.rowsRead).toBe(10);
+    expect(plan.skipped).toEqual([]);
+    expect(plan.classes.every((c) => c.className !== null)).toBe(true);
+    expect(plan.entries).toHaveLength(10);
+    expect(plan.entries.map((e) => e.competitionStatus).sort()).toEqual([
+      ...Array(8).fill('competitive'),
+      'no_award',
+      'non_competitive',
+    ]);
+    expect(plan.entries.every((e) => e.machine)).toBe(true);
+  });
 });

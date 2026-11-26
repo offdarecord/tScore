@@ -1,6 +1,14 @@
 import {
   classSummary,
   computeResults,
+  computeSeries,
+  describeTypedScoreProblem,
+  IMPORT_PRESETS,
+  labelTemplate,
+  planLabels,
+  seriesHtml,
+  SUGGESTION_QUESTIONS,
+  type EventSetup,
   english,
   gapWords,
   lapColumns,
@@ -98,6 +106,77 @@ describe("core's English and the message file agree", () => {
       const final = { ...results, status: 'final' as const, revision: 2 };
       expect(resultsHtml(final, { ...opts, t: app })).toBe(resultsHtml(final, opts));
       expect(resultsHtml(results, { ...opts, t: app })).toBe(resultsHtml(results, opts));
+    }
+  });
+});
+
+describe("the rest of core's English and the message file agree", () => {
+  it('for typed-score problems', () => {
+    const values = [0, 1, 2, 3, 5];
+    for (const p of [
+      { kind: 'not_a_score', section: 4, text: '7' },
+      { kind: 'too_few', missing: 1 },
+      { kind: 'too_few', missing: 3 },
+      { kind: 'too_many', sections: 10 },
+    ] as const) {
+      for (const cls of [undefined, 'Trial 2']) {
+        expect(describeTypedScoreProblem(p, values, cls, app)).toBe(
+          describeTypedScoreProblem(p, values, cls, english),
+        );
+      }
+    }
+  });
+
+  it('for card labels', () => {
+    for (const days of [1, 2]) {
+      const setup: EventSetup = {
+        schema: 'tscore.event_setup/1',
+        event: { name: 'Example Club Trial', code: 'DEMO1' },
+        days: Array.from({ length: days }, (_, i) => ({ day: i + 1 })),
+        classes: [{ name: 'Trial 2', days: { '1': { sections: 10, laps: 2 } } }],
+      };
+      const entries = (['competitive', 'no_award', 'non_competitive'] as const).map((s, i) => ({
+        number: i + 1,
+        riders: [{ givenName: 'Avery', familyName: 'Stone' }],
+        competitionStatus: s,
+        status: 'riding' as const,
+        classes: ['Trial 2'],
+      }));
+      const template = labelTemplate('L7651');
+      expect(planLabels(setup, entries, template, { t: app })).toEqual(
+        planLabels(setup, entries, template),
+      );
+    }
+  });
+
+  it('for the series PDF', () => {
+    const tally = computeSeries([{ round: 1, results }], { points: [20, 17, 15], ties: 'share' });
+    const base = { name: 'Series', roundLabels: ['Rd 1'], footer: 'tScore' };
+    for (const rules of [
+      { points: [20, 17, 15, 13, 11, 10, 9], ties: 'share' as const },
+      { points: [20, 17], ties: 'split' as const, bestOf: 1 },
+      { points: [20, 17], ties: 'split' as const, bestOf: 4 },
+    ]) {
+      expect(seriesHtml(tally, { ...base, rules, t: app })).toBe(
+        seriesHtml(tally, { ...base, rules }),
+      );
+    }
+  });
+
+  it('for the suggestion questions', () => {
+    for (const q of SUGGESTION_QUESTIONS) {
+      expect(app(`core.suggest_${q.id}`, '')).toBe(q.label);
+      if (q.help) expect(app(`core.suggest_${q.id}_help`, '')).toBe(q.help);
+      (q.options ?? []).forEach((o, i) => {
+        expect(app(`core.suggest_${q.id}_${i + 1}`, '')).toBe(o);
+      });
+    }
+  });
+
+  it('for the import skip reasons', () => {
+    const reasons = IMPORT_PRESETS.flatMap((p) => (p.skip_rows ?? []).map((r) => r.reason));
+    for (const reason of ['no class', ...reasons]) {
+      expect(app(`core.skipReason_${reason.replace(/\W+/g, '_')}`, '')).toBe(reason);
     }
   });
 });

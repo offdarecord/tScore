@@ -19,7 +19,7 @@ import {
 import { useState } from 'react';
 import type { AppError, Outcome, SuggestionSent } from '../../shared/ipc';
 import { ErrorAlert } from './ErrorAlert';
-import i18next from './i18n';
+import i18next, { coreT } from './i18n';
 
 const DONE = {
   email: 'suggest.email',
@@ -69,11 +69,12 @@ export function SuggestFeature(props: {
       <Stack gap="md">
         <Text size="sm">{i18next.t('suggest.intro')}</Text>
         {SUGGESTION_QUESTIONS.map((q) => {
+          // Shown in the laptop's language; the text sent to the maintainers stays English.
           const common = {
-            label: q.label,
+            label: coreT(`core.suggest_${q.id}`, q.label),
             required: q.required === true,
             error: error_(q.label),
-            ...(q.help && { description: q.help }),
+            ...(q.help && { description: coreT(`core.suggest_${q.id}_help`, q.help) }),
           };
           if (q.kind === 'choice') {
             return (
@@ -82,7 +83,13 @@ export function SuggestFeature(props: {
                 {...common}
                 value={answers[q.id] ?? ''}
                 onChange={(e) => set(q.id, e.currentTarget.value)}
-                data={[{ value: '', label: i18next.t('suggest.choose') }, ...(q.options ?? [])]}
+                data={[
+                  { value: '', label: i18next.t('suggest.choose') },
+                  ...(q.options ?? []).map((o, i) => ({
+                    value: o,
+                    label: coreT(`core.suggest_${q.id}_${i + 1}`, o),
+                  })),
+                ]}
               />
             );
           }

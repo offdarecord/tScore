@@ -22,7 +22,7 @@ import { StoreError, type EventStore } from '@tscore/store';
 import { app, dialog, type BrowserWindow } from 'electron';
 import type { LabelOffset, LabelPreview, LabelRequest, LabelsView } from '../shared/ipc';
 import { rememberExport } from './results';
-import { t } from './i18n';
+import { coreT, t } from './i18n';
 
 const LAYOUTS: readonly LabelLayoutChoice[] = ['auto', 'row-per-rider', 'packed', 'by-lap'];
 /** Furthest the desk can nudge the labels, in mm: beyond this the sheet is the wrong stock. */
@@ -79,6 +79,7 @@ function plan(store: EventStore, request: LabelRequest) {
   const setup = store.setup;
   const template = labelTemplate(setup.labels?.template);
   const options: LabelOptions = {
+    t: coreT,
     layout: request.layout,
     start: request.start,
     qr: request.qr,
@@ -98,6 +99,7 @@ export function labelsView(store: EventStore, request: LabelRequest): LabelsView
   const everything = planLabels(store.setup, store.entries(), template, {
     qr: checked.qr,
     includeNotScored: checked.minders,
+    t: coreT,
   });
   const printed = new Set(store.printedLabels().map((l) => labelKey(l.number, l.day, l.lap)));
   const notPrinted = everything.slots.filter(

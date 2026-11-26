@@ -12,9 +12,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "@tscore/core": "*",
     "jsqr": "1.4.0"
-  },
-  "devDependencies": {
-    "@tscore/core": "*"
   }
 }

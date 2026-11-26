@@ -1,0 +1,32 @@
+{
+  "schema": "tscore.card_profile/1",
+  "id": "regional-16",
+  "name": "Regional card, 16 sections (punched, black section column)",
+  "card": { "width_mm": 43, "height_mm": 173 },
+  "rows": 16,
+  "grid": { "unit": "column-width", "row_pitch": 0.675, "cell_radius": 0.15 },
+  "columns": [
+    { "score": 0, "across": -1.53 },
+    { "score": 1, "across": -1.01 },
+    { "score": 2, "across": 0.99 },
+    { "score": 3, "across": 1.52 },
+    { "score": 5, "across": 2.02 }
+  ],
+  "locator": "black-column",
+  "marking_style": "punch",
+  "correction_rules": "inverse-all-but-one",
+  "thresholds": {
+    "mark": 0.55,
+    "confidence_gap": 0.2,
+    "colour_channel": "luma",
+    "tuned_from": {
+      "source": "synthetic",
+      "cards": 29,
+      "rows": 464,
+      "rows_read": 1,
+      "wrong_auto_accepts": 0
+    }
+  },
+  "trust": "trusted",
+  "credit": { "state": "Victoria" }
+}

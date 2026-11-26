@@ -14,11 +14,23 @@
  * Assumes the card is roughly upright (the header at the top, within about 45°), as the rough
  * guide on the mat keeps it.
  */
-import { otsu, sample, shrink, toGrey, type GreyImage, type RgbaImage } from './image.js';
+import { cardProfile, type CardProfile } from '@tscore/core';
+import {
+  otsu,
+  sample,
+  shrink,
+  toGrey,
+  type Channel,
+  type GreyImage,
+  type RgbaImage,
+} from './image.js';
 import { decodeRow, type RowFlag } from './row-decision.js';
 
-/** Card geometry, in column widths from the column's centre line. */
-export interface CardProfile {
+/**
+ * What the reader needs from a card profile (presets/card-profiles/, #105): geometry in column
+ * widths from the column's centre line, and the reading thresholds.
+ */
+export interface ReaderProfile {
   readonly id: string;
   readonly rows: number;
   /** Score values, in the order of `cellOffsets`. */
@@ -29,17 +41,48 @@ export interface CardProfile {
   readonly pitch: number;
   /** Radius of the hole-sized area measured in each cell. */
   readonly cellRadius: number;
+  /** A cell darker than this (on the 0–1 scale) counts as punched. */
+  readonly markThreshold: number;
+  /** Below this margin a row is LOW_CONF: torn or partial holes go to a person. */
+  readonly minMargin: number;
+  /** The colour darkness is measured in. */
+  readonly channel: Channel;
+  /** Whether all-but-one marks read as a correction to the unmarked value. */
+  readonly inverseCorrections: boolean;
 }
 
-/** The regional card: `0 1 | SECTN | 2 3 5`, 16 rows (measured from the reference photo). */
-export const REGIONAL_16: CardProfile = {
-  id: 'regional-16',
-  rows: 16,
-  values: [0, 1, 2, 3, 5],
-  cellOffsets: [-1.53, -1.01, 0.99, 1.52, 2.02],
-  pitch: 0.675,
-  cellRadius: 0.15,
-};
+/**
+ * The reader's view of a card profile. Only cards this reader can find and read are accepted:
+ * the black-column locator and punched holes (other locators and marks come with #104 and #106).
+ */
+export function readerProfile(profile: CardProfile): ReaderProfile {
+  if (profile.locator !== 'black-column' || profile.marking_style !== 'punch') {
+    throw new Error(
+      `Card profile ${profile.id}: ${profile.locator} cards marked by ${profile.marking_style} can't be read yet.`,
+    );
+  }
+  return {
+    id: profile.id,
+    rows: profile.rows,
+    values: profile.columns.map((c) => c.score),
+    cellOffsets: profile.columns.map((c) => c.across),
+    pitch: profile.grid.row_pitch,
+    cellRadius: profile.grid.cell_radius,
+    markThreshold: profile.thresholds.mark,
+    minMargin: profile.thresholds.confidence_gap,
+    channel: profile.thresholds.colour_channel,
+    inverseCorrections: profile.correction_rules === 'inverse-all-but-one',
+  };
+}
+
+function builtIn(id: string): ReaderProfile {
+  const profile = cardProfile(id);
+  if (!profile) throw new Error(`Card profile ${id} is not installed.`);
+  return readerProfile(profile);
+}
+
+/** The regional card: `0 1 | SECTN | 2 3 5`, 16 rows (presets/card-profiles/regional-16.json). */
+export const REGIONAL_16: ReaderProfile = builtIn('regional-16');
 
 export interface Point {
   readonly x: number;
@@ -93,10 +136,10 @@ export type ReadResult =
       readonly reason: 'NO_CARD' | 'CARD_CUT_OFF' | 'TOO_SMALL' | 'TILTED' | 'UNSURE';
     };
 
-/** A cell darker than this (on the 0–1 scale) counts as punched. */
-export const PUNCH_THRESHOLD = 0.55;
-/** Below this margin a row is LOW_CONF: torn or partial holes go to a person. */
-export const MIN_MARGIN = 0.2;
+/** The regional card's punch threshold (its profile's `thresholds.mark`). */
+export const PUNCH_THRESHOLD = REGIONAL_16.markThreshold;
+/** The regional card's least margin (its profile's `thresholds.confidence_gap`). */
+export const MIN_MARGIN = REGIONAL_16.minMargin;
 
 /** The work size for finding the card: about 320 pixels on the long side. */
 const WORK_SIZE = 320;
@@ -358,7 +401,7 @@ function refine(
 }
 
 /** Row height from the printed row lines in the gaps beside the column. */
-function findPitch(grey: GreyImage, pose: Omit<CardPose, 'pitch'>, profile: CardProfile): number {
+function findPitch(grey: GreyImage, pose: Omit<CardPose, 'pitch'>, profile: ReaderProfile): number {
   const { bottom, up, right, width } = pose;
   const strip = (u: number) => {
     let sum = 0;
@@ -395,8 +438,8 @@ function findPitch(grey: GreyImage, pose: Omit<CardPose, 'pitch'>, profile: Card
  * Read the card in a frame. The column's white section numbers can split it into pieces when
  * the card is small in the frame, so finding it is tried with a growing clean-up radius.
  */
-export function readCard(frame: RgbaImage, profile: CardProfile = REGIONAL_16): ReadResult {
-  const grey = toGrey(frame);
+export function readCard(frame: RgbaImage, profile: ReaderProfile = REGIONAL_16): ReadResult {
+  const grey = toGrey(frame, profile.channel);
   let last: ReadResult = { ok: false, reason: 'NO_CARD' };
   for (const radius of [1, 2, 3]) {
     const r = readWith(grey, profile, radius);
@@ -409,7 +452,8 @@ export function readCard(frame: RgbaImage, profile: CardProfile = REGIONAL_16): 
   return last;
 }
 
-function readWith(grey: GreyImage, profile: CardProfile, radius: number): ReadResult {
+function readWith(grey: GreyImage, profile: ReaderProfile, radius: number): ReadResult {
+  const threshold = profile.markThreshold;
   const found = findColumn(grey, radius);
   if ('reason' in found) return { ok: false, reason: found.reason };
   const { axis } = found;
@@ -464,15 +508,17 @@ function readWith(grey: GreyImage, profile: CardProfile, radius: number): ReadRe
       }
       return Math.min(1, Math.max(0, (paper - sum / n) / (paper - black)));
     });
-    const punched = darkness.map((d) => d >= PUNCH_THRESHOLD);
+    const punched = darkness.map((d) => d >= threshold);
     const holes = darkness.filter((_, i) => punched[i]);
     const open = darkness.filter((_, i) => !punched[i]);
     const margin =
       Math.min(
-        holes.length ? Math.min(...holes) - PUNCH_THRESHOLD : 1,
-        open.length ? PUNCH_THRESHOLD - Math.max(...open) : 1,
-      ) / Math.max(PUNCH_THRESHOLD, 1 - PUNCH_THRESHOLD);
-    const decision = decodeRow(profile.values, punched);
+        holes.length ? Math.min(...holes) - threshold : 1,
+        open.length ? threshold - Math.max(...open) : 1,
+      ) / Math.max(threshold, 1 - threshold);
+    const decision = decodeRow(profile.values, punched, {
+      inverse: profile.inverseCorrections,
+    });
     if (decision.kind === 'flag') {
       rows.push({
         section,
@@ -483,7 +529,7 @@ function readWith(grey: GreyImage, profile: CardProfile, radius: number): ReadRe
         flag: decision.flag,
         margin,
       });
-    } else if (margin < MIN_MARGIN) {
+    } else if (margin < profile.minMargin) {
       rows.push({
         section,
         darkness,

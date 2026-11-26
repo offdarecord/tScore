@@ -11,6 +11,8 @@
  * | 0     | none, NO_PUNCH                  |
  * | other | none, MULTI_PUNCH               |
  *
+ * A card profile without inverse corrections reads N - 1 holes as MULTI_PUNCH.
+ *
  * Confidence is handled by the caller; this function works on decided holes only.
  */
 export type RowFlag = 'NO_PUNCH' | 'MULTI_PUNCH';
@@ -19,7 +21,12 @@ export type RowDecision<V> =
   | { readonly kind: 'value'; readonly value: V; readonly inverse: boolean }
   | { readonly kind: 'flag'; readonly flag: RowFlag };
 
-export function decodeRow<V>(values: readonly V[], punched: readonly boolean[]): RowDecision<V> {
+export function decodeRow<V>(
+  values: readonly V[],
+  punched: readonly boolean[],
+  /** inverse: false for a card whose observers don't correct by marking all but one. */
+  rules: { readonly inverse: boolean } = { inverse: true },
+): RowDecision<V> {
   if (values.length !== punched.length) {
     throw new RangeError(`decodeRow: ${values.length} values but ${punched.length} cells`);
   }
@@ -37,7 +44,7 @@ export function decodeRow<V>(values: readonly V[], punched: readonly boolean[]):
     return { kind: 'value', value, inverse: false };
   }
 
-  if (holes === values.length - 1) {
+  if (rules.inverse && holes === values.length - 1) {
     const value = values[punched.indexOf(false)] as V;
     return { kind: 'value', value, inverse: true };
   }

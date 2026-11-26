@@ -3,6 +3,7 @@
  * is steady, whose card it is, and whether it can be saved without a person looking.
  */
 import i18next from '../i18n';
+import { canAutoAccept, type CardProfile } from '@tscore/core';
 import type { CardReading, LabelId } from '@tscore/vision';
 import type { CardRow, DeskRider } from '../../../shared/ipc';
 
@@ -71,18 +72,25 @@ export type Verdict =
       readonly reasons: readonly (string | null)[];
       /** Sections past the class's count that have a punch (EXTRA_ROWS). */
       readonly extraRows: readonly number[];
+      /**
+       * Every section was read clearly, but the card's profile is assisted: a person confirms
+       * the reading before it's saved.
+       */
+      readonly confirm: boolean;
     }
   | { readonly kind: 'problem'; readonly message: string };
 
 /**
  * What to do with a steady reading for a rider: save it straight away only when every section
- * the class rides is read clearly and nothing is punched past them (architecture §5.4).
+ * the class rides is read clearly, nothing is punched past them (architecture §5.4), and the
+ * card's profile is trusted (#105). An assisted profile's cards are always confirmed by a person.
  */
 export function verdict(
   card: CardReading,
   id: Identity,
   riders: readonly DeskRider[],
   cards: readonly CardRow[],
+  profile: Pick<CardProfile, 'trust'>,
 ): Verdict {
   const rider = riders.find((r) => r.number === id.number);
   if (!rider)
@@ -113,7 +121,7 @@ export function verdict(
     .filter((r) => r.punched.some(Boolean))
     .map((r) => r.section);
   const clear = active.every((r) => r.value !== null && !r.flag);
-  if (clear && extraRows.length === 0) {
+  if (clear && extraRows.length === 0 && canAutoAccept(profile)) {
     return {
       kind: 'save',
       scores: active.map((r) => r.value ?? 0),
@@ -127,5 +135,6 @@ export function verdict(
     confidence: active.map((r) => r.margin),
     reasons: active.map((r) => r.flag ?? null),
     extraRows,
+    confirm: clear && extraRows.length === 0,
   };
 }

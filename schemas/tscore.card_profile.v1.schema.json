@@ -1,0 +1,198 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/offdarecord/tScore/main/schemas/tscore.card_profile.v1.schema.json",
+  "title": "CardProfile",
+  "description": "tscore.card_profile/1: one observer scorecard design, so the scan desk can read it: its size, rows, value columns, how the card is found in the picture, how observers mark it, how they correct a mark, the reading thresholds, and how far its readings are trusted. Presets live in presets/card-profiles/. Profiles contain no rider data.",
+  "type": "object",
+  "required": [
+    "schema",
+    "id",
+    "name",
+    "card",
+    "rows",
+    "grid",
+    "columns",
+    "locator",
+    "marking_style",
+    "correction_rules",
+    "thresholds",
+    "trust"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "description": "Format identifier and major version.",
+      "const": "tscore.card_profile/1"
+    },
+    "id": {
+      "description": "Profile id, stored in the event setup's event.card_profile, e.g. regional-16.",
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,39}$"
+    },
+    "name": {
+      "description": "What the desk sees, naming the card.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "card": {
+      "description": "The card's outside size, in millimetres, held upright (header at the top).",
+      "type": "object",
+      "required": ["width_mm", "height_mm"],
+      "additionalProperties": false,
+      "properties": {
+        "width_mm": { "type": "number", "exclusiveMinimum": 0, "maximum": 300 },
+        "height_mm": { "type": "number", "exclusiveMinimum": 0, "maximum": 400 }
+      }
+    },
+    "rows": {
+      "description": "Section rows on the card. A class can't ride more sections per lap than this.",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 60
+    },
+    "grid": {
+      "description": "How the rows and cells are measured. Distances are in the grid's unit.",
+      "type": "object",
+      "required": ["unit", "row_pitch", "cell_radius"],
+      "additionalProperties": false,
+      "properties": {
+        "unit": {
+          "description": "column-width: multiples of the black section column's width, across from its centre line and up from the bottom of the last row (the black-column locator). Other units come with other locators.",
+          "enum": ["column-width"]
+        },
+        "row_pitch": {
+          "description": "Expected row height; the reader searches 15% either side of it.",
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 100
+        },
+        "cell_radius": {
+          "description": "Radius of the mark-sized area measured in each cell.",
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 10
+        }
+      }
+    },
+    "columns": {
+      "description": "The value columns, left to right, each with the score it stands for. Any order; a card without a 5 simply has no 5 column. At least three, so a correction can be told from a mark.",
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 10,
+      "items": { "$ref": "#/$defs/Column" }
+    },
+    "locator": {
+      "description": "How the card is found in the picture. black-column: the solid black section column (regional-16). card-edges, corner-markers, manual-corners: not read yet.",
+      "enum": ["black-column", "card-edges", "corner-markers", "manual-corners"]
+    },
+    "marking_style": {
+      "description": "How observers mark a score. punch: a hole punched through the card. pen-hole: a hole made with a pen. ink: a mark in ink. Only punch is read so far.",
+      "enum": ["punch", "pen-hole", "ink"]
+    },
+    "correction_rules": {
+      "description": "How observers correct a mark. inverse-all-but-one: every value but the right one is marked. none: no corrections; more than one mark is flagged. crossed-out: a mark is crossed out (read like none until the rule is set from real corrected cards).",
+      "enum": ["inverse-all-but-one", "none", "crossed-out"]
+    },
+    "thresholds": {
+      "$ref": "#/$defs/Thresholds"
+    },
+    "trust": {
+      "description": "trusted: clearly read cards are saved by themselves. assisted: tScore suggests the reading and a person confirms every card.",
+      "enum": ["trusted", "assisted"]
+    },
+    "blank_image": {
+      "description": "A straightened photo of a blank card (no rider data), relative to this file.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-][A-Za-z0-9_./-]*\\.(png|jpg|jpeg)$",
+      "maxLength": 200
+    },
+    "credit": {
+      "description": "Who described this card.",
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "club": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "state": { "type": "string", "minLength": 1, "maxLength": 60 }
+      }
+    }
+  },
+  "$defs": {
+    "Column": {
+      "type": "object",
+      "required": ["score", "across"],
+      "additionalProperties": false,
+      "properties": {
+        "score": {
+          "description": "The score a mark in this column stands for.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 99
+        },
+        "across": {
+          "description": "The cell's centre across the card, in the grid's unit (negative = left of the column).",
+          "type": "number",
+          "minimum": -100,
+          "maximum": 100
+        }
+      }
+    },
+    "Thresholds": {
+      "description": "Reading thresholds, and the cards they were tuned on.",
+      "type": "object",
+      "required": ["mark", "confidence_gap", "colour_channel", "tuned_from"],
+      "additionalProperties": false,
+      "properties": {
+        "mark": {
+          "description": "A cell darker than this (0 = paper, 1 = as dark as the reference black) counts as marked.",
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "confidence_gap": {
+          "description": "How clearly marked and unmarked cells in a row must differ (0–1); below this a person decides the row.",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "colour_channel": {
+          "description": "Which colour the reader measures darkness in. luma: ordinary brightness.",
+          "enum": ["luma", "red", "green", "blue"]
+        },
+        "tuned_from": { "$ref": "#/$defs/TunedFrom" }
+      }
+    },
+    "TunedFrom": {
+      "description": "The cards the thresholds were tuned on, and how well they read.",
+      "type": "object",
+      "required": ["source", "cards", "rows", "rows_read", "wrong_auto_accepts"],
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "description": "synthetic: cards drawn by tScore's test card generator. real: photos of real cards (kept privately, never shipped).",
+          "enum": ["synthetic", "real"]
+        },
+        "cards": { "type": "integer", "minimum": 0 },
+        "rows": { "type": "integer", "minimum": 0 },
+        "rows_read": {
+          "description": "Share of rows read with a score (0–1); the rest went to a person.",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "wrong_auto_accepts": {
+          "description": "Rows read with the wrong score. Must be 0 for a trusted profile.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "date": {
+          "description": "When the thresholds were tuned (YYYY-MM-DD).",
+          "type": "string",
+          "format": "date",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        }
+      }
+    }
+  }
+}

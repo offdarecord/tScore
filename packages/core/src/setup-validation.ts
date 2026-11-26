@@ -1,3 +1,4 @@
+import { CARD_PROFILES, cardProfile, DEFAULT_CARD_PROFILE } from './card-profiles.js';
 import type { EventSetup } from './generated/event-setup.js';
 import { validateEventSetupSchema } from './generated/validators.js';
 import {
@@ -8,14 +9,14 @@ import {
 } from './validation.js';
 
 /**
- * Section rows on each known card profile. A class can't ride more sections per lap than the
- * card has rows. Replaced by card-profile presets when they exist (ADR 0003).
+ * Section rows on each known card profile (presets/card-profiles/). A class can't ride more
+ * sections per lap than the card has rows.
  */
-export const CARD_PROFILE_ROWS: Readonly<Record<string, number>> = {
-  'regional-16': 16,
-};
+export const CARD_PROFILE_ROWS: Readonly<Record<string, number>> = Object.fromEntries(
+  CARD_PROFILES.map((p) => [p.id, p.rows]),
+);
 
-export const DEFAULT_CARD_PROFILE = 'regional-16';
+export { DEFAULT_CARD_PROFILE };
 
 /**
  * Validate an event setup (`tscore.event_setup/1`): first against the schema, then the rules
@@ -46,7 +47,7 @@ function checkSetupRules(setup: EventSetup): ValidationIssue[] {
 
   // The scorecard limits sections per lap.
   const profile = setup.event.card_profile ?? DEFAULT_CARD_PROFILE;
-  const cardRows = CARD_PROFILE_ROWS[profile];
+  const cardRows = cardProfile(profile)?.rows;
   if (cardRows === undefined) {
     add('event.card_profile', `unknown card profile "${profile}"`);
   }

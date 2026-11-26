@@ -5,10 +5,9 @@
 import { readFileSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, extname, join } from 'node:path';
 import {
-  CARD_PROFILE_ROWS,
+  cardProfile,
   classesFromSetup,
   CLUB_MAX,
-  DEFAULT_CARD_PROFILE,
   MACHINE_MAX,
   NAME_MAX,
   ImportError,
@@ -100,7 +99,6 @@ function cardDesk(store: EventStore): CardDesk {
     for (const d of cls?.days ?? []) rides[d.day] = { sections: d.sections, laps: d.laps };
     return { ...rider(e), rides };
   });
-  const profile = store.setup.event.card_profile ?? DEFAULT_CARD_PROFILE;
   return {
     riders,
     cards: store.cardLog(),
@@ -115,7 +113,7 @@ function cardDesk(store: EventStore): CardDesk {
       ...(p.lap !== undefined && { lap: p.lap }),
     })),
     scoreValues: scoringFromSetup(store.setup).scoreValues,
-    cardRows: CARD_PROFILE_ROWS[profile] ?? 16,
+    cardRows: cardProfile(store.setup.event.card_profile)?.rows ?? 16,
     days: store.setup.days.map((d) => ({ day: d.day, ...(d.date ? { date: d.date } : {}) })),
   };
 }

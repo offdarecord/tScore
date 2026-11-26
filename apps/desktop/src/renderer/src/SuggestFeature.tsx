@@ -19,7 +19,7 @@ import {
 import { useState } from 'react';
 import type { AppError, Outcome, SuggestionSent } from '../../shared/ipc';
 import { ErrorAlert } from './ErrorAlert';
-import i18next, { coreT } from './i18n';
+import i18next, { coreT, isMac } from './i18n';
 
 const DONE = {
   email: 'suggest.email',
@@ -124,7 +124,9 @@ export function SuggestFeature(props: {
           <Alert color="green" role="status">
             {(() => {
               const key = DONE[done.via];
-              return key ? i18next.t(key, { email: SUGGESTION_EMAIL }) : '';
+              return key
+                ? i18next.t(key, { email: SUGGESTION_EMAIL, paste: isMac ? '⌘V' : 'Ctrl+V' })
+                : '';
             })()}
             {done.file && (
               <Text size="sm" style={{ wordBreak: 'break-all' }}>

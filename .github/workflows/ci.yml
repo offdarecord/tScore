@@ -60,8 +60,8 @@ jobs:
             apps/desktop/test-results
           retention-days: 14
 
-  # macOS (decision 4): Mac support waits until the Windows app is nearly done, but the tests run on
-  # a Mac now so nothing Windows-only creeps in. Free on public repositories. Not a required check yet.
+  # macOS (#61, beta in 0.8.0): the tests run on a Mac so nothing Windows-only creeps in, and the
+  # Mac app is packaged. Free on public repositories. Required checks on main.
   macos-test:
     name: macOS unit tests
     runs-on: macos-latest
@@ -90,6 +90,9 @@ jobs:
         run: npm run test:e2e
         env:
           CI: 'true'
+      - name: The Mac app packages (Apple silicon, not a .dmg)
+        run: npx electron-builder --mac dir --arm64 --publish never
+        working-directory: apps/desktop
       - if: failure()
         uses: actions/upload-artifact@v7
         with:

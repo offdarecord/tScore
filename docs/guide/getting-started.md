@@ -8,6 +8,26 @@
 3. If Windows shows **Windows protected your PC**, choose **More info**, then **Run anyway**.
    This shows until the installer is signed.
 
+### On a Mac (beta)
+
+tScore for Mac is a beta: it's tested on Macs, but less used than the Windows version. It isn't
+signed by Apple yet, so macOS asks you to confirm it the first time.
+
+1. Download from the [latest release](https://github.com/offdarecord/tScore/releases/latest):
+   `tScore-<version>-mac-arm64.dmg` for a Mac with Apple silicon (M1 or later), or
+   `tScore-<version>-mac-x64.dmg` for an older Intel Mac. (Apple menu → **About This Mac** says which.)
+2. Open the `.dmg` and drag **tScore** into **Applications**.
+3. Open tScore from Applications. macOS says it can't check it for malicious software: choose
+   **Done** (not Move to Bin).
+4. Open **System Settings → Privacy & Security**, scroll down to **Security**, and choose
+   **Open Anyway** next to "tScore was blocked". Confirm with your password or Touch ID, then
+   **Open Anyway** again. (Right-click → Open no longer does this on macOS 15 and later.)
+5. The first time you scan cards, allow tScore to use the camera.
+
+macOS remembers your choice, so this is only the first time. The Mac version doesn't update
+itself yet: download each new version and drag it into Applications again. Your events are
+kept, in **Documents → tScore**.
+
 Install and try tScore at home, with internet, well before the event. On the day it needs no
 internet at all.
 
@@ -15,7 +35,7 @@ internet at all.
 
 | Item            | What                                                                                                                                                                 | Approx. cost (Nov 2026)   |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| Laptop          | Windows 10 or 11, 64-bit. A Mac version is coming.                                                                                                                   | The club's own            |
+| Laptop          | Windows 10 or 11, 64-bit. Or a Mac (beta) with a recent macOS.                                                                                                       | The club's own            |
 | Document camera | A USB document camera on a rigid stand, looking straight down at the desk (see below).                                                                               | A$140–200                 |
 | Card labels     | Avery **L7651** / J8651 (Officeworks PPS78651): A4, 65 per sheet, 38.1 × 21.2 mm. Printed at 100% (actual size).                                                     | One pack does many events |
 | Printer         | Any A4 printer that takes label sheets.                                                                                                                              | The club's own            |

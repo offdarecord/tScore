@@ -59,7 +59,7 @@ More in [the tour](docs/tour.md). The pictures use an invented event and come fr
 
 | Item            | What                                                                                                   | Approx. cost (Nov 2026)   |
 | --------------- | ------------------------------------------------------------------------------------------------------ | ------------------------- |
-| Laptop          | Windows 10 or 11, 64-bit. A Mac version is coming.                                                     | The club's own            |
+| Laptop          | Windows 10 or 11, 64-bit. Or a Mac (beta) with a recent macOS.                                         | The club's own            |
 | Document camera | A USB document camera on a rigid stand, looking straight down at the desk.                             | A$140–200                 |
 | Card labels     | Avery **L7651** / J8651 (Officeworks PPS78651): A4, 65 per sheet, 38.1 × 21.2 mm.                      | One pack does many events |
 | Printer         | Any A4 printer that takes label sheets.                                                                | The club's own            |

@@ -5,7 +5,14 @@
     const r = await fetch('https://api.github.com/repos/offdarecord/tScore/releases/latest');
     if (!r.ok) return;
     const release = await r.json();
-    const exe = (release.assets || []).find((a) => /^tScore-Setup-.+\.exe$/.test(a.name));
+    const assets = release.assets || [];
+    // The Mac beta's .dmg files (#61), when this release has them.
+    for (const arch of ['arm64', 'x64']) {
+      const dmg = assets.find((a) => a.name.endsWith(`-mac-${arch}.dmg`));
+      const link = globalThis.document.getElementById(`mac-${arch}`);
+      if (dmg && link) link.href = dmg.browser_download_url;
+    }
+    const exe = assets.find((a) => /^tScore-Setup-.+\.exe$/.test(a.name));
     if (!exe) return;
     const version = String(release.tag_name || '').replace(/^v/, '');
     const mb = Math.round(exe.size / 1_000_000);

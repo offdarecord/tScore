@@ -6,7 +6,7 @@
  * Invented data only: no real card or rider is ever drawn.
  */
 import type { RgbaImage } from './image.js';
-import { REGIONAL_16, type CardProfile } from './reader.js';
+import { REGIONAL_16, type ReaderProfile } from './reader.js';
 
 export interface SyntheticCard {
   /** Per section (index 0 = section 1): the values punched. Missing = none. */
@@ -55,7 +55,7 @@ function cardAt(
   u: number,
   v: number,
   card: SyntheticCard,
-  profile: CardProfile,
+  profile: ReaderProfile,
   paper: number,
 ): number {
   const p = profile.pitch;
@@ -106,7 +106,10 @@ function cardAt(
 }
 
 /** Draw the card. */
-export function syntheticCard(card: SyntheticCard, profile: CardProfile = REGIONAL_16): RgbaImage {
+export function syntheticCard(
+  card: SyntheticCard,
+  profile: ReaderProfile = REGIONAL_16,
+): RgbaImage {
   const width = card.width ?? 720;
   const height = card.height ?? 960;
   const W = card.columnWidth ?? 44;

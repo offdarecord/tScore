@@ -4,11 +4,12 @@ JSON Schemas (draft 2020-12) for tScore's file formats. **Licensed under MIT** (
 [`LICENSE`](LICENSE)), separately from the rest of the repository, so results sites and other
 tools can adopt these formats freely.
 
-| Schema id              | File                                                                     | What                                                                           | Status                |
-| ---------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------ | --------------------- |
-| `tscore.event_setup/1` | [`tscore.event_setup.v1.schema.json`](tscore.event_setup.v1.schema.json) | How an event runs: days, classes, sections and laps per day, labels            | Draft                 |
-| `tscore.results/1`     | [`tscore.results.v1.schema.json`](tscore.results.v1.schema.json)         | Published results; feeds the PDF, CSV and every publisher. [Guide](RESULTS.md) | **Draft, for review** |
-| Preset schemas         | —                                                                        | Class lists, rulesets, import mappings, label templates, card profiles         | Planned               |
+| Schema id               | File                                                                       | What                                                                                                  | Status                |
+| ----------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | --------------------- |
+| `tscore.event_setup/1`  | [`tscore.event_setup.v1.schema.json`](tscore.event_setup.v1.schema.json)   | How an event runs: days, classes, sections and laps per day, labels                                   | Draft                 |
+| `tscore.results/1`      | [`tscore.results.v1.schema.json`](tscore.results.v1.schema.json)           | Published results; feeds the PDF, CSV and every publisher. [Guide](RESULTS.md)                        | **Draft, for review** |
+| `tscore.card_profile/1` | [`tscore.card_profile.v1.schema.json`](tscore.card_profile.v1.schema.json) | A scorecard design: size, rows, value columns, locator, marking style, corrections, thresholds, trust | Draft                 |
+| Preset schemas          | —                                                                          | Class lists, rulesets, import mappings, label templates                                               | Planned               |
 
 Examples (all names are made up): [`examples/`](examples/).
 

@@ -22,6 +22,12 @@ A correction punched as every value except the right one is read as that value. 
 guesses: anything unclear goes to a person. A card already in, an unknown rider or a lap the
 class doesn't ride is refused with the reason; use **Manual entry** for those.
 
+Each scorecard design has a card profile. The regional card's profile is **trusted**, so clear
+cards save by themselves as above. A card type that is new to tScore starts as **assisted**:
+tScore shows its reading of every card, and a person checks it against the card and presses
+**Enter** to save it (or **Esc** to read it again). No card of an assisted type is ever saved
+by itself.
+
 To try it without a camera, choose **Practice card**: it puts a test card for the first rider on
 the list "under the camera". **Practice card with an unclear row** shows what happens when a
 card needs a look.

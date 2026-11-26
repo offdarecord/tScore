@@ -18,14 +18,23 @@ export interface GreyImage {
 }
 
 /** Brightness (Rec. 601 luma). */
-export function toGrey(img: RgbaImage): GreyImage {
+export function toGrey(img: RgbaImage, channel: Channel = 'luma'): GreyImage {
   const out = new Uint8Array(img.width * img.height);
   const d = img.data;
-  for (let i = 0, p = 0; i < out.length; i++, p += 4) {
-    out[i] = ((d[p] ?? 0) * 299 + (d[p + 1] ?? 0) * 587 + (d[p + 2] ?? 0) * 114) / 1000;
+  if (channel === 'luma') {
+    for (let i = 0, p = 0; i < out.length; i++, p += 4) {
+      out[i] = ((d[p] ?? 0) * 299 + (d[p + 1] ?? 0) * 587 + (d[p + 2] ?? 0) * 114) / 1000;
+    }
+  } else {
+    // One colour only, as a card profile chooses: ink of another colour then reads as paper.
+    const offset = channel === 'red' ? 0 : channel === 'green' ? 1 : 2;
+    for (let i = 0, p = offset; i < out.length; i++, p += 4) out[i] = d[p] ?? 0;
   }
   return { width: img.width, height: img.height, data: out };
 }
+
+/** The colour darkness is measured in: ordinary brightness, or one colour channel. */
+export type Channel = 'luma' | 'red' | 'green' | 'blue';
 
 /** A smaller copy (box average), so finding the card is fast on a full camera frame. */
 export function shrink(img: GreyImage, factor: number): GreyImage {

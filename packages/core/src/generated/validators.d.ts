@@ -11,3 +11,4 @@ export declare const validateEventSetupSchema: SchemaValidator;
 export declare const validateResultsSchema: SchemaValidator;
 export declare const validateImportMappingSchema: SchemaValidator;
 export declare const validateLabelTemplateSchema: SchemaValidator;
+export declare const validateCardProfileSchema: SchemaValidator;

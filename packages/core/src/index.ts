@@ -10,6 +10,17 @@ export {
 export type { ValidationIssue, ValidationResult } from './validation.js';
 export { validateEventSetup, CARD_PROFILE_ROWS, DEFAULT_CARD_PROFILE } from './setup-validation.js';
 export { validateResults } from './results-validation.js';
+// Card profiles (#105; presets in presets/card-profiles/).
+export {
+  CARD_PROFILES,
+  canAutoAccept,
+  cardProfile,
+  checkCardProfile,
+  type CardColumn,
+  type CardProfile,
+  type CardThresholds,
+  type CardTunedFrom,
+} from './card-profiles.js';
 export * from './results/index.js';
 
 // Types generated from schemas/ (ADR 0008).

@@ -9,15 +9,16 @@ import {
   Title,
   useMantineTheme,
 } from '@mantine/core';
-import { qrMatrix, qrPayload } from '@tscore/core';
+import { cardProfile, qrMatrix, qrPayload } from '@tscore/core';
 import {
   readCard,
+  readerProfile,
   readLabel,
   syntheticCard,
   type CardReading,
   type RgbaImage,
 } from '@tscore/vision';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18next from '../i18n';
 import type { AppError, CardDesk, OpenEvent } from '../../../shared/ipc';
@@ -68,6 +69,15 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
   const theme = useMantineTheme();
   const big = theme.other['scanDeskFontSize'] as string;
   const [desk, setDesk] = useState<CardDesk | null>(null);
+  // The event's scorecard (#105): how to read it, and whether its cards can save by themselves.
+  const profile = useMemo(() => cardProfile(event.setup.event.card_profile), [event]);
+  const reader = useMemo(() => {
+    try {
+      return profile ? readerProfile(profile) : null;
+    } catch {
+      return null; // A card type the camera can't read yet: Manual entry only.
+    }
+  }, [profile]);
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [source, setSource] = useState<Source | null>(null);
   const [status, setStatus] = useState(() => i18next.t('scan.start'));
@@ -226,7 +236,11 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
         const got = grab();
         const current = deskRef.current;
         if (!current) return;
-        const r = got ? readCard(got.frame) : ({ ok: false, reason: 'NO_CARD' } as const);
+        if (!profile || !reader) {
+          setStatus(i18next.t('scan.cantReadCard'));
+          return;
+        }
+        const r = got ? readCard(got.frame, reader) : ({ ok: false, reason: 'NO_CARD' } as const);
         const card = r.ok ? r.card : null;
         if (waitingForLift.current) {
           if (!card) {
@@ -269,7 +283,7 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
           const day = current.days.length > 1 ? todayDay(current) : 1;
           id = { number: n, day, lap: nextLap(rider, day, current.cards), from: 'typed' };
         }
-        const v = verdict(r.card, id, current.riders, current.cards);
+        const v = verdict(r.card, id, current.riders, current.cards, profile);
         const shownNow: Shown = { id, card: r.card, verdict: v, image: null };
         if (v.kind === 'problem') {
           setShown(shownNow);
@@ -287,7 +301,7 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
             if (v.kind === 'save') void save(withImage);
             else {
               setShown(withImage);
-              setStatus(i18next.t('scan.needsLook'));
+              setStatus(i18next.t(v.confirm ? 'scan.confirm' : 'scan.needsLook'));
             }
           },
           'image/jpeg',
@@ -298,7 +312,7 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
       }
     }, EVERY_MS);
     return () => clearInterval(timer);
-  }, [source, grab, save, event.setup.event.code]);
+  }, [source, grab, save, event.setup.event.code, profile, reader]);
 
   // Enter sends a card that needs a look to review; Esc reads it again.
   useEffect(() => {
@@ -489,7 +503,9 @@ export function ScanDesk({ event }: { event: OpenEvent }) {
               </Group>
               {shown.verdict.kind === 'review' && (
                 <Group mt="md">
-                  <Button onClick={() => void save(shown)}>{t('scan.sendToReview')}</Button>
+                  <Button onClick={() => void save(shown)}>
+                    {shown.verdict.confirm ? t('scan.saveReading') : t('scan.sendToReview')}
+                  </Button>
                   <Button
                     variant="default"
                     onClick={() => {

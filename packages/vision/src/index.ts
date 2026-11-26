@@ -1,12 +1,13 @@
-export { toGrey, type GreyImage, type RgbaImage } from './image.js';
+export { toGrey, type Channel, type GreyImage, type RgbaImage } from './image.js';
 export { parseLabel, readLabel, type LabelId } from './label.js';
 export {
   MIN_MARGIN,
   PUNCH_THRESHOLD,
   readCard,
+  readerProfile,
   REGIONAL_16,
   type CardPose,
-  type CardProfile,
+  type ReaderProfile,
   type CardReading,
   type ReadResult,
   type RowReading,

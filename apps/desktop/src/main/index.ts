@@ -16,7 +16,7 @@ import { startBackups } from './backups';
 import { closeEvents, currentStore, eventHandlers, eventsDir } from './events';
 import { closeLiveWindow, liveWindowState, showLiveWindow, toggleLiveFullScreen } from './live';
 import { uiLanguage } from './locale';
-import { startLogging } from './logging';
+import { logFolder, startLogging } from './logging';
 import { copySuggestion, emailSuggestion, saveSuggestion } from './suggestion';
 import { cardProfileHandlers } from './card-profiles';
 import { manageHandlers } from './manage';
@@ -28,7 +28,6 @@ const testUserData = process.env['TSCORE_TEST_USER_DATA'];
 if (testUserData && !app.isPackaged) app.setPath('userData', testUserData);
 
 const logging = startLogging();
-log.info('tScore starting', { version: app.getVersion() });
 if (logging.problem) {
   log.warn('the usual log file could not be written, so this session logs here', logging);
 }
@@ -64,7 +63,9 @@ function registerIpc(): void {
     arch: process.arch,
     os: `${os.version()} (${os.release()})`,
     eventsDir: eventsDir(),
+    logFile: logging.path,
   }));
+  handle(IPC.showLogFolder, () => shell.openPath(logFolder()).then(() => undefined));
   handle(IPC.emailSuggestion, (_e, text: string) => emailSuggestion(text));
   handle(IPC.copySuggestion, (_e, text: string) => copySuggestion(text));
   handle(IPC.saveSuggestion, (e, text: string) =>
@@ -249,6 +250,7 @@ function createWindow(): void {
 }
 
 if (!app.requestSingleInstanceLock()) {
+  log.info('another copy of tScore is already running: showing it, and this one closes');
   app.quit();
 } else {
   app.on('second-instance', () => {
@@ -268,5 +270,8 @@ if (!app.requestSingleInstanceLock()) {
 
   app.on('window-all-closed', () => app.quit());
   // Close the event file cleanly. (A crash is safe too: every save is already committed.)
-  app.on('will-quit', () => closeEvents());
+  app.on('will-quit', () => {
+    closeEvents();
+    log.info('tScore closing', { pid: process.pid });
+  });
 }

@@ -221,6 +221,19 @@ function Shell() {
               arch: info?.arch ?? '',
             })}
           </Text>
+          <Group gap="sm" wrap="nowrap" align="flex-start">
+            <Button
+              variant="default"
+              size="xs"
+              onClick={() => void window.tscore.showLogFolder()}
+              style={{ flexShrink: 0 }}
+            >
+              {t('app.showLogFolder')}
+            </Button>
+            <Text size="xs" c="dimmed" style={{ wordBreak: 'break-all' }}>
+              {t('app.logFile', { path: info?.logFile ?? '' })}
+            </Text>
+          </Group>
           <Text size="xs">
             {t('app.licence')}{' '}
             <Anchor href="https://github.com/offdarecord/tScore" target="_blank">

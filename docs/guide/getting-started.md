@@ -77,8 +77,18 @@ INSWAN INS-2, IPEVO DO-CAM.
 
 ## Updates
 
-When the laptop is online and no event is open, tScore checks for a new version as it starts.
-It downloads it and installs it the next time tScore closes. It never updates during an event.
+When the laptop is online and no event is open, tScore checks for a new version as it starts,
+and every few hours while it's open. It downloads it in the background, then installs it the
+next time tScore closes. It never checks or downloads during an event, and never restarts by
+itself.
+
+- **Home** says "Downloading tScore …" with how far it's got, then "tScore … is ready: it
+  installs when you close tScore". The first time tScore opens after that, Home says which
+  version it is now.
+- **About** shows the version, when tScore last checked, and **Check for updates**. If the
+  download hasn't finished when you close tScore, it starts again next time.
+
+On a Mac, About says updates are by hand for now, with a link to the latest release.
 
 ## Find your way around
 

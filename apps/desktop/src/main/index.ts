@@ -21,7 +21,7 @@ import { copySuggestion, emailSuggestion, saveSuggestion } from './suggestion';
 import { cardProfileHandlers } from './card-profiles';
 import { manageHandlers } from './manage';
 import { saveSampleRiderList } from './rider-list-sample';
-import { checkForUpdatesWhenSafe } from './updates';
+import { checkForUpdates, startUpdates, updateStatus } from './updates';
 
 // Automated tests run the app with its own data folder, so they never touch (or get blocked by)
 // a real copy of tScore open on the same machine. Must happen before anything uses userData.
@@ -194,6 +194,8 @@ function registerIpc(): void {
   handle(IPC.closeLiveScores, () => closeLiveWindow());
   handle(IPC.liveWindowState, () => liveWindowState());
   handle(IPC.toggleLiveFullScreen, () => toggleLiveFullScreen());
+  handle(IPC.updateStatus, () => updateStatus());
+  handle(IPC.checkForUpdates, () => checkForUpdates());
 }
 
 /** The desk window (the big screen is another window, see live.ts). */
@@ -267,7 +269,7 @@ if (!app.requestSingleInstanceLock()) {
     registerIpc();
     startBackups(currentStore);
     createWindow();
-    checkForUpdatesWhenSafe();
+    startUpdates((status) => desk?.webContents.send(IPC.updateStatusChanged, status));
   });
 
   app.on('window-all-closed', () => app.quit());

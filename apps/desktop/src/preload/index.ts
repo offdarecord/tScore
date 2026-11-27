@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { IPC, type TscoreApi } from '../shared/ipc';
+import { IPC, type TscoreApi, type UpdateStatus } from '../shared/ipc';
 
 const call =
   <A extends unknown[], R>(channel: string) =>
@@ -82,6 +82,13 @@ const api: TscoreApi = {
   saveLabelTestPage: call(IPC.saveLabelTestPage),
   setLabelOffset: call(IPC.setLabelOffset),
   course: call(IPC.course),
+  updateStatus: call(IPC.updateStatus),
+  checkForUpdates: call(IPC.checkForUpdates),
+  onUpdateStatus: (listener) => {
+    const relay = (_e: Electron.IpcRendererEvent, status: UpdateStatus) => listener(status);
+    ipcRenderer.on(IPC.updateStatusChanged, relay);
+    return () => void ipcRenderer.removeListener(IPC.updateStatusChanged, relay);
+  },
 };
 
 contextBridge.exposeInMainWorld('tscore', api);

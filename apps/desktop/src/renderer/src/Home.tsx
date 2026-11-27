@@ -26,6 +26,7 @@ import { formatDate, today } from './format';
 import type { ManageAction } from './manage/ManageEvents';
 import { formatBytes, oldEvents, totalBytes } from './manage/manageLogic';
 import { ErrorAlert } from './ErrorAlert';
+import { UpdateNotice } from './Updates';
 
 interface Props {
   readonly info: AppInfo | null;
@@ -93,6 +94,8 @@ export function Home({ info, onNew, onSeries, onCardTypes, onManage, onOpened }:
           </Button>
         </Group>
       </Group>
+
+      <UpdateNotice version={info?.version} />
 
       {error && (
         <ErrorAlert error={error} title={t('home.didntOpen')} onClose={() => setError(null)} />

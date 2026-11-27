@@ -17,6 +17,7 @@ import { ManageEvents, type ManageAction } from './manage/ManageEvents';
 import { Series } from './series/Series';
 import { SetupForm } from './setup/SetupForm';
 import { SuggestFeature } from './SuggestFeature';
+import { UpdateAbout } from './Updates';
 
 type Screen =
   | { kind: 'home' }
@@ -211,6 +212,7 @@ function Shell() {
       >
         <Stack gap="xs">
           <Text>{t('app.version', { version: info?.version ?? '…' })}</Text>
+          <UpdateAbout />
           <Text fs="italic">{t('app.tagline')}</Text>
           <Text size="xs" c="dimmed">
             {t('app.runtime', {

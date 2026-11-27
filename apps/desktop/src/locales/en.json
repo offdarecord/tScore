@@ -15,6 +15,24 @@
     "helpPanel": "Help panel",
     "close": "Close"
   },
+  "updates": {
+    "downloading": "Downloading tScore {{version}}…",
+    "progress": "Download {{percent}}% done",
+    "ready": "tScore {{version}} is ready: it installs when you close tScore.",
+    "installed": "tScore is now version {{version}}.",
+    "check": "Check for updates",
+    "checking": "Checking…",
+    "latest": "You have the latest version.",
+    "downloadingPercent": "Downloading tScore {{version}}… {{percent}}%",
+    "readyShort": "Ready: close tScore to install {{version}}.",
+    "offline": "Couldn't check: no internet.",
+    "eventOpen": "Close the event first: tScore doesn't update during an event.",
+    "lastChecked": "Last checked {{when}}.",
+    "neverChecked": "Not checked yet.",
+    "off": "This copy runs from source, so it doesn't update itself.",
+    "byHand": "The Mac version updates by hand until it's signed: download each new version and drag it into Applications.",
+    "latestRelease": "Latest release"
+  },
   "scheme": {
     "label": "Colour scheme",
     "light": "Light",

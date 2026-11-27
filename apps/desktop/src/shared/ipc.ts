@@ -98,6 +98,10 @@ export const IPC = {
   saveLabelTestPage: 'labels:save-test-page',
   setLabelOffset: 'labels:set-offset',
   course: 'course:view',
+  updateStatus: 'updates:status',
+  checkForUpdates: 'updates:check',
+  /** Main → renderer: the update status changed. */
+  updateStatusChanged: 'updates:changed',
 } as const;
 
 /** One lap on the Progress grid. */
@@ -374,6 +378,31 @@ export interface AppInfo {
   readonly eventsDir: string;
   /** The diagnostic log this session writes to (ADR 0012). */
   readonly logFile: string;
+}
+
+/**
+ * Where updating tScore has got to, for Home and About (#137).
+ * - `off`: a copy run from source, which never updates.
+ * - `byHand`: the unsigned Mac beta, which updates by hand (#61).
+ * - `eventOpen`: a check was asked for, but updates wait while an event is open.
+ */
+export type UpdateState =
+  | { readonly kind: 'off' }
+  | { readonly kind: 'byHand' }
+  | { readonly kind: 'idle' }
+  | { readonly kind: 'checking' }
+  | { readonly kind: 'latest' }
+  | { readonly kind: 'eventOpen' }
+  | { readonly kind: 'offline' }
+  | { readonly kind: 'downloading'; readonly version: string; readonly percent: number }
+  | { readonly kind: 'ready'; readonly version: string };
+
+export interface UpdateStatus {
+  readonly state: UpdateState;
+  /** When tScore last finished a check (ISO date-time), or null if it never has. */
+  readonly lastChecked: string | null;
+  /** The version this copy was updated from, on the first start after an update. */
+  readonly updatedFrom: string | null;
 }
 
 /** An event in the recent list. */
@@ -728,4 +757,9 @@ export interface TscoreApi {
   setLabelOffset(offset: LabelOffset): Promise<Outcome<LabelOffset>>;
   /** Progress and Still on course for a day (default: today's day, else day 1). */
   course(day?: number): Promise<Outcome<CourseView>>;
+  updateStatus(): Promise<UpdateStatus>;
+  /** Check now (About → Check for updates). Never while an event is open. */
+  checkForUpdates(): Promise<UpdateStatus>;
+  /** Calls back whenever the update status changes. Returns a function that stops it. */
+  onUpdateStatus(listener: (status: UpdateStatus) => void): () => void;
 }

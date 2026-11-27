@@ -8,6 +8,7 @@ const call =
 
 const api: TscoreApi = {
   getAppInfo: call(IPC.appInfo),
+  showLogFolder: call(IPC.showLogFolder),
   listSeries: call(IPC.listSeries),
   newSeries: call(IPC.newSeries),
   seriesView: call(IPC.seriesView),

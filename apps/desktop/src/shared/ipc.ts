@@ -24,6 +24,7 @@ import type {
 
 export const IPC = {
   appInfo: 'app:info',
+  showLogFolder: 'app:show-log-folder',
   listSeries: 'series:list',
   newSeries: 'series:new',
   seriesView: 'series:view',
@@ -371,6 +372,8 @@ export interface AppInfo {
   readonly os: string;
   /** Where new events are saved. */
   readonly eventsDir: string;
+  /** The diagnostic log this session writes to (ADR 0012). */
+  readonly logFile: string;
 }
 
 /** An event in the recent list. */
@@ -587,6 +590,8 @@ export type Outcome<T> =
 
 export interface TscoreApi {
   getAppInfo(): Promise<AppInfo>;
+  /** Open the folder the log is in (About → Show log folder). */
+  showLogFolder(): Promise<void>;
   listSeries(): Promise<Outcome<SeriesSummary[]>>;
   newSeries(name: string): Promise<Outcome<SeriesView>>;
   seriesView(file: string): Promise<Outcome<SeriesView>>;

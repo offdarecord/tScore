@@ -34,7 +34,6 @@ export const ERROR_AREAS = [
   { area: 'SER', name: 'Series points' },
 ] as const;
 
-const LOGS = '`%APPDATA%\\tScore\\logs`';
 const ISSUES = 'https://github.com/offdarecord/tScore/issues';
 
 export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
@@ -47,7 +46,7 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
     fix:
       `Try again. If it happens again, close tScore and open it again. If it keeps happening, ` +
       `tell the maintainers at <${ISSUES}>: say what you were doing, give the code, and attach ` +
-      `that day's log file from ${LOGS} (it holds rider numbers, never names).`,
+      `the log file: About → Show log folder opens it (it holds rider numbers, never names).`,
     internal: ['APP_UNEXPECTED'],
   },
   {

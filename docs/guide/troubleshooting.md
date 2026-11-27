@@ -64,8 +64,9 @@ change is saved. If that doesn't help, restart the laptop.
 tScore is free software looked after by volunteers. To report a problem or ask a question:
 
 1. Note the error code, and what you were doing when it happened.
-2. Find tScore's log for that day: in File Explorer, type `%APPDATA%\tScore\logs` in the address
-   bar. The log has rider numbers, never names.
+2. Find tScore's log: **About → Show log folder** opens the folder, and About shows the log
+   file's name. (Or in File Explorer, type `%APPDATA%\tScore\logs` in the address bar.) The
+   log has rider numbers, never names.
 3. Open an issue at <https://github.com/offdarecord/tScore/issues> with the code, what happened,
    and the log file attached.
 

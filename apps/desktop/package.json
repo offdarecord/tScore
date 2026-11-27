@@ -1,7 +1,7 @@
 {
   "name": "tscore",
   "productName": "tScore",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "private": true,
   "description": "Scoring for motorcycle trials, with punched-card scanning.",
   "author": "tScore contributors",

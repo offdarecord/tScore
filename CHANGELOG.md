@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.8.1](https://github.com/offdarecord/tScore/compare/v0.8.0...v0.8.1) (2026-11-27)
+
+
+### Added
+
+* show update progress in the app, and a Check for updates button ([#140](https://github.com/offdarecord/tScore/issues/140)) ([5903899](https://github.com/offdarecord/tScore/commit/5903899df66c7dfff9bc2c506793f7c5dad37a27))
+* the rider-list format and a sample CSV, available offline ([#143](https://github.com/offdarecord/tScore/issues/143)) ([9210c1d](https://github.com/offdarecord/tScore/commit/9210c1d90afb4bdcaf35e0d2a30e5b77dc0168b9))
+
+
+### Fixed
+
+* the log can't go missing, and About can show the log folder ([#141](https://github.com/offdarecord/tScore/issues/141)) ([fbbb9fa](https://github.com/offdarecord/tScore/commit/fbbb9fa59e4c389557197ba38d8b2cb2d271e4d3))
+
 ## [0.8.0](https://github.com/offdarecord/tScore/compare/v0.7.1...v0.8.0) (2026-11-26)
 
 

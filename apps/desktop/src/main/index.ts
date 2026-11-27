@@ -20,6 +20,7 @@ import { logFolder, startLogging } from './logging';
 import { copySuggestion, emailSuggestion, saveSuggestion } from './suggestion';
 import { cardProfileHandlers } from './card-profiles';
 import { manageHandlers } from './manage';
+import { saveSampleRiderList } from './rider-list-sample';
 import { checkForUpdates, startUpdates, updateStatus } from './updates';
 
 // Automated tests run the app with its own data folder, so they never touch (or get blocked by)
@@ -135,6 +136,9 @@ function registerIpc(): void {
   );
   handle(IPC.chooseEntryList, (e) =>
     eventHandlers.chooseEntryList(BrowserWindow.fromWebContents(e.sender)),
+  );
+  handle(IPC.saveSampleRiderList, (e) =>
+    saveSampleRiderList(BrowserWindow.fromWebContents(e.sender)),
   );
   handle(IPC.importRiders, (_e, choices: Parameters<typeof eventHandlers.importRiders>[0]) =>
     eventHandlers.importRiders(choices),

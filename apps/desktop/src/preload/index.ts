@@ -46,6 +46,7 @@ const api: TscoreApi = {
   updateRider: call(IPC.updateRider),
   addLateEntry: call(IPC.addLateEntry),
   chooseEntryList: call(IPC.chooseEntryList),
+  saveSampleRiderList: call(IPC.saveSampleRiderList),
   importRiders: call(IPC.importRiders),
   cardDesk: call(IPC.cardDesk),
   saveCard: call(IPC.saveCard),

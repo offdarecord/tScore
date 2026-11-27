@@ -56,8 +56,8 @@ and a copy moved to another laptop have them too.
 
 On **Riders**, choose **Import from entry list…** and pick the export from your entry system.
 tScore reads **Entryplace** and **Ridernet** exports as they come; don't edit them in Excel
-first. For any other source, copy the riders into the tScore rider-list format first (see
-[the rider-list format](https://github.com/offdarecord/tScore/blob/main/docs/interop/rider-list.md)).
+first. For any other source, copy the riders into a [tScore rider list](#tscore-rider-list)
+first.
 
 Nothing is saved until you choose **Import**. The import screen asks only what tScore can't
 decide itself:
@@ -76,6 +76,38 @@ addresses, phone numbers, medical and emergency details stay in the entry system
 > [!TIP]
 > If more entries arrive, import the new export again. Riders already in the event are left as
 > they are, and only the new ones are added, with new numbers.
+
+### tScore rider list
+
+For an entry system tScore doesn't read, or a list typed up by hand. It's a spreadsheet saved
+as **CSV UTF-8**, with one rider per row and these headings in the first row, in any order:
+
+| Heading              | Needed?  | Example      | Notes                                              |
+| -------------------- | -------- | ------------ | -------------------------------------------------- |
+| `Given name`         | Required | Avery        |                                                    |
+| `Family name`        | Required | Stone        |                                                    |
+| `Class`              | Required | Trial 4 Plus | The event's class name                             |
+| `Club`               | Optional | Example MCC  |                                                    |
+| `Licence`            | Optional | 123456       | Spots a rider entered twice, and on a later import |
+| `Number`             | Optional | 42           | Kept when every rider has a different number       |
+| `Competition status` | Optional | NC           | `NC` = non-competitive, `NA` = No award            |
+| `Machine`            | Optional | Beta Evo 300 | Make and model                                     |
+
+For example:
+
+```csv
+Given name,Family name,Class,Club,Licence,Number,Competition status,Machine
+Avery,Stone,Trial 1,Example MCC,100001,,,Beta Evo 300
+Drew,Field,Trial 2,Sample Trials Club,100004,,NC,Sherco ST 300
+```
+
+The easy way: on **Riders**, choose **Save a sample rider list…**. It saves a list of ten
+invented riders in the default classes, with no internet needed. Open it in Excel, replace the
+riders with yours, then **File → Save As** and choose **CSV UTF-8 (Comma delimited)**. Plain
+"CSV" can garble names with accents.
+
+The [full rider-list reference](https://github.com/offdarecord/tScore/blob/main/docs/interop/rider-list.md)
+on GitHub has the details.
 
 ## Riders
 

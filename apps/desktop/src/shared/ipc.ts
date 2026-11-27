@@ -61,6 +61,7 @@ export const IPC = {
   riders: 'event:riders',
   updateRider: 'event:update-rider',
   addLateEntry: 'event:add-late-entry',
+  saveSampleRiderList: 'riders:save-sample',
   chooseEntryList: 'import:choose-file',
   importRiders: 'import:riders',
   cardDesk: 'cards:desk',
@@ -689,6 +690,8 @@ export interface TscoreApi {
   ): Promise<Outcome<{ readonly number: number; readonly riders: RiderInfo[] }>>;
   /** Shows the open dialog and reads the file. `null` if the desk cancels. */
   chooseEntryList(): Promise<Outcome<EntryListFile | null>>;
+  /** Shows the save dialog, then saves the sample tScore rider list. `null` if cancelled. */
+  saveSampleRiderList(): Promise<Outcome<string | null>>;
   /** Import the chosen list's riders, with the desk's choices. */
   importRiders(choices: ImportChoices): Promise<Outcome<OpenEvent>>;
   cardDesk(): Promise<Outcome<CardDesk>>;

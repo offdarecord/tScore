@@ -230,3 +230,31 @@ test('the import and riders screens meet WCAG 2.2 AA (automated check)', async (
   await expect(window.getByRole('status')).toBeVisible();
   await check();
 });
+
+test('Riders saves the sample rider list with no internet, and it imports', async () => {
+  await newEventAtRiders();
+  const saveTo = join(run.userData, 'my-riders.csv');
+  await run.app.evaluate(({ dialog }, path) => {
+    dialog.showSaveDialog = (() =>
+      Promise.resolve({ canceled: false, filePath: path })) as typeof dialog.showSaveDialog;
+  }, saveTo);
+  await window.getByRole('button', { name: 'Save a sample rider list…' }).click();
+  await expect(window.getByText('Sample rider list saved')).toBeVisible();
+  await expect(window.getByText(`Saved as ${saveTo}.`)).toBeVisible();
+
+  // The website's own file, byte for byte (byte-order mark included): no second copy.
+  const site = readFileSync(join(__dirname, '../../../site/tscore-rider-list-sample.csv'));
+  expect(readFileSync(saveTo).equals(site)).toBe(true);
+
+  const results = await new AxeBuilder({ page: window })
+    .setLegacyMode(true)
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+    .analyze();
+  expect(
+    results.violations.map((v) => `${v.id}: ${v.help} (${v.nodes.length} element(s))`),
+  ).toEqual([]);
+
+  await pick(saveTo);
+  await window.getByRole('button', { name: 'Import from entry list…' }).click();
+  await expect(window.getByText('✓ Recognised: tScore rider list')).toBeVisible();
+});

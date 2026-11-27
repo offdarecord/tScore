@@ -66,7 +66,8 @@ For entry systems tScore doesn't know, save the list as **CSV UTF-8** with these
 | `Machine`            | Beta Evo 300 | Optional. Make and model; the desk can change it later  |
 
 [Download a sample rider list](https://offdarecord.github.io/tScore/tscore-rider-list-sample.csv)
-with ten invented riders in the default classes: open it in Excel, replace the riders with
+(or, with no internet, **Riders → Save a sample rider list…** in tScore) with ten invented
+riders in the default classes: open it in Excel, replace the riders with
 yours, and save it as **CSV UTF-8**. In short:
 
 ```csv

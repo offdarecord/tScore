@@ -208,7 +208,7 @@ If a problem keeps happening, see [Troubleshooting](troubleshooting.md).
 
 **tScore doesn't recognise this file.** The spreadsheet isn't an Entryplace or Ridernet export, or a list in the tScore rider-list format.
 
-**What to do:** Download the riders export from the entry system again, unchanged. For any other list, copy it into the tScore rider-list format (see [Before the event](before-the-event.md#import-the-entry-list)).
+**What to do:** Download the riders export from the entry system again, unchanged. For any other list, copy it into the tScore rider-list format (see [tScore rider list](before-the-event.md#tscore-rider-list)).
 
 ### TS-IMP-006
 

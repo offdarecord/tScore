@@ -77,6 +77,7 @@ export function Riders({ event, notice, onImport, onLabels, onEventChange }: Pro
   const [find, setFind] = useState('');
   const [editing, setEditing] = useState<RiderInfo | null>(null);
   const [error, setError] = useState<AppError | null>(null);
+  const [sample, setSample] = useState<{ saved?: string; error?: AppError } | null>(null);
   /** A rider renamed after their labels were printed: remind the desk to reprint them. */
   const [reprint, setReprint] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
@@ -97,6 +98,13 @@ export function Riders({ event, notice, onImport, onLabels, onEventChange }: Pro
     else if (r.value) onImport(r.value);
   }
 
+  /** The sample tScore rider list, for an entry system tScore doesn't read. Works offline. */
+  async function saveSample() {
+    const r = await window.tscore.saveSampleRiderList();
+    if (!r.ok) setSample({ error: r.error });
+    else if (r.value) setSample({ saved: r.value });
+  }
+
   const count = riders?.length ?? 0;
   return (
     <Stack gap="lg" maw={1100}>
@@ -111,6 +119,9 @@ export function Riders({ event, notice, onImport, onLabels, onEventChange }: Pro
           <Button variant={count ? 'default' : 'filled'} onClick={() => void choose()}>
             {t('riders.import')}
           </Button>
+          <Button variant="default" onClick={() => void saveSample()}>
+            {t('riders.saveSample')}
+          </Button>
           <Button variant="default" onClick={() => setAdding(true)}>
             {t('riders.late')}
           </Button>
@@ -124,6 +135,25 @@ export function Riders({ event, notice, onImport, onLabels, onEventChange }: Pro
       )}
       {error && (
         <ErrorAlert error={error} title={t('riders.notRead')} onClose={() => setError(null)} />
+      )}
+      {sample?.saved && (
+        <Alert
+          color="green"
+          role="status"
+          title={t('riders.sampleSaved')}
+          withCloseButton
+          closeButtonLabel={t('riders.dismiss')}
+          onClose={() => setSample(null)}
+        >
+          {t('riders.sampleHelp', { file: sample.saved })}
+        </Alert>
+      )}
+      {sample?.error && (
+        <ErrorAlert
+          error={sample.error}
+          title={t('riders.sampleNotSaved')}
+          onClose={() => setSample(null)}
+        />
       )}
       {added && (
         <Alert

@@ -296,7 +296,7 @@ export const ERROR_CATALOGUE: readonly ErrorEntry[] = [
       "The spreadsheet isn't an Entryplace or Ridernet export, or a list in the tScore rider-list format.",
     fix:
       'Download the riders export from the entry system again, unchanged. For any other list, ' +
-      'copy it into the tScore rider-list format (see [Before the event](before-the-event.md#import-the-entry-list)).',
+      'copy it into the tScore rider-list format (see [tScore rider list](before-the-event.md#tscore-rider-list)).',
     internal: ['IMPORT_UNKNOWN_FORMAT'],
   },
   {

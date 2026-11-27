@@ -27,6 +27,12 @@ async function about() {
   await window.getByRole('button', { name: 'About' }).click();
   const dialog = window.getByRole('dialog', { name: 'About tScore' });
   await expect(dialog).toBeVisible();
+  // Let the box finish fading in: half-faded text fails the contrast check.
+  await window.waitForFunction(() =>
+    [...document.querySelectorAll('.mantine-Modal-content, .mantine-Modal-overlay')].every(
+      (el) => getComputedStyle(el).opacity === '1' || getComputedStyle(el).opacity === '0.6',
+    ),
+  );
   return dialog;
 }
 
